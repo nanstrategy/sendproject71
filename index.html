@@ -281,7 +281,7 @@ tr:hover td{background:#faf9f6}
     <div class="r2">
       <div>
         <label>9. ตัวชี้วัดและค่าเป้าหมาย * <span style="color:var(--t3);font-weight:400">(เพิ่มได้สูงสุด 5 ตัวชี้วัด)</span></label>
-        <div id="kpi-list" style="margin-bottom:6px"></div>
+        <div id="kpi-items-list" style="margin-bottom:6px"></div>
         <div style="display:flex;gap:6px">
           <textarea id="kpi-input" rows="2" placeholder="พิมพ์ตัวชี้วัดทีละบรรทัด แล้วกด ➕ เพื่อเพิ่มทีเดียวได้สูงสุด 5 ตัว เช่น&#10;รายได้เกษตรกรเพิ่มขึ้น ≥15% ใน 3 ปี&#10;เกษตรกรผ่านการอบรม ≥500 ราย" style="flex:1"></textarea>
           <button class="btn btn-p" type="button" onclick="addKPIItem()">➕</button>
@@ -324,14 +324,14 @@ tr:hover td{background:#faf9f6}
           <option value="4">4 — งบเอกชน/ชุมชน</option>
         </select>
       </div>
-      <div><label>งบรวม 5 ปี (บาท)</label><input id="f-btotal" type="number" min="0" placeholder="0"></div>
-      <div><label>งบ ปี 2571 (บาท)</label><input id="f-b71" type="number" min="0" placeholder="0"></div>
-      <div><label>งบ ปี 2572 (บาท)</label><input id="f-b72" type="number" min="0" placeholder="0"></div>
+      <div><label>งบรวม 5 ปี (บาท)</label><input id="f-btotal" type="number" min="0" placeholder="0" readonly style="background:var(--bg);font-weight:700"></div>
+      <div><label>งบ ปี 2571 (บาท)</label><input id="f-b71" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2572 (บาท)</label><input id="f-b72" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
     </div>
     <div class="r4">
-      <div><label>งบ ปี 2573 (บาท)</label><input id="f-b73" type="number" min="0" placeholder="0"></div>
-      <div><label>งบ ปี 2574 (บาท)</label><input id="f-b74" type="number" min="0" placeholder="0"></div>
-      <div><label>งบ ปี 2575 (บาท)</label><input id="f-b75" type="number" min="0" placeholder="0"></div>
+      <div><label>งบ ปี 2573 (บาท)</label><input id="f-b73" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2574 (บาท)</label><input id="f-b74" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2575 (บาท)</label><input id="f-b75" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
       <div>
         <label>ความพร้อม</label>
         <select id="f-ready">
@@ -1788,6 +1788,12 @@ function showFormStatus(msg, type) {
 function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function n(id) { var el = document.getElementById(id); return el ? parseFloat(el.value) || 0 : 0; }
 
+function calcBudgetTotal() {
+  var total = n('f-b71') + n('f-b72') + n('f-b73') + n('f-b74') + n('f-b75');
+  var el = document.getElementById('f-btotal');
+  if (el) el.value = total;
+}
+
 // ============================================================
 // KPI LIST (ข้อ 9 — ตัวชี้วัดและค่าเป้าหมาย: สูงสุด 5 ตัวชี้วัด)
 // ============================================================
@@ -1801,18 +1807,18 @@ function addKPIItem() {
     else { skipped++; }
   });
   inp.value = '';
-  renderKPIList();
+  renderKPIItemList();
   inp.focus();
   if (skipped > 0) { alert('เพิ่มได้ ' + added + ' รายการ — อีก ' + skipped + ' รายการไม่ถูกเพิ่มเพราะเกินสูงสุด 5 ตัวชี้วัด'); }
 }
 
 function delKPIItem(i) {
   kpiItems.splice(i, 1);
-  renderKPIList();
+  renderKPIItemList();
 }
 
-function renderKPIList() {
-  var el = document.getElementById('kpi-list');
+function renderKPIItemList() {
+  var el = document.getElementById('kpi-items-list');
   var hidden = document.getElementById('f-kpi');
   if (hidden) hidden.value = kpiItems.map(function(k, i) { return (i + 1) + '. ' + k; }).join('\n');
   if (!el) return;
@@ -1882,7 +1888,7 @@ function clearForm() {
    'f-recorder','f-recorder-pos','f-recorder-org']
     .forEach(id => { var el = document.getElementById(id); if(el) el.value = ''; });
   kpiItems = [];
-  renderKPIList();
+  renderKPIItemList();
   document.getElementById('f-issue').value = '';
   populateApproachOptions();
   // ซ่อน error messages
@@ -2876,7 +2882,7 @@ setTimeout(()=>{
   syncFromSheet();
   renderChecklist();
   renderActivityList();
-  renderKPIList();
+  renderKPIItemList();
 }, 300);
 </script>
 </body>
