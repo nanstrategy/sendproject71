@@ -238,7 +238,7 @@ tr:hover td{background:#faf9f6}
     <div><label>หน่วยงานที่เกี่ยวข้อง</label><input id="f-related" placeholder="เช่น สนง.ส่งเสริมการเกษตร, อบจ.น่าน"></div>
     <div>
       <label>3. ประเด็นการพัฒนาจังหวัด *</label>
-      <select id="f-issue" onchange="populateApproachOptions()">
+      <select id="f-issue" onchange="populateApproachOptions();populateProvincialKPIOptions()">
         <option value="">— เลือก —</option>
         <option value="social">ประเด็นการพัฒนาที่ 1 สุขภาพดี สร้างโอกาส และสังคมที่ร่มเย็น</option>
         <option value="trade">ประเด็นการพัฒนาที่ 2 สุขเศรษฐกิจสร้างสรรค์และมูลค่าสูง (การค้า การลงทุน และโลจิสติกส์)</option>
@@ -247,14 +247,22 @@ tr:hover td{background:#faf9f6}
         <option value="env">ประเด็นการพัฒนาที่ 3 สุขเติบโตอย่างเป็นมิตรกับสิ่งแวดล้อม</option>
       </select>
     </div>
-    <label>4. แผนงานหลัก (ระบุว่าโครงการอยู่ภายใต้แผนงานหลักใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
+    <div>
+      <label>4. แนวทางการพัฒนา <span style="color:var(--t3);font-weight:400">(เลือกตามประเด็นการพัฒนาในข้อ 3)</span></label>
+      <select id="f-approach"><option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option></select>
+    </div>
+    <div>
+      <label>5. ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา <span style="color:var(--t3);font-weight:400">(เลือกตามประเด็นการพัฒนาในข้อ 3)</span></label>
+      <select id="f-issue-kpi"><option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option></select>
+    </div>
+    <label>6. แผนงานหลัก (ระบุว่าโครงการอยู่ภายใต้แผนงานหลักใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
     <select id="f-prog-main">
       <option value="">— เลือกแผนงานหลัก —</option>
       <option value="1">1. ส่งเสริมและพัฒนาทรัพยากรมนุษย์ทุกช่วงวัยให้มีคุณภาพพร้อมสำหรับวิถีชีวิตในศตวรรษที่ 21</option>
       <option value="2">2. ยกระดับการผลิต อุตสาหกรรม การท่องเที่ยว และการบริการ ให้เป็นเมืองเป้าหมายการลงทุนการค้าชายแดนและการค้าผ่านแดน ด้วยเครือข่ายความร่วมมือทุกภาคส่วน และนวัตกรรมที่สอดคล้องกับบริบทการเปลี่ยนแปลง</option>
       <option value="3">3. ส่งเสริมการพัฒนาในทุกมิติเพื่อให้เกิดการเติบโตที่เป็นมิตรกับสิ่งแวดล้อม</option>
     </select>
-    <label>5. แผนงาน (ระบุว่าโครงการอยู่ภายใต้แผนงานย่อยใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
+    <label>7. แผนงาน (ระบุว่าโครงการอยู่ภายใต้แผนงานย่อยใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
     <select id="f-prog">
       <option value="">— เลือกแผนงานย่อย —</option>
       <option value="1">1. ขยายผลการพัฒนาเมืองอัจฉริยะในท้องถิ่น เชื่อมโยงเครือข่ายเมืองอัจฉริยะในระดับประเทศ</option>
@@ -266,21 +274,17 @@ tr:hover td{background:#faf9f6}
       <option value="7">7. สร้างสิ่งแวดล้อมการเรียนรู้เพื่อสนับสนุนและส่งเสริมให้คนทุกช่วงวัยมีทักษะในศตวรรษที่ 21 และการเรียนรู้อย่างต่อเนื่องตลอดชีวิต และการเข้าถึงบริการทางการแพทย์ และสุขภาพเพื่อให้คนน่านมีสุขภาวะที่ดีอย่างต่อเนื่อง รวมถึงการแก้ไขปัญหาที่สำคัญของจังหวัด</option>
       <option value="8">8. ส่งเสริมการใช้ประโยชน์จากทรัพยากรธรรมชาติภายใต้แนวคิดการพัฒนาเศรษฐกิจ สังคมและสิ่งแวดล้อมที่ยั่งยืน (SDG) อาทิ carbon credit</option>
     </select>
-    <div>
-      <label>6. แนวทางการพัฒนา <span style="color:var(--t3);font-weight:400">(เลือกตามประเด็นการพัฒนาในข้อ 3)</span></label>
-      <select id="f-approach"><option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option></select>
-    </div>
   </div>
 
   <div class="card">
     <div style="font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)">ส่วนที่ 2 — สาระสำคัญ (แบบ จ.1-1)</div>
-    <label>7. หลักการและเหตุผล *</label>
+    <label>8. หลักการและเหตุผล *</label>
     <textarea id="f-reason" rows="3" placeholder="ระบุที่มา สภาพปัญหา ความจำเป็น เชื่อมโยงกับแผนระดับต่างๆ"></textarea>
-    <label>8. วัตถุประสงค์ *</label>
+    <label>9. วัตถุประสงค์ *</label>
     <textarea id="f-obj" rows="2" placeholder="ระบุวัตถุประสงค์แบบ SMART"></textarea>
     <div class="r2">
       <div>
-        <label>9. ตัวชี้วัดและค่าเป้าหมาย * <span style="color:var(--t3);font-weight:400">(เพิ่มได้สูงสุด 5 ตัวชี้วัด)</span></label>
+        <label>10. ตัวชี้วัดและค่าเป้าหมาย * <span style="color:var(--t3);font-weight:400">(เพิ่มได้สูงสุด 5 ตัวชี้วัด)</span></label>
         <div id="kpi-items-list" style="margin-bottom:6px"></div>
         <div style="display:flex;gap:6px">
           <textarea id="kpi-input" rows="2" placeholder="พิมพ์ตัวชี้วัดทีละบรรทัด แล้วกด ➕ เพื่อเพิ่มทีเดียวได้สูงสุด 5 ตัว เช่น&#10;รายได้เกษตรกรเพิ่มขึ้น ≥15% ใน 3 ปี&#10;เกษตรกรผ่านการอบรม ≥500 ราย" style="flex:1"></textarea>
@@ -288,9 +292,9 @@ tr:hover td{background:#faf9f6}
         </div>
         <input type="hidden" id="f-kpi">
       </div>
-      <div><label>10. พื้นที่เป้าหมาย *</label><input id="f-area" placeholder="เช่น อ.เมืองน่าน, ทุก 15 อำเภอ"></div>
+      <div><label>11. พื้นที่เป้าหมาย *</label><input id="f-area" placeholder="เช่น อ.เมืองน่าน, ทุก 15 อำเภอ"></div>
     </div>
-    <label>11. ขอบเขตของกิจกรรมหลักโดยสังเขป (ระบุแนวทางและวิธีการดำเนินงานที่เป็นกิจกรรมที่ส่งผลให้โครงการบรรลุวัตถุประสงค์) *</label>
+    <label>12. ขอบเขตของกิจกรรมหลักโดยสังเขป (ระบุแนวทางและวิธีการดำเนินงานที่เป็นกิจกรรมที่ส่งผลให้โครงการบรรลุวัตถุประสงค์) *</label>
     <div class="brow" style="margin-top:6px;margin-bottom:8px">
       <button class="btn btn-p" type="button" onclick="addActivity()">➕ <span id="act-next-label">เพิ่มกิจกรรมหลักที่ 1</span></button>
     </div>
@@ -307,8 +311,8 @@ tr:hover td{background:#faf9f6}
       </div>
     </div>
     <div class="r2">
-      <div><label>12. ผลผลิต (Outputs)</label><textarea id="f-output" rows="2" placeholder="เช่น เกษตรกร 500 รายได้รับรอง Organic"></textarea></div>
-      <div><label>13. ผลลัพธ์ (Outcomes)</label><textarea id="f-outcome" rows="2" placeholder="เช่น รายได้เพิ่มขึ้น 15,000 บาท/ครัวเรือน"></textarea></div>
+      <div><label>13. ผลผลิต (Outputs)</label><textarea id="f-output" rows="2" placeholder="เช่น เกษตรกร 500 รายได้รับรอง Organic"></textarea></div>
+      <div><label>14. ผลลัพธ์ (Outcomes)</label><textarea id="f-outcome" rows="2" placeholder="เช่น รายได้เพิ่มขึ้น 15,000 บาท/ครัวเรือน"></textarea></div>
     </div>
   </div>
 
@@ -316,7 +320,7 @@ tr:hover td{background:#faf9f6}
     <div style="font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)">ส่วนที่ 3 — งบประมาณและการเชื่อมโยงแผน</div>
     <div class="r4">
       <div>
-        <label>14. แหล่งงบประมาณ *</label>
+        <label>15. แหล่งงบประมาณ *</label>
         <select id="f-bsrc">
           <option value="1">1 — งบพัฒนาจังหวัด</option>
           <option value="2">2 — งบกระทรวง/กรม</option>
@@ -1099,6 +1103,52 @@ function populateApproachOptions() {
   });
   sel.innerHTML = html;
 }
+
+// ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนาจังหวัด (จากแผนพัฒนาจังหวัดน่าน) แยกตามประเด็นการพัฒนาที่ 1-3
+var PROVINCIAL_KPI_DATA = {
+  issue1: [
+    '(3.1) คนน่านทุกช่วงวัยมีคุณภาพเพิ่มขึ้น ได้รับการพัฒนาอย่างสมดุลทั้งด้านร่างกาย สติปัญญาและคุณธรรม จริยธรรม เป็นผู้มีความรู้และทักษะในศตวรรษที่ 21 รักการเรียนรู้อย่างต่อเนื่องตลอดชีวิต ไม่น้อยกว่าร้อยละ 70 ต่อปี',
+    '(3.2) อายุคาดเฉลี่ยของประชากร ไม่น้อยกว่า 78 ปี',
+    '(3.3) อายุคาดเฉลี่ยของการมีสุขภาพดี ไม่น้อยกว่า 70 ปี',
+    '(3.4) ร้อยละพื้นที่ที่ได้รับการแก้ไขปัญหาการใช้ประโยชน์ การอยู่อาศัยและทำกินตามมติ ครม. และโครงการจัดที่ดินทำกินให้ชุมชนตามนโยบายรัฐบาล (คทช.) เพิ่มขึ้นอย่างน้อยร้อยละ 40 (สะสม)',
+    '(3.5) ร้อยละของประชากรที่อยู่ภายใต้เส้นความยากจน ลดลงร้อยละ 10',
+    '(3.6) กลุ่มเปราะบางในระบบบริหารจัดการข้อมูลการพัฒนาคนแบบชี้เป้า (TPMAP) ได้รับการช่วยเหลือ ไม่น้อยกว่าร้อยละ 25'
+  ],
+  issue2: [
+    '(3.7) อัตราการขยายตัวของมูลค่าด้านเศรษฐกิจของจังหวัดน่าน ณ ราคาประจำปี เพิ่มสูงขึ้นร้อยละ 1.5 ต่อปี',
+    '(3.8) รายได้จากสินค้าอัตลักษณ์น่าน เพิ่มขึ้นร้อยละ 4',
+    '(3.9) อัตราการขยายตัวของรายได้จากการท่องเที่ยว เพิ่มขึ้นไม่น้อยกว่าร้อยละ 6 (ปี 2568) ร้อยละ 7 (ปี 2569) และร้อยละ 8 (ปี 2570)',
+    '(3.10) ผลิตภัณฑ์มวลรวมจังหวัด (GPP) ภาคเกษตรกรรม เพิ่มขึ้นอย่างน้อยร้อยละ 0.5 ต่อปี',
+    '(3.11) อัตราการขยายตัวของมูลค่าสินค้าเกษตรปลอดภัย (GAP และเกษตรอินทรีย์) ขยายตัวเฉลี่ยร้อยละ 4',
+    '(3.12) สายทางได้รับการพัฒนาเพิ่มขึ้น อย่างน้อย 5 สายทาง/ปี',
+    '(3.13) แหล่งน้ำ/ระบบบริหารจัดการน้ำได้รับการพัฒนาเพิ่มขึ้น อย่างน้อย 5 แห่ง/ปี'
+  ],
+  issue3: [
+    '(3.14) ร้อยละของพื้นที่ป่าทุกประเภทเพิ่มขึ้น ร้อยละ 0.16',
+    '(3.15) จำนวนจุดความร้อน (Hotspot) ลดลงร้อยละ 10 จากค่าเฉลี่ย 5 ปีย้อนหลัง',
+    '(3.16) พื้นที่เผาไหม้ลดลงร้อยละ 20 จากค่าเฉลี่ย 3 ปีย้อนหลัง',
+    '(3.17) การจัดการภัยพิบัติในพื้นที่เสี่ยงภัยมีประสิทธิภาพ และมีการบริหารจัดการในภาวะฉุกเฉินอย่างเป็นระบบ',
+    '(3.18) การจัดการขยะทุกประเภทถูกต้องตามหลักวิชาการ รวมถึงการหมุนเวียนกลับไปสร้างคุณค่า ไม่น้อยกว่าร้อยละ 20'
+  ]
+};
+// จับคู่ค่าใน f-issue (ข้อ 3) เข้ากับกลุ่มประเด็นการพัฒนา 1-3 ของ PROVINCIAL_KPI_DATA
+var ISSUE_TO_KPI_GROUP = { social: 'issue1', trade: 'issue2', agri: 'issue2', tour: 'issue2', env: 'issue3' };
+
+function populateProvincialKPIOptions() {
+  var issue = document.getElementById('f-issue').value;
+  var sel = document.getElementById('f-issue-kpi');
+  if (!sel) return;
+  var group = ISSUE_TO_KPI_GROUP[issue];
+  if (!group || !PROVINCIAL_KPI_DATA[group]) {
+    sel.innerHTML = '<option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option>';
+    return;
+  }
+  var html = '<option value="">— เลือกตัวชี้วัดและค่าเป้าหมาย —</option>';
+  PROVINCIAL_KPI_DATA[group].forEach(function(item) {
+    html += '<option value="' + item.replace(/"/g, '&quot;') + '">' + item + '</option>';
+  });
+  sel.innerHTML = html;
+}
 var clChecks = {};
 var charts = {};
 var kpiChart = null;
@@ -1118,74 +1168,75 @@ var HEADERS = [
   [_COLS[2], 'agency','Text','หน่วยงานรับผิดชอบหลัก'],
   [_COLS[3], 'related','Text','หน่วยงานที่เกี่ยวข้อง (โครงการ)'],
   [_COLS[4], 'issue','Text','ประเด็นการพัฒนาจังหวัด'],
-  [_COLS[5], 'progMain','Text','แผนงานหลัก'],
-  [_COLS[6], 'prog','Text','แผนงาน (ย่อย)'],
-  [_COLS[7], 'approach','Text','แนวทางการพัฒนา'],
-  [_COLS[8], 'reason','Text','หลักการและเหตุผล'],
-  [_COLS[9], 'obj','Text','วัตถุประสงค์'],
-  [_COLS[10],'kpi','Text','ตัวชี้วัดและค่าเป้าหมาย'],
-  [_COLS[11],'area','Text','พื้นที่เป้าหมาย'],
+  [_COLS[5], 'approach','Text','แนวทางการพัฒนา'],
+  [_COLS[6], 'issueKpi','Text','ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา'],
+  [_COLS[7], 'progMain','Text','แผนงานหลัก'],
+  [_COLS[8], 'prog','Text','แผนงาน (ย่อย)'],
+  [_COLS[9], 'reason','Text','หลักการและเหตุผล'],
+  [_COLS[10],'obj','Text','วัตถุประสงค์'],
+  [_COLS[11],'kpi','Text','ตัวชี้วัดและค่าเป้าหมาย (โครงการ)'],
+  [_COLS[12],'area','Text','พื้นที่เป้าหมาย'],
   // กิจกรรมหลัก 1–10 (4 คอลัมน์ต่อกิจกรรม: ชื่อ, งบ, หน่วยงานผู้รับผิดชอบ, หน่วยงานที่เกี่ยวข้อง)
-  [_COLS[12],'act1_name','Text','กิจกรรมหลักที่ 1 — ชื่อกิจกรรม'],
-  [_COLS[13],'act1_budget','Number','กิจกรรมหลักที่ 1 — งบประมาณ (บาท)'],
-  [_COLS[14],'act1_agency','Text','กิจกรรมหลักที่ 1 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[15],'act1_related','Text','กิจกรรมหลักที่ 1 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[16],'act2_name','Text','กิจกรรมหลักที่ 2 — ชื่อกิจกรรม'],
-  [_COLS[17],'act2_budget','Number','กิจกรรมหลักที่ 2 — งบประมาณ (บาท)'],
-  [_COLS[18],'act2_agency','Text','กิจกรรมหลักที่ 2 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[19],'act2_related','Text','กิจกรรมหลักที่ 2 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[20],'act3_name','Text','กิจกรรมหลักที่ 3 — ชื่อกิจกรรม'],
-  [_COLS[21],'act3_budget','Number','กิจกรรมหลักที่ 3 — งบประมาณ (บาท)'],
-  [_COLS[22],'act3_agency','Text','กิจกรรมหลักที่ 3 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[23],'act3_related','Text','กิจกรรมหลักที่ 3 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[24],'act4_name','Text','กิจกรรมหลักที่ 4 — ชื่อกิจกรรม'],
-  [_COLS[25],'act4_budget','Number','กิจกรรมหลักที่ 4 — งบประมาณ (บาท)'],
-  [_COLS[26],'act4_agency','Text','กิจกรรมหลักที่ 4 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[27],'act4_related','Text','กิจกรรมหลักที่ 4 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[28],'act5_name','Text','กิจกรรมหลักที่ 5 — ชื่อกิจกรรม'],
-  [_COLS[29],'act5_budget','Number','กิจกรรมหลักที่ 5 — งบประมาณ (บาท)'],
-  [_COLS[30],'act5_agency','Text','กิจกรรมหลักที่ 5 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[31],'act5_related','Text','กิจกรรมหลักที่ 5 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[32],'act6_name','Text','กิจกรรมหลักที่ 6 — ชื่อกิจกรรม'],
-  [_COLS[33],'act6_budget','Number','กิจกรรมหลักที่ 6 — งบประมาณ (บาท)'],
-  [_COLS[34],'act6_agency','Text','กิจกรรมหลักที่ 6 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[35],'act6_related','Text','กิจกรรมหลักที่ 6 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[36],'act7_name','Text','กิจกรรมหลักที่ 7 — ชื่อกิจกรรม'],
-  [_COLS[37],'act7_budget','Number','กิจกรรมหลักที่ 7 — งบประมาณ (บาท)'],
-  [_COLS[38],'act7_agency','Text','กิจกรรมหลักที่ 7 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[39],'act7_related','Text','กิจกรรมหลักที่ 7 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[40],'act8_name','Text','กิจกรรมหลักที่ 8 — ชื่อกิจกรรม'],
-  [_COLS[41],'act8_budget','Number','กิจกรรมหลักที่ 8 — งบประมาณ (บาท)'],
-  [_COLS[42],'act8_agency','Text','กิจกรรมหลักที่ 8 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[43],'act8_related','Text','กิจกรรมหลักที่ 8 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[44],'act9_name','Text','กิจกรรมหลักที่ 9 — ชื่อกิจกรรม'],
-  [_COLS[45],'act9_budget','Number','กิจกรรมหลักที่ 9 — งบประมาณ (บาท)'],
-  [_COLS[46],'act9_agency','Text','กิจกรรมหลักที่ 9 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[47],'act9_related','Text','กิจกรรมหลักที่ 9 — หน่วยงานที่เกี่ยวข้อง'],
-  [_COLS[48],'act10_name','Text','กิจกรรมหลักที่ 10 — ชื่อกิจกรรม'],
-  [_COLS[49],'act10_budget','Number','กิจกรรมหลักที่ 10 — งบประมาณ (บาท)'],
-  [_COLS[50],'act10_agency','Text','กิจกรรมหลักที่ 10 — หน่วยงานผู้รับผิดชอบ'],
-  [_COLS[51],'act10_related','Text','กิจกรรมหลักที่ 10 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[13],'act1_name','Text','กิจกรรมหลักที่ 1 — ชื่อกิจกรรม'],
+  [_COLS[14],'act1_budget','Number','กิจกรรมหลักที่ 1 — งบประมาณ (บาท)'],
+  [_COLS[15],'act1_agency','Text','กิจกรรมหลักที่ 1 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[16],'act1_related','Text','กิจกรรมหลักที่ 1 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[17],'act2_name','Text','กิจกรรมหลักที่ 2 — ชื่อกิจกรรม'],
+  [_COLS[18],'act2_budget','Number','กิจกรรมหลักที่ 2 — งบประมาณ (บาท)'],
+  [_COLS[19],'act2_agency','Text','กิจกรรมหลักที่ 2 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[20],'act2_related','Text','กิจกรรมหลักที่ 2 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[21],'act3_name','Text','กิจกรรมหลักที่ 3 — ชื่อกิจกรรม'],
+  [_COLS[22],'act3_budget','Number','กิจกรรมหลักที่ 3 — งบประมาณ (บาท)'],
+  [_COLS[23],'act3_agency','Text','กิจกรรมหลักที่ 3 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[24],'act3_related','Text','กิจกรรมหลักที่ 3 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[25],'act4_name','Text','กิจกรรมหลักที่ 4 — ชื่อกิจกรรม'],
+  [_COLS[26],'act4_budget','Number','กิจกรรมหลักที่ 4 — งบประมาณ (บาท)'],
+  [_COLS[27],'act4_agency','Text','กิจกรรมหลักที่ 4 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[28],'act4_related','Text','กิจกรรมหลักที่ 4 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[29],'act5_name','Text','กิจกรรมหลักที่ 5 — ชื่อกิจกรรม'],
+  [_COLS[30],'act5_budget','Number','กิจกรรมหลักที่ 5 — งบประมาณ (บาท)'],
+  [_COLS[31],'act5_agency','Text','กิจกรรมหลักที่ 5 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[32],'act5_related','Text','กิจกรรมหลักที่ 5 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[33],'act6_name','Text','กิจกรรมหลักที่ 6 — ชื่อกิจกรรม'],
+  [_COLS[34],'act6_budget','Number','กิจกรรมหลักที่ 6 — งบประมาณ (บาท)'],
+  [_COLS[35],'act6_agency','Text','กิจกรรมหลักที่ 6 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[36],'act6_related','Text','กิจกรรมหลักที่ 6 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[37],'act7_name','Text','กิจกรรมหลักที่ 7 — ชื่อกิจกรรม'],
+  [_COLS[38],'act7_budget','Number','กิจกรรมหลักที่ 7 — งบประมาณ (บาท)'],
+  [_COLS[39],'act7_agency','Text','กิจกรรมหลักที่ 7 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[40],'act7_related','Text','กิจกรรมหลักที่ 7 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[41],'act8_name','Text','กิจกรรมหลักที่ 8 — ชื่อกิจกรรม'],
+  [_COLS[42],'act8_budget','Number','กิจกรรมหลักที่ 8 — งบประมาณ (บาท)'],
+  [_COLS[43],'act8_agency','Text','กิจกรรมหลักที่ 8 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[44],'act8_related','Text','กิจกรรมหลักที่ 8 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[45],'act9_name','Text','กิจกรรมหลักที่ 9 — ชื่อกิจกรรม'],
+  [_COLS[46],'act9_budget','Number','กิจกรรมหลักที่ 9 — งบประมาณ (บาท)'],
+  [_COLS[47],'act9_agency','Text','กิจกรรมหลักที่ 9 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[48],'act9_related','Text','กิจกรรมหลักที่ 9 — หน่วยงานที่เกี่ยวข้อง'],
+  [_COLS[49],'act10_name','Text','กิจกรรมหลักที่ 10 — ชื่อกิจกรรม'],
+  [_COLS[50],'act10_budget','Number','กิจกรรมหลักที่ 10 — งบประมาณ (บาท)'],
+  [_COLS[51],'act10_agency','Text','กิจกรรมหลักที่ 10 — หน่วยงานผู้รับผิดชอบ'],
+  [_COLS[52],'act10_related','Text','กิจกรรมหลักที่ 10 — หน่วยงานที่เกี่ยวข้อง'],
   // ต่อจากกิจกรรม
-  [_COLS[52],'actCount','Number','จำนวนกิจกรรมหลักทั้งหมด'],
-  [_COLS[53],'actBudgetTotal','Number','งบรวมทุกกิจกรรมหลัก (บาท)'],
-  [_COLS[54],'output','Text','ผลผลิต (Outputs)'],
-  [_COLS[55],'outcome','Text','ผลลัพธ์ (Outcomes)'],
-  [_COLS[56],'bsrc','Number','แหล่งงบประมาณ (1-4)'],
-  [_COLS[57],'btotal','Number','งบรวม 5 ปี (บาท)'],
-  [_COLS[58],'b71','Number','งบ พ.ศ. 2571'],
-  [_COLS[59],'b72','Number','งบ พ.ศ. 2572'],
-  [_COLS[60],'b73','Number','งบ พ.ศ. 2573'],
-  [_COLS[61],'b74','Number','งบ พ.ศ. 2574'],
-  [_COLS[62],'b75','Number','งบ พ.ศ. 2575'],
-  [_COLS[63],'ready','Text','ความพร้อม (ready/partial/notready)'],
-  [_COLS[64],'ys','Number','ปีเริ่มต้น'],
-  [_COLS[65],'ye','Number','ปีสิ้นสุด'],
-  [_COLS[66],'nat','Text','ยุทธศาสตร์ชาติ (A)'],
-  [_COLS[67],'master','Text','แผนแม่บทฯ (B)'],
-  [_COLS[68],'econ','Text','แผนพัฒนาเศรษฐกิจฯ ฉ.14 (C)'],
-  [_COLS[69],'north','Text','แนวทางพัฒนาภาคเหนือ (D)'],
-  [_COLS[70],'cluster','Text','กลุ่มภารกิจ (Cluster)']
+  [_COLS[53],'actCount','Number','จำนวนกิจกรรมหลักทั้งหมด'],
+  [_COLS[54],'actBudgetTotal','Number','งบรวมทุกกิจกรรมหลัก (บาท)'],
+  [_COLS[55],'output','Text','ผลผลิต (Outputs)'],
+  [_COLS[56],'outcome','Text','ผลลัพธ์ (Outcomes)'],
+  [_COLS[57],'bsrc','Number','แหล่งงบประมาณ (1-4)'],
+  [_COLS[58],'btotal','Number','งบรวม 5 ปี (บาท)'],
+  [_COLS[59],'b71','Number','งบ พ.ศ. 2571'],
+  [_COLS[60],'b72','Number','งบ พ.ศ. 2572'],
+  [_COLS[61],'b73','Number','งบ พ.ศ. 2573'],
+  [_COLS[62],'b74','Number','งบ พ.ศ. 2574'],
+  [_COLS[63],'b75','Number','งบ พ.ศ. 2575'],
+  [_COLS[64],'ready','Text','ความพร้อม (ready/partial/notready)'],
+  [_COLS[65],'ys','Number','ปีเริ่มต้น'],
+  [_COLS[66],'ye','Number','ปีสิ้นสุด'],
+  [_COLS[67],'nat','Text','ยุทธศาสตร์ชาติ (A)'],
+  [_COLS[68],'master','Text','แผนแม่บทฯ (B)'],
+  [_COLS[69],'econ','Text','แผนพัฒนาเศรษฐกิจฯ ฉ.14 (C)'],
+  [_COLS[70],'north','Text','แนวทางพัฒนาภาคเหนือ (D)'],
+  [_COLS[71],'cluster','Text','กลุ่มภารกิจ (Cluster)']
 ];
 
 var ISSUE_MAP = {
@@ -1208,7 +1259,7 @@ var GAS_CODE = `// ===== Google Apps Script สำหรับระบบแผ
 var SHEET_NAME = 'ชีต1'; // เปลี่ยนถ้า Tab ชื่ออื่น
 var SHEET_NAME_J3 = 'จ3'; // Tab สำหรับบันทึกโครงการ จ.3 (gid=1463799777)
 var HEADERS = [
-  'timestamp','name','agency','related','issue','progMain','prog','approach',
+  'timestamp','name','agency','related','issue','approach','issueKpi','progMain','prog',
   'reason','obj','kpi','area',
   'act1_name','act1_budget','act1_agency','act1_related',
   'act2_name','act2_budget','act2_agency','act2_related',
@@ -1522,7 +1573,7 @@ function normalizeRow(r) {
   var base = {
     name: r.name || '', agency: r.agency || '', related: r.related || '',
     issue: r.issue || 'agri', progMain: r.progMain || '', prog: r.prog || '',
-    approach: r.approach || '', reason: r.reason || '', obj: r.obj || '',
+    approach: r.approach || '', issueKpi: r.issueKpi || '', reason: r.reason || '', obj: r.obj || '',
     kpi: r.kpi || '', area: r.area || '',
     actCount: parseInt(r.actCount) || 0,
     actBudgetTotal: parseFloat(r.actBudgetTotal) || 0,
@@ -1724,6 +1775,7 @@ async function saveToSheet() {
   var row = Object.assign({
     name, issue, agency: v('f-agency'), related: v('f-related'),
     progMain: v('f-prog-main'), prog: v('f-prog'), approach: v('f-approach'),
+    issueKpi: v('f-issue-kpi'),
     reason: v('f-reason'), obj: v('f-obj'), kpi: v('f-kpi'),
     area: v('f-area'),
     actCount: activities.length,
@@ -1881,7 +1933,7 @@ function renderActivityList() {
 }
 
 function clearForm() {
-  ['f-name','f-agency','f-related','f-prog-main','f-prog','f-approach',
+  ['f-name','f-agency','f-related','f-prog-main','f-prog','f-approach','f-issue-kpi',
    'f-reason','f-obj','f-area','f-output','f-outcome',
    'f-btotal','f-b71','f-b72','f-b73','f-b74','f-b75','f-cluster',
    'act-name','act-budget','act-agency','act-related','kpi-input',
@@ -1891,6 +1943,7 @@ function clearForm() {
   renderKPIItemList();
   document.getElementById('f-issue').value = '';
   populateApproachOptions();
+  populateProvincialKPIOptions();
   // ซ่อน error messages
   ['err-recorder','err-recorder-pos','err-recorder-org'].forEach(id => {
     var el = document.getElementById(id); if(el) el.style.display='none';
@@ -2738,7 +2791,7 @@ function setSdgView(v) {
 
 // แมป SDG อัตโนมัติจากชื่อโครงการ/หลักการ/วัตถุประสงค์
 function autoMapSdg(proj) {
-  var text = ((proj.name||'')+(proj.reason||'')+(proj.obj||'')+(proj.kpi||'')+(proj.issue||'')+(proj.approach||'')).toLowerCase();
+  var text = ((proj.name||'')+(proj.reason||'')+(proj.obj||'')+(proj.kpi||'')+(proj.issue||'')+(proj.approach||'')+(proj.issueKpi||'')).toLowerCase();
   // ถ้า proj มี sdgs field ที่ผู้ใช้เลือกไว้แล้ว ใช้นั้น
   if(proj.sdgs && proj.sdgs.length) return proj.sdgs;
   var matched = [];
