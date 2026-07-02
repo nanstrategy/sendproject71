@@ -210,6 +210,17 @@ tr:hover td{background:#faf9f6}
     </div>
   </div>
 
+  <!-- งบประมาณรายอำเภอ (auto-parse จากช่องพื้นที่เป้าหมาย) -->
+  <div class="card">
+    <div class="ctitle"><span class="ico" style="background:#FAEEDA">🗺️</span>สรุปการเสนอแผนงานโครงการลงพื้นที่รายอำเภอ</div>
+    <div class="alert a-info" style="margin-bottom:12px;font-size:12px">ℹ️ ข้อมูลนี้อ่านค่าอัตโนมัติจากช่อง "พื้นที่เป้าหมาย" ของแต่ละโครงการ หากระบุอำเภอ/ตำบล/หมู่บ้านชัดเจนจะจับคู่ให้ ถ้าระบุ "ทุกอำเภอ"/"ทั้งจังหวัด" จะแยกไว้ในกลุ่ม "ทั้งจังหวัด" ต่างหาก และหากโครงการหนึ่งระบุหลายอำเภอ จะหารงบเฉลี่ยเท่าๆ กันในแต่ละอำเภอ (เป็นการประมาณการ ไม่ใช่ตัวเลขที่แยกงบจริงรายอำเภอ)</div>
+    <div style="position:relative;height:320px;margin-bottom:16px"><canvas id="c5"></canvas></div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>อำเภอ</th><th style="text-align:center">จำนวนโครงการ</th><th style="text-align:right">งบประมาณ (ล้านบาท)</th></tr></thead>
+      <tbody id="dash-district-body"><tr><td colspan="3" style="text-align:center;color:var(--t2)">กำลังโหลด...</td></tr></tbody></table>
+    </div>
+  </div>
+
   <!-- ตารางล่าสุด -->
   <div class="card">
     <div class="ctitle"><span class="ico" style="background:#E1F5EE">📋</span><span id="recent-title">โครงการล่าสุด (ทั้งหมด)</span></div>
@@ -678,7 +689,7 @@ tr:hover td{background:#faf9f6}
     <div class="r2">
       <div>
         <label>3. ประเด็นการพัฒนาของจังหวัด</label>
-        <select id="j3-issue">
+        <select id="j3-issue" onchange="populateJ3ApproachOptions()">
           <option value="">— เลือก —</option>
           <option value="ประเด็น 1 สุขภาพดี สร้างโอกาส และสังคมที่ร่มเย็น">ประเด็น 1 สุขภาพดี สร้างโอกาส และสังคมที่ร่มเย็น</option>
           <option value="ประเด็น 2 สุขเศรษฐกิจสร้างสรรค์ (การค้า/ลงทุน/โลจิสติกส์)">ประเด็น 2 สุขเศรษฐกิจสร้างสรรค์ (การค้า/ลงทุน/โลจิสติกส์)</option>
@@ -688,8 +699,8 @@ tr:hover td{background:#faf9f6}
         </select>
       </div>
       <div>
-        <label>4. แนวทางการพัฒนา</label>
-        <input id="j3-strategy" placeholder="ระบุแนวทางการพัฒนา">
+        <label>4. แนวทางการพัฒนา <span style="color:var(--t3);font-weight:400">(เลือกตามข้อ 3)</span></label>
+        <select id="j3-strategy"><option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option></select>
       </div>
     </div>
 
@@ -1104,6 +1115,35 @@ function populateApproachOptions() {
   sel.innerHTML = html;
 }
 
+// แม็ปข้อความ "ประเด็นการพัฒนา" ของฟอร์ม จ.3 (j3-issue) ให้ตรงกับคีย์ใน APPROACH_DATA
+var J3_ISSUE_TO_APPROACH_KEY = {
+  'ประเด็น 1 สุขภาพดี สร้างโอกาส และสังคมที่ร่มเย็น': 'social',
+  'ประเด็น 2 สุขเศรษฐกิจสร้างสรรค์ (การค้า/ลงทุน/โลจิสติกส์)': 'trade',
+  'ประเด็น 2 สุขเศรษฐกิจสร้างสรรค์ (การเกษตร)': 'agri',
+  'ประเด็น 2 สุขเศรษฐกิจสร้างสรรค์ (การท่องเที่ยว)': 'tour',
+  'ประเด็น 3 สุขเติบโตอย่างเป็นมิตรกับสิ่งแวดล้อม': 'env'
+};
+
+function populateJ3ApproachOptions() {
+  var issueText = document.getElementById('j3-issue').value;
+  var sel = document.getElementById('j3-strategy');
+  if (!sel) return;
+  var key = J3_ISSUE_TO_APPROACH_KEY[issueText];
+  if (!key || !APPROACH_DATA[key]) {
+    sel.innerHTML = '<option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option>';
+    return;
+  }
+  var html = '<option value="">— เลือกแนวทางการพัฒนา —</option>';
+  APPROACH_DATA[key].forEach(function(group) {
+    html += '<optgroup label="' + group.prog + '">';
+    group.items.forEach(function(item, i) {
+      html += '<option value="' + (i + 1) + '. ' + item.replace(/"/g, '&quot;') + '">' + (i + 1) + '. ' + item + '</option>';
+    });
+    html += '</optgroup>';
+  });
+  sel.innerHTML = html;
+}
+
 // ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนาจังหวัด (จากแผนพัฒนาจังหวัดน่าน) แยกตามประเด็นการพัฒนาที่ 1-3
 var PROVINCIAL_KPI_DATA = {
   issue1: [
@@ -1238,6 +1278,88 @@ var HEADERS = [
   [_COLS[70],'north','Text','แนวทางพัฒนาภาคเหนือ (D)'],
   [_COLS[71],'cluster','Text','กลุ่มภารกิจ (Cluster)']
 ];
+
+// ============================================================
+// รายอำเภอ จ.น่าน — ใช้จับคู่จากข้อความ "พื้นที่เป้าหมาย" (area)
+// ============================================================
+var NAN_DISTRICTS = [
+  'เมืองน่าน','แม่จริม','บ้านหลวง','นาน้อย','ปัว','ท่าวังผา','เวียงสา',
+  'ทุ่งช้าง','เชียงกลาง','นาหมื่น','สันติสุข','บ่อเกลือ','สองแคว',
+  'ภูเพียง','เฉลิมพระเกียรติ'
+];
+var PROVINCE_WIDE_RE = /ทุก\s*15\s*อำเภอ|ทุกอำเภอ|ทั้ง\s*15\s*อำเภอ|ทั้งจังหวัด|ทั้งจังหวัดน่าน|ในพื้นที่จังหวัดน่าน|ทั่วจังหวัด/;
+
+function extractDistrictsFromArea(text) {
+  if (!text) return [];
+  var found = [];
+  NAN_DISTRICTS.forEach(function(d){
+    if (text.indexOf(d) >= 0) found.push(d);
+  });
+  return found;
+}
+
+// สรุปงบประมาณตามอำเภอจาก list โครงการ (j1/j3/รวม)
+function computeDistrictBudget(pl) {
+  var byDistrict = {};
+  NAN_DISTRICTS.forEach(function(d){ byDistrict[d] = {budget:0, count:0}; });
+  var provinceWide = {budget:0, count:0};
+  var unspecified = {budget:0, count:0};
+
+  pl.forEach(function(p){
+    var text = p.area || '';
+    var b = p.btotal || p.budget || 0;
+    var matched = extractDistrictsFromArea(text);
+    if (matched.length) {
+      var share = b / matched.length;
+      matched.forEach(function(d){
+        byDistrict[d].budget += share;
+        byDistrict[d].count += 1;
+      });
+    } else if (PROVINCE_WIDE_RE.test(text)) {
+      provinceWide.budget += b;
+      provinceWide.count += 1;
+    } else {
+      unspecified.budget += b;
+      unspecified.count += 1;
+    }
+  });
+
+  return {byDistrict: byDistrict, provinceWide: provinceWide, unspecified: unspecified};
+}
+
+function renderDistrictBudget(pl) {
+  var res = computeDistrictBudget(pl);
+  var rows = NAN_DISTRICTS.map(function(d){
+    return {name: d, budget: res.byDistrict[d].budget, count: res.byDistrict[d].count};
+  }).sort(function(a,b){ return b.budget - a.budget; });
+
+  // Chart 5 — bar รายอำเภอ (ล้านบาท)
+  var labels = rows.map(function(r){ return r.name; });
+  var data = rows.map(function(r){ return +(r.budget/1e6).toFixed(2); });
+  destroyChart('c5');
+  charts['c5'] = new Chart(document.getElementById('c5'), {
+    type:'bar',
+    data:{labels:labels, datasets:[{label:'งบประมาณ (ล้านบาท)', data:data, backgroundColor:'#BA7517', borderRadius:5}]},
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{beginAtZero:true, ticks:{callback:function(v){return v+'M';}}}}
+    }
+  });
+
+  // ตาราง
+  var body = document.getElementById('dash-district-body');
+  var htmlRows = rows.map(function(r,i){
+    return '<tr><td>'+(i+1)+'. '+r.name+'</td><td style="text-align:center">'+r.count+'</td><td style="text-align:right">'+(r.budget/1e6).toFixed(2)+'</td></tr>';
+  });
+  htmlRows.push('<tr style="background:var(--bg);font-weight:700"><td>🗺️ ทั้งจังหวัด (ไม่ระบุอำเภอเจาะจง)</td><td style="text-align:center">'+res.provinceWide.count+'</td><td style="text-align:right">'+(res.provinceWide.budget/1e6).toFixed(2)+'</td></tr>');
+  if (res.unspecified.count) {
+    htmlRows.push('<tr style="color:var(--t3)"><td>❓ ไม่ระบุพื้นที่ / จับคู่ไม่ได้</td><td style="text-align:center">'+res.unspecified.count+'</td><td style="text-align:right">'+(res.unspecified.budget/1e6).toFixed(2)+'</td></tr>');
+  }
+  body.innerHTML = htmlRows.join('');
+}
+
 
 var ISSUE_MAP = {
   social:{n:'ประเด็นที่ 1 สุขภาพดี สร้างโอกาส และสังคมที่ร่มเย็น',s:'ปพ.1 สังคม',c:'#D4537E'},
@@ -2087,6 +2209,9 @@ function renderDashboard() {
   destroyChart('c4');
   charts['c4'] = new Chart(document.getElementById('c4'),{type:'pie',data:{labels:bsrcs.map(function(b){return b[1];}),datasets:[{data:bData,backgroundColor:bsrcs.map(function(b){return b[2];}),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
 
+  // งบประมาณรายอำเภอ (auto-parse จากช่องพื้นที่เป้าหมาย)
+  renderDistrictBudget(pl);
+
   // J3 Ministry table
   var cardJ3m = document.getElementById('card-j3-ministry');
   if(dashView==='j1'){ if(cardJ3m)cardJ3m.style.display='none'; }
@@ -2592,6 +2717,7 @@ function j3ClearForm() {
     if (el) el.value = '';
   });
   document.getElementById('j3-issue').value = '';
+  populateJ3ApproachOptions();
   document.getElementById('j3-type').value = 'โครงการใหม่ (1 ปี)';
   document.getElementById('j3-method').value = 'ดำเนินการเอง';
   document.getElementById('j3-readiness').value = 'พร้อมดำเนินการได้ทันที';
