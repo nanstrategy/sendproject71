@@ -1299,7 +1299,7 @@ function doGet(e) {
       var data = JSON.parse(e.parameter.data || '{}');
       output = writeRow(sheet, data, sheetTarget);
     } else {
-      output = readData(sheet);
+      output = readData(sheet, sheetTarget);
     }
   } catch(err) {
     output = {ok: false, error: err.message};
@@ -1391,14 +1391,15 @@ function applyHeaders(sheet, headers, sheetTarget) {
   SpreadsheetApp.flush();
 }
 
-function readData(sheet) {
+function readData(sheet, sheetTarget) {
+  var headers = (sheetTarget === 'j3') ? HEADERS_J3 : HEADERS;
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return {ok: true, data: [], total: 0};
-  var values = sheet.getRange(2,1,lastRow-1,HEADERS.length).getValues();
+  var values = sheet.getRange(2,1,lastRow-1,headers.length).getValues();
   var data = values
     .map(function(row) {
       var obj = {};
-      HEADERS.forEach(function(h,i){ obj[h] = row[i]; });
+      headers.forEach(function(h,i){ obj[h] = row[i]; });
       return obj;
     })
     .filter(function(r){ return r.name; });
@@ -1540,8 +1541,8 @@ async function syncFromSheet() {
           maintenance: r.maintenance||''
         };
       }).filter(function(r){return !!r.name;});
-      // รวมกับที่บันทึกใน local (ถ้า local ว่างให้ใช้จาก sheet)
-      if(!j3Projects.length && sheetJ3.length) {
+      // Sheet คือข้อมูลจริงเสมอ — sync มาทับข้อมูล local ทุกครั้งที่ดึงสำเร็จ
+      if(sheetJ3.length) {
         j3Projects = sheetJ3;
         j3SaveLocal();
       }
