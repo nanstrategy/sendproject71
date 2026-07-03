@@ -569,7 +569,12 @@ tr:hover td{background:#faf9f6}
   <div class="pghdr"><h2>✅ ตารางความสอดคล้องกับแผน 3 ระดับ</h2><p>ตามนัยมติคณะรัฐมนตรี 4 ธันวาคม 2560</p></div>
   <div class="card">
     <div class="r2">
-      <div><label>ชื่อโครงการ/แผนงาน</label><input id="al-name" placeholder="ระบุชื่อ"></div>
+      <div>
+        <label>ชื่อโครงการ/แผนงาน <span style="font-weight:400;color:var(--t3)">(พิมพ์หรือเลือกจากโครงการที่บันทึกไว้)</span></label>
+        <input id="al-name" list="al-name-list" placeholder="พิมพ์ชื่อ หรือเลือกโครงการที่เคยบันทึกไว้" oninput="alAutoFill()" onchange="alAutoFill()">
+        <datalist id="al-name-list"></datalist>
+        <div id="al-name-hint" style="font-size:11px;color:var(--t3);margin-top:4px"></div>
+      </div>
       <div>
         <label>ประเด็นการพัฒนา</label>
         <select id="al-issue">
@@ -583,12 +588,12 @@ tr:hover td{background:#faf9f6}
     </div>
     <label>ยุทธศาสตร์ชาติ (คลิกเลือก)</label>
     <div id="nat-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px">
-      <span class="chip" style="cursor:pointer" onclick="this.style.background=this.style.background=='rgb(225, 245, 238)'?'':'#E1F5EE';this.style.color=this.style.color=='rgb(8, 80, 65)'?'':'#085041'">1.ความมั่นคง</span>
-      <span class="chip" style="cursor:pointer;background:#E1F5EE;color:#085041" onclick="this.style.background=this.style.background=='rgb(225, 245, 238)'?'':'#E1F5EE';this.style.color=this.style.color=='rgb(8, 80, 65)'?'':'#085041'">2.ความสามารถแข่งขัน</span>
-      <span class="chip" style="cursor:pointer" onclick="this.style.background=this.style.background=='rgb(225, 245, 238)'?'':'#E1F5EE';this.style.color=this.style.color=='rgb(8, 80, 65)'?'':'#085041'">3.พัฒนาทรัพยากรมนุษย์</span>
-      <span class="chip" style="cursor:pointer" onclick="this.style.background=this.style.background=='rgb(225, 245, 238)'?'':'#E1F5EE';this.style.color=this.style.color=='rgb(8, 80, 65)'?'':'#085041'">4.สร้างโอกาสและความเสมอภาค</span>
-      <span class="chip" style="cursor:pointer" onclick="this.style.background=this.style.background=='rgb(225, 245, 238)'?'':'#E1F5EE';this.style.color=this.style.color=='rgb(8, 80, 65)'?'':'#085041'">5.เติบโตบนคุณภาพชีวิต</span>
-      <span class="chip" style="cursor:pointer" onclick="this.style.background=this.style.background=='rgb(225, 245, 238)'?'':'#E1F5EE';this.style.color=this.style.color=='rgb(8, 80, 65)'?'':'#085041'">6.บริหารจัดการภาครัฐ</span>
+      <span class="chip" data-val="1" style="cursor:pointer" onclick="toggleNatTag(this)">1.ความมั่นคง</span>
+      <span class="chip" data-val="2" style="cursor:pointer;background:#E1F5EE;color:#085041" onclick="toggleNatTag(this)">2.ความสามารถแข่งขัน</span>
+      <span class="chip" data-val="3" style="cursor:pointer" onclick="toggleNatTag(this)">3.พัฒนาทรัพยากรมนุษย์</span>
+      <span class="chip" data-val="4" style="cursor:pointer" onclick="toggleNatTag(this)">4.สร้างโอกาสและความเสมอภาค</span>
+      <span class="chip" data-val="5" style="cursor:pointer" onclick="toggleNatTag(this)">5.เติบโตบนคุณภาพชีวิต</span>
+      <span class="chip" data-val="6" style="cursor:pointer" onclick="toggleNatTag(this)">6.บริหารจัดการภาครัฐ</span>
     </div>
     <div class="r3">
       <div>
@@ -1682,6 +1687,7 @@ function go(name, btn) {
   if (name === 'lf') renderLF();
   if (name === 'checklist') renderChecklist();
   if (name === 'sdg') renderSdgPage();
+  if (name === 'align') populateAlignNameList();
   if (name === 'setup') initSetupPage();
 }
 
@@ -1793,6 +1799,7 @@ async function syncFromSheet() {
     renderDashboard();
     renderList();
     j3RenderAll();
+    populateAlignNameList();
   } else {
     setSheetStatus('❌ เชื่อมต่อไม่ได้ | ใช้ข้อมูลตัวอย่างแทน', 'err');
     setBadge('Error', false);
@@ -2410,6 +2417,118 @@ renderLF();
 // ============================================================
 // ALIGNMENT
 // ============================================================
+
+// toggle chip ยุทธศาสตร์ชาติ (คลิกเลือกได้หลายอัน)
+function toggleNatTag(el) {
+  var selected = el.style.background === 'rgb(225, 245, 238)' || el.classList.contains('nat-on');
+  if (selected) {
+    el.style.background = ''; el.style.color = ''; el.classList.remove('nat-on');
+  } else {
+    el.style.background = '#E1F5EE'; el.style.color = '#085041'; el.classList.add('nat-on');
+  }
+}
+function setNatTags(codes) {
+  // codes: array of string เช่น ['2'] หรือ '2' เดี่ยว
+  if (!Array.isArray(codes)) codes = codes ? [String(codes)] : [];
+  document.querySelectorAll('#nat-tags .chip').forEach(function(chip) {
+    var on = codes.indexOf(chip.getAttribute('data-val')) >= 0;
+    chip.style.background = on ? '#E1F5EE' : '';
+    chip.style.color = on ? '#085041' : '';
+    chip.classList.toggle('nat-on', on);
+  });
+}
+
+// mapping รหัส → ข้อความเต็มที่ตรงกับ option value ใน al-b / al-c / al-d
+var B_LABELS = {
+  '01':'01 — ความมั่นคง','02':'02 — การต่างประเทศ','03':'03 — การเกษตร',
+  '04':'04 — อุตสาหกรรมและบริการแห่งอนาคต','05':'05 — การท่องเที่ยว',
+  '06':'06 — พื้นที่และเมืองน่าอยู่อัจฉริยะ','07':'07 — โครงสร้างพื้นฐาน ระบบโลจิสติกส์ และดิจิทัล',
+  '08':'08 — ผู้ประกอบการและวิสาหกิจขนาดกลางและขนาดย่อมยุคใหม่','09':'09 — เขตเศรษฐกิจพิเศษ',
+  '10':'10 — การปรับเปลี่ยนค่านิยมและวัฒนธรรม','11':'11 — การพัฒนาศักยภาพคนตลอดช่วงชีวิต',
+  '12':'12 — การพัฒนาการเรียนรู้','13':'13 — การเสริมสร้างให้คนไทยมีสุขภาวะที่ดี',
+  '14':'14 — ศักยภาพการกีฬา','15':'15 — พลังทางสังคม','16':'16 — เศรษฐกิจฐานราก',
+  '17':'17 — ความเสมอภาคและหลักประกันทางสังคม','18':'18 — การเติบโตอย่างยั่งยืน',
+  '19':'19 — การบริหารจัดการน้ำทั้งระบบ','20':'20 — การบริการประชาชนและประสิทธิภาพภาครัฐ',
+  '21':'21 — การต่อต้านการทุจริตและประพฤติมิชอบ','22':'22 — กฎหมายและกระบวนการยุติธรรม',
+  '23':'23 — การวิจัยและพัฒนานวัตกรรม'
+};
+var C_LABELS = {
+  'C1':'C1 — การปรับโครงสร้างเศรษฐกิจรายสาขาและยกระดับเครื่องยนต์เศรษฐกิจใหม่',
+  'C2':'C2 — การพัฒนาระบบนิเวศที่เอื้อต่อการปรับตัวของแรงงาน ธุรกิจ และภาครัฐ',
+  'C3':'C3 — การลดสัดส่วนเศรษฐกิจนอกระบบ',
+  'C4':'C4 — การพัฒนา SMEs ให้แข่งขันได้อย่างเป็นธรรม',
+  'C5':'C5 — การรักษาเสถียรภาพทางเศรษฐกิจ',
+  'C6':'C6 — การปฏิรูปการบริหารจัดการภาครัฐ',
+  'C7':'C7 — การปรับปรุงระเบียบ ขั้นตอน และกฎหมาย',
+  'C8':'C8 — การแก้ไขปัญหาทุจริตคอร์รัปชัน',
+  'C9':'C9 — การส่งเสริมการมีจำนวนประชากร รองรับการพัฒนาประเทศ',
+  'C10':'C10 — การปรับแนวคิดและรูปแบบการจัดการศึกษาและการเรียนรู้',
+  'C11':'C11 — การปรับกลไกการพัฒนาทักษะแรงงานที่มุ่งผลสัมฤทธิ์',
+  'C12':'C12 — การวางรากฐานสวัสดิการที่มั่นคง',
+  'C13':'C13 — การบริหารจัดการทรัพยากรธรรมชาติและสิ่งแวดล้อมให้เป็นฐานการเติบโตทางเศรษฐกิจอย่างยั่งยืน',
+  'C14':'C14 — การรับมือกับการเปลี่ยนแปลงสภาพภูมิอากาศเพื่อสร้างภูมิคุ้มกันทางเศรษฐกิจและสังคม',
+  'C15':'C15 — การมุ่งสู่สังคมคาร์บอนต่ำเพื่อเพิ่มความสามารถในการแข่งขัน',
+  'C16':'C16 — การลงทุนพัฒนาเทคโนโลยีและนวัตกรรม',
+  'C17':'C17 — การพัฒนาระบบนิเวศวิทยาศาสตร์ เทคโนโลยี และนวัตกรรม'
+};
+var D_LABELS = {
+  'N1':'N1 — เกษตรมูลค่าสูงบนฐานนวัตกรรมสีเขียวที่ตรวจสอบได้',
+  'N2':'N2 — ท่องเที่ยวคุณภาพมูลค่าสูงและบริการสุขภาพระดับโลก',
+  'N3':'N3 — อุตสาหกรรมนวัตกรรมฐานชีวภาพและดิจิทัลสีเขียว',
+  'N4':'N4 — การค้า การค้าชายแดน และระบบโลจิสติกส์ที่เชื่อมโยงห่วงโซ่เศรษฐกิจภูมิภาค',
+  'N5':'N5 — การเพิ่มผลิตภาพแรงงานและยกระดับคุณภาพชีวิต',
+  'N6':'N6 — การจัดการทรัพยากรธรรมชาติและมลพิษเชิงรุก'
+};
+var ISSUE_TO_ALIGN = {
+  social:'ประเด็นที่ 1 สุขภาพดี สร้างโอกาส และสังคมที่ร่มเย็น',
+  trade:'ประเด็นที่ 2 เศรษฐกิจสร้างสรรค์ (การค้า/ลงทุน/โลจิสติกส์)',
+  agri:'ประเด็นที่ 2 เศรษฐกิจสร้างสรรค์ (การเกษตร)',
+  tour:'ประเด็นที่ 2 เศรษฐกิจสร้างสรรค์ (การท่องเที่ยว)',
+  env:'ประเด็นที่ 3 เติบโตอย่างเป็นมิตรกับสิ่งแวดล้อม'
+};
+
+// เติมรายชื่อโครงการ (จ.1 + จ.3) ลงใน datalist ให้พิมพ์/เลือกได้
+function populateAlignNameList() {
+  var dl = document.getElementById('al-name-list');
+  if (!dl) return;
+  var names = [];
+  projects.forEach(function(p){ if (p.name) names.push(p.name); });
+  j3Projects.forEach(function(p){ if (p.name) names.push(p.name); });
+  // ตัดชื่อซ้ำ
+  names = names.filter(function(n, i){ return names.indexOf(n) === i; });
+  dl.innerHTML = names.map(function(n){ return '<option value="' + n.replace(/"/g,'&quot;') + '">'; }).join('');
+}
+
+// เมื่อพิมพ์/เลือกชื่อโครงการที่ตรงกับที่บันทึกไว้ (จาก Google Sheets จ.1) ให้ดึง A/B/C/D มาเติมอัตโนมัติ
+function alAutoFill() {
+  var name = document.getElementById('al-name').value.trim();
+  var hint = document.getElementById('al-name-hint');
+  if (!name) { hint.textContent = ''; return; }
+
+  var match = projects.find(function(p){ return p.name === name; });
+  if (match) {
+    if (match.issue && ISSUE_TO_ALIGN[match.issue]) {
+      document.getElementById('al-issue').value = ISSUE_TO_ALIGN[match.issue];
+    }
+    setNatTags(match.nat ? String(match.nat).split(',').map(function(s){return s.trim();}) : []);
+    document.getElementById('al-b').value = B_LABELS[match.master] || '';
+    document.getElementById('al-c').value = C_LABELS[match.econ] || '';
+    document.getElementById('al-d').value = D_LABELS[match.north] || '';
+    hint.textContent = '✅ ดึงข้อมูล A/B/C/D จากโครงการที่บันทึกไว้ใน Google Sheets (จ.1) แล้ว';
+    hint.style.color = 'var(--g)';
+    return;
+  }
+
+  var matchJ3 = j3Projects.find(function(p){ return p.name === name; });
+  if (matchJ3) {
+    hint.textContent = 'ℹ️ พบโครงการนี้ในแบบ จ.3 แต่ยังไม่มีข้อมูล A/B/C/D บันทึกไว้ กรุณาเลือกเอง';
+    hint.style.color = 'var(--t3)';
+    return;
+  }
+
+  hint.textContent = '';
+}
+
 function buildAlign() {
   var name = document.getElementById('al-name').value.trim() || 'โครงการพัฒนาจังหวัดน่าน';
   var issue = document.getElementById('al-issue').value;
