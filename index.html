@@ -2275,6 +2275,17 @@ function setDashView(v) {
   renderDashboard();
 }
 
+// แปลง timestamp รูปแบบไทย เช่น "3/7/2569, 14:30:00" (พ.ศ.) เป็นค่าตัวเลข ms เพื่อใช้เรียงลำดับ "ล่าสุด"
+function parseThaiTS(str) {
+  if (!str) return 0;
+  var m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+  if (!m) return 0;
+  var day = +m[1], month = +m[2], beYear = +m[3], hour = +m[4], min = +m[5], sec = +(m[6]||0);
+  var ceYear = beYear > 2400 ? beYear - 543 : beYear; // เผื่อกรณีเป็น ค.ศ. อยู่แล้ว
+  var d = new Date(ceYear, month - 1, day, hour, min, sec);
+  return d.getTime() || 0;
+}
+
 function getActiveProjList() {
   var j3Converted = j3Projects.map(function(p){
     return {
@@ -2282,6 +2293,7 @@ function getActiveProjList() {
       bsrc: '2', btotal: p.budget||0,
       b71:0,b72:0,b73:0,b74:0,b75:0,
       ready: p.readiness&&p.readiness.indexOf('ทันที')>=0 ? 'ready' : 'partial',
+      timestamp: p.timestamp||'',
       _src: 'j3', _ministry: p.ministry||'', _dept: p.dept||''
     };
   });
@@ -2394,7 +2406,8 @@ function renderDashboard() {
   // Recent table
   var rtitle = dashView==='j1'?'โครงการล่าสุด — งบพัฒนาจังหวัด':dashView==='j3'?'โครงการล่าสุด — จ.3':'โครงการล่าสุด (รวม 2 แหล่ง)';
   var rtEl=document.getElementById('recent-title'); if(rtEl) rtEl.textContent=rtitle;
-  document.getElementById('recent-body').innerHTML = pl.slice(0,10).map(function(p,i){
+  var plRecent = pl.slice().sort(function(a,b){ return parseThaiTS(b.timestamp) - parseThaiTS(a.timestamp); });
+  document.getElementById('recent-body').innerHTML = plRecent.slice(0,10).map(function(p,i){
     var im = ISSUE_MAP[p.issue]||{s:p.issue||'—',c:'#888'};
     var rm = READY_MAP[p.ready]||{l:p.ready||'—',c:'bgr'};
     var srcBadge = p._src==='j3' ? '<span class="badge bb" style="font-size:10px">จ.3</span>' : '<span class="badge bg" style="font-size:10px">จ.1</span>';
