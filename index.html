@@ -129,8 +129,8 @@ tr:hover td{background:#faf9f6}
   <button class="ntab ntab-green on" onclick="go('form',this)">➕ บันทึกโครงการ (งบพัฒนาจังหวัด)</button>
   <button class="ntab ntab-green" onclick="go('j3',this)">📝 บันทึกโครงการ จ.3</button>
   <button class="ntab" onclick="go('dash',this)">📊 Dashboard</button>
+  <button class="ntab" onclick="go('list',this)">📋 บัญชีโครงการ (งบพัฒนาจังหวัด)</button>
   <button class="ntab" onclick="go('sdg',this)">🌐 SDG Mapping</button>
-  <button class="ntab" onclick="go('list',this)">📋 บัญชีโครงการ</button>
   <button class="ntab" onclick="go('lf',this)">🔗 Logical Framework</button>
   <button class="ntab" onclick="go('align',this)">✅ ความสอดคล้อง</button>
   <button class="ntab" onclick="go('gantt',this)">📅 Gantt</button>
@@ -381,12 +381,12 @@ tr:hover td{background:#faf9f6}
         <label>แผนภาคเหนือ (D)</label>
         <select id="f-north">
           <option value="">— เลือก —</option>
-          <option value="N1">N1 — เกษตรมูลค่าสูง</option>
-          <option value="N2">N2 — ท่องเที่ยว/สุขภาพ</option>
-          <option value="N3">N3 — อุตสาหกรรมชีวภาพ</option>
-          <option value="N4">N4 — การค้า/โลจิสติกส์</option>
-          <option value="N5">N5 — แรงงาน/คุณภาพชีวิต</option>
-          <option value="N6">N6 — ทรัพยากร/มลพิษ</option>
+          <option value="N1">N1 — เกษตรมูลค่าสูงบนฐานนวัตกรรมสีเขียวที่ตรวจสอบได้</option>
+          <option value="N2">N2 — ท่องเที่ยวคุณภาพมูลค่าสูงและบริการสุขภาพระดับโลก</option>
+          <option value="N3">N3 — อุตสาหกรรมนวัตกรรมฐานชีวภาพและดิจิทัลสีเขียว</option>
+          <option value="N4">N4 — การค้า การค้าชายแดน และระบบโลจิสติกส์ที่เชื่อมโยงห่วงโซ่เศรษฐกิจภูมิภาค</option>
+          <option value="N5">N5 — การเพิ่มผลิตภาพแรงงานและยกระดับคุณภาพชีวิต</option>
+          <option value="N6">N6 — การจัดการทรัพยากรธรรมชาติและมลพิษเชิงรุก</option>
         </select>
       </div>
     </div>
@@ -395,25 +395,62 @@ tr:hover td{background:#faf9f6}
         <label>แผนแม่บทภายใต้ยุทธศาสตร์ชาติ (B)</label>
         <select id="f-master">
           <option value="">— เลือก —</option>
+          <option value="01">01 — ความมั่นคง</option>
+          <option value="02">02 — การต่างประเทศ</option>
           <option value="03">03 — การเกษตร</option>
+          <option value="04">04 — อุตสาหกรรมและบริการแห่งอนาคต</option>
           <option value="05">05 — การท่องเที่ยว</option>
-          <option value="07">07 — โครงสร้างพื้นฐาน</option>
-          <option value="08">08 — ผู้ประกอบการ SMEs</option>
+          <option value="06">06 — พื้นที่และเมืองน่าอยู่อัจฉริยะ</option>
+          <option value="07">07 — โครงสร้างพื้นฐาน ระบบโลจิสติกส์ และดิจิทัล</option>
+          <option value="08">08 — ผู้ประกอบการและวิสาหกิจขนาดกลางและขนาดย่อมยุคใหม่</option>
+          <option value="09">09 — เขตเศรษฐกิจพิเศษ</option>
+          <option value="10">10 — การปรับเปลี่ยนค่านิยมและวัฒนธรรม</option>
+          <option value="11">11 — การพัฒนาศักยภาพคนตลอดช่วงชีวิต</option>
+          <option value="12">12 — การพัฒนาการเรียนรู้</option>
+          <option value="13">13 — การเสริมสร้างให้คนไทยมีสุขภาวะที่ดี</option>
+          <option value="14">14 — ศักยภาพการกีฬา</option>
+          <option value="15">15 — พลังทางสังคม</option>
           <option value="16">16 — เศรษฐกิจฐานราก</option>
-          <option value="18">18 — การเติบโตยั่งยืน</option>
-          <option value="19">19 — บริหารจัดการน้ำ</option>
+          <option value="17">17 — ความเสมอภาคและหลักประกันทางสังคม</option>
+          <option value="18">18 — การเติบโตอย่างยั่งยืน</option>
+          <option value="19">19 — การบริหารจัดการน้ำทั้งระบบ</option>
+          <option value="20">20 — การบริการประชาชนและประสิทธิภาพภาครัฐ</option>
+          <option value="21">21 — การต่อต้านการทุจริตและประพฤติมิชอบ</option>
+          <option value="22">22 — กฎหมายและกระบวนการยุติธรรม</option>
+          <option value="23">23 — การวิจัยและพัฒนานวัตกรรม</option>
         </select>
       </div>
       <div>
         <label>แผนพัฒนาเศรษฐกิจฯ ฉ.14 (C)</label>
         <select id="f-econ">
           <option value="">— เลือก —</option>
-          <option value="C1">C1 — ปรับโครงสร้างเศรษฐกิจ</option>
-          <option value="C2">C2 — ระบบนิเวศแรงงาน/ธุรกิจ</option>
-          <option value="C6">C6 — ปฏิรูปการบริหารภาครัฐ</option>
-          <option value="C10">C10 — ปรับแนวคิดการศึกษา</option>
-          <option value="C13">C13 — บริหารจัดการทรัพยากร</option>
-          <option value="C14">C14 — รับมือเปลี่ยนแปลงภูมิอากาศ</option>
+          <optgroup label="Transform — เศรษฐกิจ">
+            <option value="C1">C1 — การปรับโครงสร้างเศรษฐกิจรายสาขาและยกระดับเครื่องยนต์เศรษฐกิจใหม่</option>
+            <option value="C2">C2 — การพัฒนาระบบนิเวศที่เอื้อต่อการปรับตัวของแรงงาน ธุรกิจ และภาครัฐ</option>
+            <option value="C3">C3 — การลดสัดส่วนเศรษฐกิจนอกระบบ</option>
+            <option value="C4">C4 — การพัฒนา SMEs ให้แข่งขันได้อย่างเป็นธรรม</option>
+            <option value="C5">C5 — การรักษาเสถียรภาพทางเศรษฐกิจ</option>
+          </optgroup>
+          <optgroup label="Reform — ภาครัฐ">
+            <option value="C6">C6 — การปฏิรูปการบริหารจัดการภาครัฐ</option>
+            <option value="C7">C7 — การปรับปรุงระเบียบ ขั้นตอน และกฎหมาย</option>
+            <option value="C8">C8 — การแก้ไขปัญหาทุจริตคอร์รัปชัน</option>
+          </optgroup>
+          <optgroup label="Upgrade — ทุนมนุษย์">
+            <option value="C9">C9 — การส่งเสริมการมีจำนวนประชากร รองรับการพัฒนาประเทศ</option>
+            <option value="C10">C10 — การปรับแนวคิดและรูปแบบการจัดการศึกษาและการเรียนรู้</option>
+            <option value="C11">C11 — การปรับกลไกการพัฒนาทักษะแรงงานที่มุ่งผลสัมฤทธิ์</option>
+            <option value="C12">C12 — การวางรากฐานสวัสดิการที่มั่นคง</option>
+          </optgroup>
+          <optgroup label="Sustain — ทรัพยากรและสิ่งแวดล้อม">
+            <option value="C13">C13 — การบริหารจัดการทรัพยากรธรรมชาติและสิ่งแวดล้อมให้เป็นฐานการเติบโตทางเศรษฐกิจอย่างยั่งยืน</option>
+            <option value="C14">C14 — การรับมือกับการเปลี่ยนแปลงสภาพภูมิอากาศเพื่อสร้างภูมิคุ้มกันทางเศรษฐกิจและสังคม</option>
+            <option value="C15">C15 — การมุ่งสู่สังคมคาร์บอนต่ำเพื่อเพิ่มความสามารถในการแข่งขัน</option>
+          </optgroup>
+          <optgroup label="Transfer — เทคโนโลยีและนวัตกรรม">
+            <option value="C16">C16 — การลงทุนพัฒนาเทคโนโลยีและนวัตกรรม</option>
+            <option value="C17">C17 — การพัฒนาระบบนิเวศวิทยาศาสตร์ เทคโนโลยี และนวัตกรรม</option>
+          </optgroup>
         </select>
       </div>
     </div>
@@ -488,7 +525,7 @@ tr:hover td{background:#faf9f6}
 <!-- ===================== LIST ===================== -->
 <div id="pg-list" class="pg">
   <div class="pghdr">
-    <h2>📋 บัญชีรายการโครงการทั้งหมด (แบบ จ.1)</h2>
+    <h2>📋 บัญชีโครงการ (งบพัฒนาจังหวัด) (แบบ จ.1)</h2>
     <p>ข้อมูลจาก Google Sheets · กด "🔄 โหลดข้อมูล" เพื่ออัปเดต</p>
   </div>
   <div class="card" style="padding:12px">
@@ -554,9 +591,80 @@ tr:hover td{background:#faf9f6}
       <span class="chip" style="cursor:pointer" onclick="this.style.background=this.style.background=='rgb(225, 245, 238)'?'':'#E1F5EE';this.style.color=this.style.color=='rgb(8, 80, 65)'?'':'#085041'">6.บริหารจัดการภาครัฐ</span>
     </div>
     <div class="r3">
-      <div><label>แผนแม่บทฯ (B)</label><input id="al-b" placeholder="เช่น 03 เกษตร, 05 ท่องเที่ยว"></div>
-      <div><label>แผนพัฒนาฯ ฉ.14 (C)</label><input id="al-c" placeholder="เช่น C1 ปรับโครงสร้างเศรษฐกิจ"></div>
-      <div><label>แนวทางพัฒนาภาคเหนือ (D)</label><input id="al-d" placeholder="เช่น N1 เกษตรมูลค่าสูง"></div>
+      <div>
+        <label>แผนแม่บทฯ (B)</label>
+        <select id="al-b">
+          <option value="">— เลือก —</option>
+          <option value="01 — ความมั่นคง">01 — ความมั่นคง</option>
+          <option value="02 — การต่างประเทศ">02 — การต่างประเทศ</option>
+          <option value="03 — การเกษตร">03 — การเกษตร</option>
+          <option value="04 — อุตสาหกรรมและบริการแห่งอนาคต">04 — อุตสาหกรรมและบริการแห่งอนาคต</option>
+          <option value="05 — การท่องเที่ยว">05 — การท่องเที่ยว</option>
+          <option value="06 — พื้นที่และเมืองน่าอยู่อัจฉริยะ">06 — พื้นที่และเมืองน่าอยู่อัจฉริยะ</option>
+          <option value="07 — โครงสร้างพื้นฐาน ระบบโลจิสติกส์ และดิจิทัล">07 — โครงสร้างพื้นฐาน ระบบโลจิสติกส์ และดิจิทัล</option>
+          <option value="08 — ผู้ประกอบการและวิสาหกิจขนาดกลางและขนาดย่อมยุคใหม่">08 — ผู้ประกอบการและวิสาหกิจขนาดกลางและขนาดย่อมยุคใหม่</option>
+          <option value="09 — เขตเศรษฐกิจพิเศษ">09 — เขตเศรษฐกิจพิเศษ</option>
+          <option value="10 — การปรับเปลี่ยนค่านิยมและวัฒนธรรม">10 — การปรับเปลี่ยนค่านิยมและวัฒนธรรม</option>
+          <option value="11 — การพัฒนาศักยภาพคนตลอดช่วงชีวิต">11 — การพัฒนาศักยภาพคนตลอดช่วงชีวิต</option>
+          <option value="12 — การพัฒนาการเรียนรู้">12 — การพัฒนาการเรียนรู้</option>
+          <option value="13 — การเสริมสร้างให้คนไทยมีสุขภาวะที่ดี">13 — การเสริมสร้างให้คนไทยมีสุขภาวะที่ดี</option>
+          <option value="14 — ศักยภาพการกีฬา">14 — ศักยภาพการกีฬา</option>
+          <option value="15 — พลังทางสังคม">15 — พลังทางสังคม</option>
+          <option value="16 — เศรษฐกิจฐานราก">16 — เศรษฐกิจฐานราก</option>
+          <option value="17 — ความเสมอภาคและหลักประกันทางสังคม">17 — ความเสมอภาคและหลักประกันทางสังคม</option>
+          <option value="18 — การเติบโตอย่างยั่งยืน">18 — การเติบโตอย่างยั่งยืน</option>
+          <option value="19 — การบริหารจัดการน้ำทั้งระบบ">19 — การบริหารจัดการน้ำทั้งระบบ</option>
+          <option value="20 — การบริการประชาชนและประสิทธิภาพภาครัฐ">20 — การบริการประชาชนและประสิทธิภาพภาครัฐ</option>
+          <option value="21 — การต่อต้านการทุจริตและประพฤติมิชอบ">21 — การต่อต้านการทุจริตและประพฤติมิชอบ</option>
+          <option value="22 — กฎหมายและกระบวนการยุติธรรม">22 — กฎหมายและกระบวนการยุติธรรม</option>
+          <option value="23 — การวิจัยและพัฒนานวัตกรรม">23 — การวิจัยและพัฒนานวัตกรรม</option>
+        </select>
+      </div>
+      <div>
+        <label>แผนพัฒนาฯ ฉ.14 (C)</label>
+        <select id="al-c">
+          <option value="">— เลือก —</option>
+          <optgroup label="Transform — เศรษฐกิจ">
+            <option value="C1 — การปรับโครงสร้างเศรษฐกิจรายสาขาและยกระดับเครื่องยนต์เศรษฐกิจใหม่">C1 — การปรับโครงสร้างเศรษฐกิจรายสาขาและยกระดับเครื่องยนต์เศรษฐกิจใหม่</option>
+            <option value="C2 — การพัฒนาระบบนิเวศที่เอื้อต่อการปรับตัวของแรงงาน ธุรกิจ และภาครัฐ">C2 — การพัฒนาระบบนิเวศที่เอื้อต่อการปรับตัวของแรงงาน ธุรกิจ และภาครัฐ</option>
+            <option value="C3 — การลดสัดส่วนเศรษฐกิจนอกระบบ">C3 — การลดสัดส่วนเศรษฐกิจนอกระบบ</option>
+            <option value="C4 — การพัฒนา SMEs ให้แข่งขันได้อย่างเป็นธรรม">C4 — การพัฒนา SMEs ให้แข่งขันได้อย่างเป็นธรรม</option>
+            <option value="C5 — การรักษาเสถียรภาพทางเศรษฐกิจ">C5 — การรักษาเสถียรภาพทางเศรษฐกิจ</option>
+          </optgroup>
+          <optgroup label="Reform — ภาครัฐ">
+            <option value="C6 — การปฏิรูปการบริหารจัดการภาครัฐ">C6 — การปฏิรูปการบริหารจัดการภาครัฐ</option>
+            <option value="C7 — การปรับปรุงระเบียบ ขั้นตอน และกฎหมาย">C7 — การปรับปรุงระเบียบ ขั้นตอน และกฎหมาย</option>
+            <option value="C8 — การแก้ไขปัญหาทุจริตคอร์รัปชัน">C8 — การแก้ไขปัญหาทุจริตคอร์รัปชัน</option>
+          </optgroup>
+          <optgroup label="Upgrade — ทุนมนุษย์">
+            <option value="C9 — การส่งเสริมการมีจำนวนประชากร รองรับการพัฒนาประเทศ">C9 — การส่งเสริมการมีจำนวนประชากร รองรับการพัฒนาประเทศ</option>
+            <option value="C10 — การปรับแนวคิดและรูปแบบการจัดการศึกษาและการเรียนรู้">C10 — การปรับแนวคิดและรูปแบบการจัดการศึกษาและการเรียนรู้</option>
+            <option value="C11 — การปรับกลไกการพัฒนาทักษะแรงงานที่มุ่งผลสัมฤทธิ์">C11 — การปรับกลไกการพัฒนาทักษะแรงงานที่มุ่งผลสัมฤทธิ์</option>
+            <option value="C12 — การวางรากฐานสวัสดิการที่มั่นคง">C12 — การวางรากฐานสวัสดิการที่มั่นคง</option>
+          </optgroup>
+          <optgroup label="Sustain — ทรัพยากรและสิ่งแวดล้อม">
+            <option value="C13 — การบริหารจัดการทรัพยากรธรรมชาติและสิ่งแวดล้อมให้เป็นฐานการเติบโตทางเศรษฐกิจอย่างยั่งยืน">C13 — การบริหารจัดการทรัพยากรธรรมชาติและสิ่งแวดล้อมให้เป็นฐานการเติบโตทางเศรษฐกิจอย่างยั่งยืน</option>
+            <option value="C14 — การรับมือกับการเปลี่ยนแปลงสภาพภูมิอากาศเพื่อสร้างภูมิคุ้มกันทางเศรษฐกิจและสังคม">C14 — การรับมือกับการเปลี่ยนแปลงสภาพภูมิอากาศเพื่อสร้างภูมิคุ้มกันทางเศรษฐกิจและสังคม</option>
+            <option value="C15 — การมุ่งสู่สังคมคาร์บอนต่ำเพื่อเพิ่มความสามารถในการแข่งขัน">C15 — การมุ่งสู่สังคมคาร์บอนต่ำเพื่อเพิ่มความสามารถในการแข่งขัน</option>
+          </optgroup>
+          <optgroup label="Transfer — เทคโนโลยีและนวัตกรรม">
+            <option value="C16 — การลงทุนพัฒนาเทคโนโลยีและนวัตกรรม">C16 — การลงทุนพัฒนาเทคโนโลยีและนวัตกรรม</option>
+            <option value="C17 — การพัฒนาระบบนิเวศวิทยาศาสตร์ เทคโนโลยี และนวัตกรรม">C17 — การพัฒนาระบบนิเวศวิทยาศาสตร์ เทคโนโลยี และนวัตกรรม</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <label>แนวทางพัฒนาภาคเหนือ (D)</label>
+        <select id="al-d">
+          <option value="">— เลือก —</option>
+          <option value="N1 — เกษตรมูลค่าสูงบนฐานนวัตกรรมสีเขียวที่ตรวจสอบได้">N1 — เกษตรมูลค่าสูงบนฐานนวัตกรรมสีเขียวที่ตรวจสอบได้</option>
+          <option value="N2 — ท่องเที่ยวคุณภาพมูลค่าสูงและบริการสุขภาพระดับโลก">N2 — ท่องเที่ยวคุณภาพมูลค่าสูงและบริการสุขภาพระดับโลก</option>
+          <option value="N3 — อุตสาหกรรมนวัตกรรมฐานชีวภาพและดิจิทัลสีเขียว">N3 — อุตสาหกรรมนวัตกรรมฐานชีวภาพและดิจิทัลสีเขียว</option>
+          <option value="N4 — การค้า การค้าชายแดน และระบบโลจิสติกส์ที่เชื่อมโยงห่วงโซ่เศรษฐกิจภูมิภาค">N4 — การค้า การค้าชายแดน และระบบโลจิสติกส์ที่เชื่อมโยงห่วงโซ่เศรษฐกิจภูมิภาค</option>
+          <option value="N5 — การเพิ่มผลิตภาพแรงงานและยกระดับคุณภาพชีวิต">N5 — การเพิ่มผลิตภาพแรงงานและยกระดับคุณภาพชีวิต</option>
+          <option value="N6 — การจัดการทรัพยากรธรรมชาติและมลพิษเชิงรุก">N6 — การจัดการทรัพยากรธรรมชาติและมลพิษเชิงรุก</option>
+        </select>
+      </div>
     </div>
     <div class="brow"><button class="btn btn-p" onclick="buildAlign()">📊 สร้างตารางความสอดคล้อง</button></div>
   </div>
@@ -1652,7 +1760,7 @@ async function syncFromSheet() {
           area: r.area||'',
           target: r.target||'',
           item: r.item||'',
-          activities: [],
+          activities: r.activities||'',
           type: r.type||'',
           duration: r.duration||'',
           method: r.method||'',
@@ -2787,7 +2895,14 @@ function j3RenderProjectsTable() {
   }
   var html = '';
   j3Projects.forEach(function(p) {
-    var actSummary = p.activities.length ? p.activities.map(function(a){return a.name;}).join(', ') : '—';
+    var actSummary = '—';
+    if (Array.isArray(p.activities) && p.activities.length) {
+      actSummary = p.activities.map(function(a){return a.name;}).join(', ');
+    } else if (typeof p.activities === 'string' && p.activities.trim()) {
+      actSummary = p.activities.replace(/\d+\.\s*/g, '').split(' | ').map(function(s){
+        return s.replace(/\s*\[.*?\]/,'').replace(/\s*\(.*?\)/,'').trim();
+      }).join(', ');
+    }
     html += '<tr>'
       + '<td style="text-align:center;font-weight:700">' + p.priority + '</td>'
       + '<td style="font-weight:600">' + p.name + '</td>'
@@ -2823,13 +2938,18 @@ function j3RenderBriefs() {
       ['10. กลุ่มเป้าหมาย', p.target||'—']
     ];
 
-    // กิจกรรมหลัก
+    // กิจกรรมหลัก (รองรับทั้งกรณี array ของ object [ข้อมูล local] และ string ที่ดึงมาจาก Google Sheet)
     var actHtml = '—';
-    if (p.activities && p.activities.length) {
+    if (Array.isArray(p.activities) && p.activities.length) {
       actHtml = p.activities.map(function(a, i) {
         return '<strong>กิจกรรมที่ ' + (i+1) + '</strong>: ' + a.name
           + (a.budget ? ' | งบประมาณ: ' + a.budget.toLocaleString('th-TH') + ' บาท' : '')
           + (a.agency ? ' | หน่วยงานรับผิดชอบ: ' + a.agency : '');
+      }).join('<br>');
+    } else if (typeof p.activities === 'string' && p.activities.trim()) {
+      // string จากชีต รูปแบบ "1. ชื่อ [งบ บาท] (หน่วยงาน) | 2. ชื่อ..."
+      actHtml = p.activities.split(' | ').map(function(item) {
+        return item.replace(/^(\d+)\.\s*/, '<strong>กิจกรรมที่ $1</strong>: ');
       }).join('<br>');
     }
 
