@@ -34,6 +34,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--t1);font-
 .ntab-green{color:#7a5a00!important;font-weight:700!important;background:#FFF8DC!important}
 .ntab-green:hover{background:#FFEEA0!important}
 .ntab-green.on{color:#5a4000!important;border-bottom-color:#E6B800!important;background:#FFE94D!important}
+.ntab-pink{color:#9c1f5c!important;font-weight:700!important;background:#FDE6F1!important}
+.ntab-pink:hover{background:#FBCCE3!important}
+.ntab-pink.on{color:#7a0f45!important;border-bottom-color:#E6488F!important;background:#F9A8CE!important}
 .pg{display:none;padding:20px;max-width:1300px;margin:0 auto}
 .pg.on{display:block}
 .pghdr{margin-bottom:18px}
@@ -126,10 +129,11 @@ tr:hover td{background:#faf9f6}
 </div>
 
 <div class="nav" role="tablist">
+  <button class="ntab ntab-pink" onclick="go('timeline',this)">🗓️ ปฏิทินการดำเนินการ</button>
   <button class="ntab ntab-green on" onclick="go('form',this)">➕ บันทึกโครงการ (งบพัฒนาจังหวัด)</button>
+  <button class="ntab" onclick="go('list',this)">📋 บัญชีโครงการ (งบพัฒนาจังหวัด)</button>
   <button class="ntab ntab-green" onclick="go('j3',this)">📝 บันทึกโครงการ จ.3</button>
   <button class="ntab" onclick="go('dash',this)">📊 Dashboard</button>
-  <button class="ntab" onclick="go('list',this)">📋 บัญชีโครงการ (งบพัฒนาจังหวัด)</button>
   <button class="ntab" onclick="go('sdg',this)">🌐 SDG Mapping</button>
   <button class="ntab" onclick="go('lf',this)">🔗 Logical Framework</button>
   <button class="ntab" onclick="go('align',this)">✅ ความสอดคล้อง</button>
@@ -989,6 +993,44 @@ tr:hover td{background:#faf9f6}
   <div id="j3-briefs-container"></div>
 </div>
 
+<!-- ===================== TIMELINE (ปฏิทินการดำเนินการ) ===================== -->
+<div id="pg-timeline" class="pg">
+  <div class="pghdr">
+    <h2>🗓️ ปฏิทินการดำเนินการ — การจัดทำแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575</h2>
+    <p>(ร่าง) ปฏิทินการประสานแผนระดับพื้นที่ · เป้าหมายการพัฒนาจังหวัดน่าน 20 ปี ฉบับปรับปรุง · แผนพัฒนาจังหวัดน่าน 2571–2575 และแผนปฏิบัติราชการประจำปีงบประมาณ 2571</p>
+  </div>
+
+  <div id="tl-summary"></div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;flex-wrap:wrap;gap:8px" id="tl-filters"></div>
+  </div>
+
+  <div id="tl-container"></div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="ctitle"><span class="ico" style="background:#FDECEA">📌</span>หมายเหตุ</div>
+    <div style="font-size:13px;line-height:1.8;color:var(--t2)">
+      1. ฝ่ายเลขานุการ ก.น.บ. ประกอบด้วย สำนักงานสภาพัฒนาการเศรษฐกิจและสังคมแห่งชาติ สำนักงบประมาณ และกระทรวงมหาดไทย<br>
+      2. กฎหมาย ระเบียบ นโยบาย หลักเกณฑ์ และแนวทางปฏิบัติที่เกี่ยวข้อง:
+      <ul style="margin:4px 0 4px 20px;padding:0">
+        <li>พระราชกฤษฎีกาการบริหารงานเชิงพื้นที่แบบบูรณาการ พ.ศ. 2565</li>
+        <li>ระเบียบกระทรวงมหาดไทยว่าด้วยการจัดทำแผนและประสานแผนพัฒนาพื้นที่ในระดับอำเภอและตำบล พ.ศ. 2562 (ฉบับปรับปรุง ปีงบประมาณ พ.ศ. 2568)</li>
+        <li>ระเบียบกระทรวงมหาดไทยว่าด้วยการจัดทำแผนพัฒนาท้องถิ่น พ.ศ. 2548 และที่แก้ไขเพิ่มเติม</li>
+        <li>แนวทางปฏิบัติการเตรียมความพร้อมเพื่อจัดทำแผนพัฒนาท้องถิ่น ฉบับที่ 3 (พ.ศ. 2571–2575)</li>
+        <li>หลักเกณฑ์และวิธีการจัดทำเป้าหมายการพัฒนาจังหวัด 20 ปี ฉบับปรับปรุง ตามมติ ก.น.บ. ครั้งที่ 1/2569 (23 เม.ย. 2569)</li>
+        <li>นโยบาย หลักเกณฑ์ และวิธีการจัดทำแผนของจังหวัดและกลุ่มจังหวัด ปีงบประมาณ พ.ศ. 2571–2575 ตามมติ ก.น.บ. ครั้งที่ 1/2569</li>
+        <li>หลักเกณฑ์การจัดทำแผนปฏิบัติราชการประจำปีของจังหวัดและกลุ่มจังหวัด ปีงบประมาณ พ.ศ. 2571–2575 ตามมติ ก.น.บ. ครั้งที่ 1/2569</li>
+      </ul>
+      3. อาจมีการปรับเปลี่ยนกำหนดเวลาตามความเหมาะสม<br><br>
+      <b>ผู้ประสานงานหรือสอบถามรายละเอียด</b><br>
+      • นายดนตรี คุชบิล ผู้อำนวยการกลุ่มงานยุทธศาสตร์และข้อมูลเพื่อการพัฒนาจังหวัด สำนักงานจังหวัดน่าน โทร. 08 9203 4164<br>
+      • นางอรอุมา เซ็นน้อย นักวิเคราะห์นโยบายและแผนชำนาญการ กลุ่มงานยุทธศาสตร์และข้อมูลเพื่อการพัฒนาจังหวัด สำนักงานจังหวัดน่าน โทร. 08 8161 5655<br><br>
+      กลุ่มไลน์เพื่อติดต่อประสานงานเพิ่มเติม: กลุ่มไลน์ "Plan Nan"
+    </div>
+  </div>
+</div>
+
 <!-- ===================== SETUP ===================== -->
 <div id="pg-setup" class="pg">
   <div class="pghdr"><h2>⚙ ตั้งค่า Google Sheets</h2><p>กำหนดการเชื่อมต่อและตั้งค่า Apps Script</p></div>
@@ -1688,6 +1730,7 @@ function go(name, btn) {
   if (name === 'checklist') renderChecklist();
   if (name === 'sdg') renderSdgPage();
   if (name === 'align') populateAlignNameList();
+  if (name === 'timeline') renderTimeline();
   if (name === 'setup') initSetupPage();
 }
 
@@ -1777,11 +1820,9 @@ async function syncFromSheet() {
           maintenance: r.maintenance||''
         };
       }).filter(function(r){return !!r.name;});
-      // Sheet คือข้อมูลจริงเสมอ — sync มาทับข้อมูล local ทุกครั้งที่ดึงสำเร็จ
-      if(sheetJ3.length) {
-        j3Projects = sheetJ3;
-        j3SaveLocal();
-      }
+      // Sheet คือข้อมูลจริงเสมอ — sync มาทับข้อมูล local ทุกครั้งที่ดึงสำเร็จ (แม้ชีตจะว่างเปล่าก็ต้องทับ)
+      j3Projects = sheetJ3;
+      j3SaveLocal();
       loaded2 = true;
       if(dot2) dot2.style.background='var(--g)';
       if(info2) info2.textContent = j3Projects.length+' โครงการ · อัปเดต '+new Date().toLocaleTimeString('th-TH');
@@ -2527,6 +2568,249 @@ function alAutoFill() {
   }
 
   hint.textContent = '';
+}
+
+// ============================================================
+// TIMELINE (ปฏิทินการดำเนินการ)
+// ============================================================
+var TIMELINE_DATA = [
+  {no:1, group:'แผนพัฒนาหมู่บ้าน/แผนชุมชน', period:'ม.ค.–ก.พ. 69',
+   detail:'<b>แผนพัฒนาหมู่บ้าน:</b> คณะกรรมการหมู่บ้านจัดทำแผนพัฒนาหมู่บ้านจากข้อมูลเวทีประชาคมหมู่บ้าน จัดลำดับความสำคัญแผนงาน/โครงการ ส่งให้ ก.บ.ต./อปท./หน่วยงานที่เกี่ยวข้อง<br><b>แผนชุมชน:</b> คณะกรรมการชุมชนจัดทำแผนชุมชนในลักษณะเดียวกัน จากเวทีประชาคมชุมชน',
+   agency:'คณะกรรมการหมู่บ้าน / คณะกรรมการชุมชน', supervisor:'ปค.อำเภอ / ทุกอำเภอ'},
+  {no:2, group:'แผนพัฒนาตำบล/แผนพัฒนาท้องถิ่น (อบต./ทต./ทม.)', period:'มี.ค.–เม.ย. 69',
+   detail:'<b>แผนพัฒนาตำบล:</b> ก.บ.ต. รวบรวมแผนหมู่บ้าน/ชุมชน วิเคราะห์กำหนดทิศทาง ส่งให้ ก.บ.อ. ผ่านที่ว่าการอำเภอ และจัดทำบัญชีประสานโครงการส่งให้ อปท.<br><b>แผนพัฒนาท้องถิ่น:</b> อปท. เพิ่มเติม/แก้ไขแผนพัฒนาท้องถิ่นจากปัญหาความต้องการในเวทีประชาคมหมู่บ้าน/ชุมชน',
+   agency:'ก.บ.ต. / อปท. ทุกแห่ง', supervisor:'สนง.พชจ.น่าน / อำเภอทุกอำเภอ / สนง.สถจ.น่าน'},
+  {no:3, group:'แผนพัฒนาอำเภอ', period:'พ.ค.–มิ.ย. 69',
+   detail:'ก.บ.อ. จัดทำแผนพัฒนาอำเภอและแผนความต้องการระดับอำเภอ ให้สอดคล้องกับห้วงเวลาแผนพัฒนาจังหวัด จำแนกแผนงาน/โครงการ จัดทำบัญชีประสานโครงการเสนอ ก.บ.จ. พิจารณาโครงการที่เกินขีดความสามารถเสนอ อบจ. ส่งแผนให้คณะทำงานกลั่นกรองแผนพัฒนาอำเภอพิจารณาก่อนเสนอผู้ว่าราชการจังหวัดเห็นชอบ แล้วนำเข้า ก.บ.จ. เพื่อทราบ และส่งให้หน่วยงานที่เกี่ยวข้อง',
+   agency:'ก.บ.อ. / อปท.', supervisor:'ปค.จังหวัดน่าน'},
+  {no:4, group:'แผนพัฒนาท้องถิ่น (อบจ.)', period:'ก.ค. 69',
+   detail:'อบจ.น่าน พิจารณาโครงการที่ อปท. ขอรับการประสานตามบัญชีประสานโครงการพัฒนา หรือโครงการของ ก.บ.จ. เพื่อบรรจุในแผนพัฒนา อบจ. ตรวจสอบไม่ให้ซ้ำซ้อนกับแผนพัฒนาจังหวัดและแผนปฏิบัติงานของหน่วยงานอื่น และจัดทำบัญชีประสานโครงการพัฒนาส่งหน่วยงานที่เกี่ยวข้อง',
+   agency:'อบจ.น่าน', supervisor:'—'},
+  {no:5, group:'แผนพัฒนาจังหวัด และแผนปฏิบัติราชการประจำปี', period:'มี.ค.–17 ก.ค. 69',
+   detail:'รวบรวมและจัดทำข้อมูลเพื่อการพัฒนาจังหวัดน่าน สำรวจความต้องการของประชาชน จัดทำข้อมูลเชิงเปรียบเทียบที่เป็นปัจจุบันและเป็นอนุกรมอย่างน้อย 3 ปี (ด้านเศรษฐกิจ ด้านสังคมและความมั่นคง ด้านทรัพยากรธรรมชาติและสิ่งแวดล้อม) ตามมาตรา 20 วรรคสอง',
+   agency:'สนง.สถิติจังหวัดน่าน / สนจ.น่าน / อำเภอทุกอำเภอ / คณะทำงานกลุ่มภารกิจ (Cluster) จังหวัดน่าน', supervisor:'—'},
+  {no:6, group:'แผนพัฒนาจังหวัด และแผนปฏิบัติราชการประจำปี', period:'23 มี.ค. 69',
+   detail:'จังหวัดน่านจัดประชุม ก.บ.จ.น่าน เพื่อพิจารณาเตรียมความพร้อมจัดทำแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 และแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:7, period:'22 พ.ค. 69',
+   detail:'สศช. จัดประชุมชี้แจงนโยบาย หลักเกณฑ์ และวิธีการจัดทำแผนของจังหวัดและกลุ่มจังหวัด ปีงบประมาณ พ.ศ. 2571 ผ่านสื่ออิเล็กทรอนิกส์ (Zoom Meeting และ Facebook Live)',
+   agency:'ส่วนราชการ/หน่วยงาน / อำเภอทุกอำเภอ / สนจ.น่าน', supervisor:'—'},
+  {no:8, period:'12 พ.ค. 69',
+   detail:'ส่วนราชการ/หน่วยงานจัดทำแผนงาน/โครงการตามความต้องการของอำเภอด้านการขับเคลื่อนโครงการอันเนื่องมาจากพระราชดำริ ตามแบบฟอร์มที่กำหนด ส่งกลุ่มงานยุทธศาสตร์และข้อมูลเพื่อการพัฒนาจังหวัด สนจ.น่าน',
+   agency:'ส่วนราชการ/หน่วยงาน / อำเภอทุกอำเภอ / สนจ.น่าน', supervisor:'—'},
+  {no:9, period:'29 พ.ค. 69',
+   detail:'จังหวัดน่านแจ้งหลักเกณฑ์และวิธีการจัดทำแผนของจังหวัดและกลุ่มจังหวัดฉบับปรับปรุง และกรอบระยะเวลาการดำเนินงานจัดทำแผนและงบประมาณ ปีงบประมาณ พ.ศ. 2571',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:10, period:'29 พ.ค.–10 ก.ค. 69',
+   detail:'ส่วนราชการและหน่วยงานจัดทำรายละเอียดแผนงานโครงการและเอกสารแสดงความพร้อมของโครงการ ส่งให้จังหวัดน่านเพื่อเสนอบรรจุในแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 และขอรับการสนับสนุนงบประมาณตามแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'ส่วนราชการ/หน่วยงาน / สนจ.น่าน', supervisor:'สนจ.น่าน / คณะทำงานกลุ่มภารกิจ (Cluster) จังหวัดน่าน'},
+  {no:11, period:'18 มิ.ย. 69',
+   detail:'จังหวัดน่านจัดประชุมมอบนโยบายและชี้แจงแนวทางการจัดทำเป้าหมายการพัฒนาจังหวัดน่าน 20 ปี ช่วงที่ 2 (พ.ศ. 2571–2575) ฉบับปรับปรุง การจัดทำแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 และแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571 ณ โรงแรมน่านกรีนเลควิวรีสอร์ท อำเภอเมืองน่าน',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:12, period:'30 มิ.ย. 69',
+   detail:'อำเภอจัดส่งประเด็นปัญหาและความต้องการเชิงพื้นที่ และ ปค.จังหวัดน่านจัดส่งแผนความต้องการระดับอำเภอ ประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'อำเภอทุกอำเภอ / ปค.จังหวัดน่าน', supervisor:'ปค.จังหวัดน่าน'},
+  {no:13, period:'3 ก.ค. 69',
+   detail:'จังหวัดน่านจัดประชุม ก.บ.จ.น่าน เพื่อรับทราบหลักเกณฑ์และวิธีการจัดทำแผนตามมติ ก.น.บ. ครั้งที่ 1/2569 (23 เม.ย. 69) และกรอบระยะเวลา/กรอบการจัดสรรงบประมาณ ปีงบประมาณ พ.ศ. 2571',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:14, period:'6 ก.ค. 69',
+   detail:'ส่วนราชการและหน่วยงานจัดส่งแผนงาน/โครงการเพื่อบรรจุในแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 ตามแบบฟอร์มโครงการแบบย่อ (Project Brief) แบบ จ.1-1',
+   agency:'ส่วนราชการ/หน่วยงาน / สนจ.น่าน', supervisor:'—'},
+  {no:15, period:'10 ก.ค. 69',
+   detail:'จังหวัดน่านจัดประชุมเชิงปฏิบัติการ โครงการพัฒนาศักยภาพการขับเคลื่อนการพัฒนาเชิงพื้นที่และการจัดทำแผนยุทธศาสตร์ ณ โรงแรมน่านกรีนเลควิวรีสอร์ท อำเภอเมืองน่าน',
+   agency:'ส่วนราชการ/หน่วยงาน / สนจ.น่าน / คณะทำงานกลุ่มภารกิจ (Cluster)', supervisor:'—'},
+  {no:16, period:'10 ก.ค. 69',
+   detail:'ส่วนราชการ/หน่วยงานจัดส่งแผนงานโครงการ เพื่อบรรจุในแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575, ขอรับการสนับสนุนงบประมาณตามแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571 และขอรับการสนับสนุนจากกระทรวง/กรม (แบบ จ.3)',
+   agency:'ส่วนราชการ/หน่วยงาน / สนจ.น่าน / คณะทำงานกลุ่มภารกิจ (Cluster)', supervisor:'—'},
+  {no:17, period:'10 ก.ค. 69',
+   detail:'ทุกส่วนราชการ/รัฐวิสาหกิจ/อปท./องค์การมหาชน/หน่วยงานรัฐอื่นที่มีแผนยุทธศาสตร์เกิน 1 ปี และมีโครงการดำเนินงานในพื้นที่จังหวัดน่าน แจ้งโครงการและงบประมาณให้จังหวัดทราบ เพื่อบรรจุในแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 (มาตรา 22)',
+   agency:'ส่วนราชการ/หน่วยงาน / สนจ.น่าน / คณะทำงานกลุ่มภารกิจ (Cluster)', supervisor:'—'},
+  {no:18, period:'14 ก.ค. 69',
+   detail:'จังหวัดน่านร่วมกับวิทยากรมหาวิทยาลัยในพื้นที่ จัดประชุมคณะทำงานจัดทำเป้าหมายการพัฒนาจังหวัดน่าน 20 ปี แผนพัฒนาจังหวัด และแผนปฏิบัติราชการประจำปี (5 คณะทำงานย่อย: สังคมและความมั่นคง, เศรษฐกิจ-การค้า/ลงทุน/โลจิสติกส์, เศรษฐกิจ-การเกษตร, เศรษฐกิจ-การท่องเที่ยว, ทรัพยากรธรรมชาติและสิ่งแวดล้อม) เพื่อกลั่นกรองแผนงานโครงการ',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:19, period:'21 ก.ค. 69',
+   detail:'จังหวัดน่านจัดประชุมปรึกษาหารือร่วมกับทุกภาคส่วน (มาตรา 24) เพื่อรับฟังความคิดเห็นต่อ (ร่าง) เป้าหมายการพัฒนาจังหวัด 20 ปี ฉบับปรับปรุง, (ร่าง) แผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 และ (ร่าง) แผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'ทุกภาคส่วนในจังหวัดน่าน', supervisor:'สนจ.น่าน'},
+  {no:20, period:'ก.ค. 69',
+   detail:'ปค.จังหวัดน่าน (แผนหมู่บ้าน/ชุมชน/อำเภอ) สนง.ส่งเสริมการปกครองท้องถิ่นจังหวัดน่าน (แผนพัฒนาท้องถิ่น อบต./ทต./ทม.) และ อบจ.น่าน จัดส่งแผนพัฒนาฯ ให้สนจ.น่าน (ฝ่ายเลขานุการ ก.บ.จ.) เพื่อเป็นข้อมูลจัดทำแผนพัฒนาจังหวัดน่าน',
+   agency:'ปค.จังหวัดน่าน', supervisor:'สนจ.น่าน'},
+  {no:21, period:'22–23 ก.ค. 69',
+   detail:'สนจ.น่าน (ฝ่ายเลขานุการ ก.บ.จ.) นำผลการประชุมปรึกษาหารือและความคิดเห็นมาปรับปรุงเป้าหมายการพัฒนาจังหวัด 20 ปี, แผนพัฒนาจังหวัดน่าน 2571–2575 และแผนปฏิบัติราชการประจำปี 2571 เพื่อเสนอ ก.บ.จ.น่าน พิจารณาเห็นชอบ',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:22, period:'24 ก.ค. 69',
+   detail:'จังหวัดน่านจัดประชุม ก.บ.จ.น่าน เพื่อ<b>พิจารณาเห็นชอบ</b> ตามมาตรา 21: เป้าหมายการพัฒนาจังหวัดน่าน 20 ปี ฉบับปรับปรุง, แผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575, แผนงานโครงการที่ขอรับการสนับสนุนจากกระทรวง/กรม (แบบ จ.3) และแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:23, period:'31 ก.ค.–5 ส.ค. 69',
+   detail:'สนจ.น่าน (ฝ่ายเลขานุการ ก.บ.จ.) ปรับปรุงเป้าหมายการพัฒนาจังหวัด 20 ปี, แผนพัฒนาจังหวัดน่าน 2571–2575 และแผนปฏิบัติราชการประจำปี 2571 ตามข้อแนะนำของ ก.บ.จ.น่าน',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:24, period:'6–12 ส.ค. 69',
+   detail:'สนจ.น่าน (ฝ่ายเลขานุการ ก.บ.จ.) จัดทำเล่มเป้าหมายการพัฒนาจังหวัดน่าน 20 ปี ฉบับปรับปรุง, เล่มแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 และเล่มแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:25, period:'15 ส.ค. 69',
+   detail:'<b>จังหวัดน่านจัดส่งเอกสาร + ไฟล์เอกสาร ให้ฝ่ายเลขานุการ ก.น.บ.:</b> เป้าหมายการพัฒนาจังหวัดน่าน 20 ปี ฉบับปรับปรุง, แผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575, แผนงานโครงการที่จังหวัดขอรับการสนับสนุนจากกระทรวง/กรม (แบบ จ.3)',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:26, period:'15 ส.ค.–30 ก.ย. 69',
+   detail:'ฝ่ายเลขานุการ ก.น.บ. พิจารณากลั่นกรอง: เป้าหมายการพัฒนาจังหวัดน่าน 20 ปี ฉบับปรับปรุง, แผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575',
+   agency:'—', supervisor:'—'},
+  {no:27, period:'30 ก.ย. 69',
+   detail:'<b>จังหวัดน่านจัดส่งเอกสาร + ไฟล์เอกสาร ให้ฝ่ายเลขานุการ ก.น.บ.:</b> แผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571, เป้าหมายการพัฒนาจังหวัดน่าน 20 ปี และแผนพัฒนาจังหวัดน่าน 2571–2575 (กรณีฝ่ายเลขานุการ ก.น.บ. ให้ปรับปรุง/แก้ไข)',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:28, period:'ต้น ต.ค.–กลาง พ.ย. 69',
+   detail:'ฝ่ายเลขานุการ ก.น.บ. พิจารณากลั่นกรอง: เป้าหมายการพัฒนาจังหวัด 20 ปี ฉบับปรับปรุง, แผนพัฒนาจังหวัดและกลุ่มจังหวัด พ.ศ. 2571–2575, แผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'—', supervisor:'—'},
+  {no:29, period:'31 ต.ค. 69',
+   detail:'จังหวัดน่านจัดส่งบันทึกความร่วมมือระหว่างจังหวัดและกลุ่มจังหวัดกับส่วนราชการ รัฐวิสาหกิจ องค์กรปกครองส่วนท้องถิ่น และหน่วยงานอื่นของรัฐ ตามมาตรา 56 และ 58 ให้ฝ่ายเลขานุการ ก.น.บ.',
+   agency:'สนจ.น่าน', supervisor:'—'},
+  {no:30, period:'กลาง–ปลาย พ.ย. 69',
+   detail:'คณะอนุกรรมการประจำภาคพิจารณากลั่นกรอง: เป้าหมายการพัฒนาจังหวัด 20 ปี ฉบับปรับปรุง, แผนพัฒนาจังหวัดและกลุ่มจังหวัด พ.ศ. 2571–2575, แผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571, บันทึกความร่วมมือฯ มาตรา 56/58',
+   agency:'—', supervisor:'—'},
+  {no:31, period:'ต้น–กลาง ธ.ค. 69',
+   detail:'ก.น.บ. พิจารณาให้ความเห็นชอบ: เป้าหมายการพัฒนาจังหวัด 20 ปี ฉบับปรับปรุง, แผนพัฒนาจังหวัดและกลุ่มจังหวัด พ.ศ. 2571–2575, แผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571, บันทึกความร่วมมือฯ มาตรา 56/58',
+   agency:'—', supervisor:'—'},
+  {no:32, period:'กลาง ธ.ค. 69',
+   detail:'ฝ่ายเลขานุการ ก.น.บ. แจ้งเวียนบันทึกความร่วมมือฯ ตามมาตรา 56 และ 58 ให้สำนักงบประมาณและกระทรวง/กรมทราบ',
+   agency:'—', supervisor:'—'},
+  {no:33, period:'ปลายเดือน ธ.ค. 69',
+   detail:'คณะรัฐมนตรีพิจารณาอนุมัติ: แผนพัฒนาจังหวัดและกลุ่มจังหวัด พ.ศ. 2571–2575, แผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2571',
+   agency:'—', supervisor:'—'},
+  {no:34, period:'ปลาย ธ.ค. 69 – ม.ค. 71',
+   detail:'จังหวัดน่านแจ้งแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575 ที่ประกาศใช้แล้ว ต่อส่วนราชการ รัฐวิสาหกิจ องค์กรปกครองส่วนท้องถิ่น องค์การมหาชน และหน่วยงานอื่นของรัฐในพื้นที่ เพื่อจัดทำแผนปฏิบัติราชการ/แผนปฏิบัติงานประจำปีให้สอดคล้องกับแผนพัฒนาจังหวัดน่าน (มาตรา 25)',
+   agency:'—', supervisor:'สนจ.น่าน'}
+];
+
+var TL_GROUP_COLORS = {
+  'แผนพัฒนาหมู่บ้าน/แผนชุมชน': '#8BC34A',
+  'แผนพัฒนาตำบล/แผนพัฒนาท้องถิ่น (อบต./ทต./ทม.)': '#4CAF50',
+  'แผนพัฒนาอำเภอ': '#26A69A',
+  'แผนพัฒนาท้องถิ่น (อบจ.)': '#29B6F6',
+  'แผนพัฒนาจังหวัด และแผนปฏิบัติราชการประจำปี': '#1D9E75'
+};
+
+var tlActiveFilter = 'all';
+
+// วันที่เริ่ม-สิ้นสุดจริงของแต่ละกิจกรรม (แปลง พ.ศ.69=ค.ศ.2026, พ.ศ.71=ค.ศ.2028) เพื่อคำนวณสถานะ ณ ปัจจุบัน
+var TL_DATES = {
+  1:['2026-01-01','2026-02-28'], 2:['2026-03-01','2026-04-30'], 3:['2026-05-01','2026-06-30'],
+  4:['2026-07-01','2026-07-31'], 5:['2026-03-01','2026-07-17'], 6:['2026-03-23','2026-03-23'],
+  7:['2026-05-22','2026-05-22'], 8:['2026-05-12','2026-05-12'], 9:['2026-05-29','2026-05-29'],
+  10:['2026-05-29','2026-07-10'], 11:['2026-06-18','2026-06-18'], 12:['2026-06-30','2026-06-30'],
+  13:['2026-07-03','2026-07-03'], 14:['2026-07-06','2026-07-06'], 15:['2026-07-10','2026-07-10'],
+  16:['2026-07-10','2026-07-10'], 17:['2026-07-10','2026-07-10'], 18:['2026-07-14','2026-07-14'],
+  19:['2026-07-21','2026-07-21'], 20:['2026-07-01','2026-07-31'], 21:['2026-07-22','2026-07-23'],
+  22:['2026-07-24','2026-07-24'], 23:['2026-07-31','2026-08-05'], 24:['2026-08-06','2026-08-12'],
+  25:['2026-08-15','2026-08-15'], 26:['2026-08-15','2026-09-30'], 27:['2026-09-30','2026-09-30'],
+  28:['2026-10-01','2026-11-15'], 29:['2026-10-31','2026-10-31'], 30:['2026-11-15','2026-11-30'],
+  31:['2026-12-01','2026-12-15'], 32:['2026-12-15','2026-12-15'], 33:['2026-12-25','2026-12-31'],
+  34:['2026-12-25','2028-01-31']
+};
+
+function tlStatus(item) {
+  var d = TL_DATES[item.no];
+  if (!d) return 'unknown';
+  var today = new Date(); today.setHours(0,0,0,0);
+  var s = new Date(d[0]), e = new Date(d[1]);
+  if (today > e) return 'done';
+  if (today < s) return 'upcoming';
+  return 'current';
+}
+
+var TL_STATUS_META = {
+  done:    {label:'✅ เสร็จสิ้นแล้ว',      bg:'#EAF6EE', fg:'#1D9E75', border:'#1D9E75'},
+  current: {label:'🔴 กำลังดำเนินการอยู่', bg:'#FDECEA', fg:'#C0392B', border:'#E74C3C'},
+  upcoming:{label:'⏳ ยังไม่ถึงกำหนด',      bg:'#F5F4F0', fg:'#888',    border:'#ccc'}
+};
+
+function renderTimeline() {
+  // เติมกลุ่มล่าสุดให้แต่ละรายการที่ไม่มี group (สืบทอดจากกลุ่มก่อนหน้า)
+  var lastGroup = '';
+  TIMELINE_DATA.forEach(function(item) {
+    if (item.group) lastGroup = item.group;
+    item._group = lastGroup;
+    item._status = tlStatus(item);
+  });
+
+  // ------- แถบสรุปสถานะปัจจุบัน -------
+  var todayStr = new Date().toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
+  var doneCount = TIMELINE_DATA.filter(function(it){return it._status==='done';}).length;
+  var curItems = TIMELINE_DATA.filter(function(it){return it._status==='current';});
+  var upCount = TIMELINE_DATA.filter(function(it){return it._status==='upcoming';}).length;
+  var pct = Math.round((doneCount + curItems.length*0.5) / TIMELINE_DATA.length * 100);
+
+  var sumHtml = '<div class="card" style="margin-bottom:14px;border:1px solid #E74C3C22">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">' +
+      '<div style="font-weight:700;font-size:14px">📍 วันนี้: ' + todayStr + '</div>' +
+      '<div style="font-size:12px;color:var(--t3)">เสร็จสิ้น ' + doneCount + ' · กำลังดำเนินการ ' + curItems.length + ' · รอดำเนินการ ' + upCount + ' (จากทั้งหมด ' + TIMELINE_DATA.length + ' รายการ)</div>' +
+    '</div>' +
+    '<div style="height:8px;border-radius:5px;background:#eee;overflow:hidden;margin-bottom:10px">' +
+      '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#1D9E75,#E74C3C)"></div>' +
+    '</div>' +
+    (curItems.length ? curItems.map(function(it){
+      return '<div style="background:#FDECEA;border-left:4px solid #E74C3C;border-radius:6px;padding:8px 12px;margin-top:6px">' +
+        '<div style="font-weight:700;font-size:13px;color:#C0392B">🔴 ขณะนี้อยู่ในขั้นตอนที่ ' + it.no + ' (' + it.period + ')</div>' +
+        '<div style="font-size:12px;color:var(--t2);margin-top:2px">' + it.detail.replace(/<[^>]+>/g,'') + '</div>' +
+      '</div>';
+    }).join('') : '<div style="font-size:12px;color:var(--t3)">ไม่มีขั้นตอนที่ตรงกับวันนี้พอดี — ดูรายการที่ใกล้ที่สุดด้านล่าง</div>') +
+  '</div>';
+
+  var groups = [];
+  TIMELINE_DATA.forEach(function(item) {
+    if (groups.indexOf(item._group) < 0) groups.push(item._group);
+  });
+
+  var filterEl = document.getElementById('tl-filters');
+  filterEl.innerHTML = '<span class="chip" style="cursor:pointer' + (tlActiveFilter==='all'?';background:#1D9E75;color:#fff;border-color:#1D9E75':'') + '" onclick="tlFilter(\'all\')">ทั้งหมด (' + TIMELINE_DATA.length + ')</span>' +
+    '<span class="chip" style="cursor:pointer' + (tlActiveFilter==='current'?';background:#E74C3C;color:#fff;border-color:#E74C3C':'') + '" onclick="tlFilter(\'current\')">🔴 กำลังดำเนินการ (' + curItems.length + ')</span>' +
+    groups.map(function(g) {
+      var count = TIMELINE_DATA.filter(function(it){ return it._group === g; }).length;
+      var col = TL_GROUP_COLORS[g] || '#999';
+      var activeStyle = tlActiveFilter===g ? (';background:' + col + ';color:#fff;border-color:' + col) : '';
+      return '<span class="chip" style="cursor:pointer;border-left:4px solid ' + col + activeStyle + '" data-f="' + g.replace(/"/g,'&quot;') + '" onclick="tlFilter(this.getAttribute(\'data-f\'))">' + g + ' (' + count + ')</span>';
+    }).join('');
+
+  var list = tlActiveFilter === 'all' ? TIMELINE_DATA :
+             tlActiveFilter === 'current' ? curItems :
+             TIMELINE_DATA.filter(function(it){ return it._group === tlActiveFilter; });
+
+  var html = '<div style="position:relative;padding-left:28px">' +
+    '<div style="position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--bd)"></div>';
+
+  var curGroup = '';
+  list.forEach(function(item) {
+    if (item._group !== curGroup && tlActiveFilter !== 'current') {
+      curGroup = item._group;
+      html += '<div style="font-weight:700;font-size:14px;color:var(--t1);margin:' + (list.indexOf(item)===0?'0':'22px') + ' 0 10px -28px;padding-left:28px;position:relative">' +
+        '<span style="position:absolute;left:0;top:2px;width:20px;height:20px;border-radius:50%;background:' + (TL_GROUP_COLORS[curGroup]||'#999') + '"></span>' + curGroup + '</div>';
+    }
+    var color = TL_GROUP_COLORS[item._group] || '#999';
+    var sm = TL_STATUS_META[item._status] || TL_STATUS_META.upcoming;
+    var isCurrent = item._status === 'current';
+    html += '<div style="position:relative;margin-bottom:14px;padding-left:0">' +
+      '<div style="position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;background:' + (isCurrent?'#E74C3C':'#fff') + ';border:3px solid ' + (isCurrent?'#E74C3C':color) + (isCurrent?';box-shadow:0 0 0 4px #E74C3C33':'') + '"></div>' +
+      '<div class="card" style="padding:14px 16px' + (isCurrent?';border:1.5px solid #E74C3C':'') + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">' +
+          '<div style="font-weight:700;color:' + color + ';font-size:13px">ที่ ' + item.no + '</div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+            '<div style="font-size:12px;background:#F5F4F0;padding:3px 10px;border-radius:20px;color:var(--t2);font-weight:600">📅 ' + item.period + '</div>' +
+            '<div style="font-size:11px;background:' + sm.bg + ';color:' + sm.fg + ';padding:3px 10px;border-radius:20px;font-weight:700;border:1px solid ' + sm.border + '33">' + sm.label + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="font-size:13px;line-height:1.7;color:var(--t1);margin-top:8px">' + item.detail + '</div>' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--t3)">' +
+          '<div>👤 <b>หน่วยดำเนินการ:</b> ' + item.agency + '</div>' +
+          '<div>🛡️ <b>หน่วยกำกับดูแล:</b> ' + item.supervisor + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  document.getElementById('tl-container').innerHTML = html;
+  document.getElementById('tl-summary').innerHTML = sumHtml;
+}
+
+function tlFilter(g) {
+  tlActiveFilter = g;
+  renderTimeline();
 }
 
 function buildAlign() {
