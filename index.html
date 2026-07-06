@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบการจัดส่งโครงการและเชื่อมโยงแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -516,6 +517,7 @@ tr:hover td{background:#faf9f6}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-p" style="font-size:15px;padding:12px 28px;font-weight:700" onclick="saveToSheet()">💾 บันทึก</button>
       <button class="btn btn-s" onclick="clearForm()">🗑 ล้างข้อมูล</button>
+      <button class="btn btn-s" onclick="downloadCurrentFormAsWord()">📄 ดาวน์โหลด Word (จ.1-1)</button>
       <button class="btn btn-b" onclick="syncFromSheet();go('list',document.querySelector('.ntab:nth-child(3)'))">📋 ดูบัญชีโครงการ</button>
     </div>
   </div>
@@ -2019,6 +2021,215 @@ function checkRecorderFields() {
   }
 })();
 
+// ============================================================
+// WORD EXPORT (แบบ จ.1-1 Project Brief)
+// ============================================================
+var PROG_MAIN_LABELS = {
+  '1': '1. ส่งเสริมและพัฒนาทรัพยากรมนุษย์ทุกช่วงวัยให้มีคุณภาพพร้อมสำหรับวิถีชีวิตในศตวรรษที่ 21',
+  '2': '2. ยกระดับการผลิต อุตสาหกรรม การท่องเที่ยว และการบริการ ให้เป็นเมืองเป้าหมายการลงทุนการค้าชายแดนและการค้าผ่านแดน ด้วยเครือข่ายความร่วมมือทุกภาคส่วน และนวัตกรรมที่สอดคล้องกับบริบทการเปลี่ยนแปลง',
+  '3': '3. ส่งเสริมการพัฒนาในทุกมิติเพื่อให้เกิดการเติบโตที่เป็นมิตรกับสิ่งแวดล้อม'
+};
+var PROG_LABELS = {
+  '1': '1. ขยายผลการพัฒนาเมืองอัจฉริยะในท้องถิ่น เชื่อมโยงเครือข่ายเมืองอัจฉริยะในระดับประเทศ',
+  '2': '2. พัฒนาเส้นทางท่องเที่ยว แหล่งท่องเที่ยว สินค้าและบริการ และผู้ประกอบการในอุตสาหกรรมด้านการท่องเที่ยว เพื่อรองรับเมืองสร้างสรรค์และการเป็นเมืองมรดกโลก',
+  '3': '3. ยกระดับการผลิตภาคการเกษตรทั้งระบบและเพิ่มศักยภาพเกษตรกร กลุ่มเกษตรกร และสถาบันเกษตรกร ตามแนวทาง BCG',
+  '4': '4. พัฒนาการแปรรูปผลผลิตทางการเกษตรภายใต้มาตรฐานเชื่อมโยงตลาด และการจัดการระบบโลจิสติกส์ภาคการเกษตร',
+  '5': '5. ขยายช่องทางการเกษตร การลงทุนภาคการเกษตร และเพิ่มขีดความสามารถในการแข่งขัน',
+  '6': '6. ขับเคลื่อนและขยายผลโครงการอันเนื่องมาจากพระราชดำริ',
+  '7': '7. สร้างสิ่งแวดล้อมการเรียนรู้เพื่อสนับสนุนและส่งเสริมให้คนทุกช่วงวัยมีทักษะในศตวรรษที่ 21 และการเรียนรู้อย่างต่อเนื่องตลอดชีวิต และการเข้าถึงบริการทางการแพทย์ และสุขภาพเพื่อให้คนน่านมีสุขภาวะที่ดีอย่างต่อเนื่อง รวมถึงการแก้ไขปัญหาที่สำคัญของจังหวัด',
+  '8': '8. ส่งเสริมการใช้ประโยชน์จากทรัพยากรธรรมชาติภายใต้แนวคิดการพัฒนาเศรษฐกิจ สังคมและสิ่งแวดล้อมที่ยั่งยืน (SDG) อาทิ carbon credit'
+};
+var BSRC_LABELS = {
+  '1': 'งบพัฒนาจังหวัด', '2': 'งบกระทรวง/กรม', '3': 'งบ อปท.', '4': 'งบเอกชน/ชุมชน'
+};
+
+// รวมรายการกิจกรรมหลัก (act1..act10) จาก row ให้เป็น array ของ object {name,budget,agency,related}
+function j11ActivitiesFromRow(row) {
+  var out = [];
+  for (var i = 1; i <= 10; i++) {
+    var name = row['act' + i + '_name'];
+    if (name && String(name).trim()) {
+      out.push({
+        name: name,
+        budget: row['act' + i + '_budget'] || 0,
+        agency: row['act' + i + '_agency'] || '',
+        related: row['act' + i + '_related'] || ''
+      });
+    }
+  }
+  // กรณีเป็นข้อมูลจากฟอร์มปัจจุบันที่ยังไม่บันทึก (ใช้ activities[] ในหน่วยความจำ)
+  if (!out.length && Array.isArray(row.activitiesArr)) {
+    row.activitiesArr.forEach(function(a) {
+      if (a && a.name) out.push({ name: a.name, budget: a.budget || 0, agency: a.agency || '', related: a.related || '' });
+    });
+  }
+  return out;
+}
+
+// รวบรวมข้อมูลจากฟอร์มปัจจุบัน (ไม่บังคับกรอกผู้บันทึกข้อมูล) สำหรับ export
+function collectCurrentFormRow() {
+  var actFields = {};
+  for (var ai = 1; ai <= 10; ai++) {
+    var a = activities[ai - 1] || {};
+    actFields['act' + ai + '_name'] = a.name || '';
+    actFields['act' + ai + '_budget'] = a.budget || 0;
+    actFields['act' + ai + '_agency'] = a.agency || '';
+    actFields['act' + ai + '_related'] = a.related || '';
+  }
+  return Object.assign({
+    name: v('f-name'), issue: v('f-issue'), agency: v('f-agency'), related: v('f-related'),
+    progMain: v('f-prog-main'), prog: v('f-prog'), approach: v('f-approach'),
+    issueKpi: v('f-issue-kpi'),
+    reason: v('f-reason'), obj: v('f-obj'), kpi: v('f-kpi'),
+    area: v('f-area'),
+    output: v('f-output'), outcome: v('f-outcome'),
+    bsrc: v('f-bsrc'), btotal: n('f-btotal'), b71: n('f-b71'),
+    b72: n('f-b72'), b73: n('f-b73'), b74: n('f-b74'), b75: n('f-b75'),
+    ready: v('f-ready'), ys: v('f-ys'), ye: v('f-ye')
+  }, actFields);
+}
+
+function j11FmtMoney(num) {
+  return (Number(num) || 0).toLocaleString('th-TH') + ' บาท';
+}
+
+// สร้างเอกสาร Word (docx) ตามแบบ จ.1-1 จากข้อมูลโครงการ 1 โครงการ
+async function buildJ11Document(row) {
+  var D = window.docx;
+  var kpiLines = (row.kpi || '').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  if (!kpiLines.length) kpiLines = ['—'];
+  var acts = j11ActivitiesFromRow(row);
+
+  function P(text, opts) {
+    opts = opts || {};
+    return new D.Paragraph(Object.assign({
+      children: [new D.TextRun(Object.assign({ text: text || '—', font: 'TH Sarabun New', size: 28 }, opts.run || {}))]
+    }, opts.para || {}));
+  }
+  function cell(children, opts) {
+    opts = opts || {};
+    return new D.TableCell(Object.assign({
+      width: { size: opts.width || 50, type: D.WidthType.PERCENTAGE },
+      shading: opts.shaded ? { type: D.ShadingType.CLEAR, fill: 'EFEFEF' } : undefined,
+      children: Array.isArray(children) ? children : [children],
+      verticalAlign: D.VerticalAlign.TOP
+    }, opts.cellOpts || {}));
+  }
+  function headRow(label, detailParas) {
+    return new D.TableRow({
+      children: [
+        cell(P(label, { run: { bold: true } }), { width: 25, shaded: true }),
+        cell(detailParas, { width: 75 })
+      ]
+    });
+  }
+
+  var issueFull = (ISSUE_MAP[row.issue] || {}).n || row.issue || '—';
+  var progMainText = PROG_MAIN_LABELS[row.progMain] || row.progMain || '—';
+  var progText = PROG_LABELS[row.prog] || row.prog || '—';
+
+  var headerParas = [
+    P('แบบ จ.1-1', { run: { bold: true, size: 32 }, para: { alignment: D.AlignmentType.CENTER } }),
+    P('(Project Brief รายโครงการ)', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER } }),
+    P('แบบฟอร์มโครงการแบบย่อ (Project Brief) ของโครงการสำคัญภายใต้งบประมาณของจังหวัด', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER, spacing: { after: 200 } } }),
+    P('ประเด็นการพัฒนาจังหวัด ' + issueFull, { run: { bold: true } }),
+    P('แนวทางการพัฒนา ' + (row.approach || '—'), { run: { bold: true } }),
+    P('ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา ' + (row.issueKpi || '—'), { run: { bold: true } }),
+    P('แผนงานหลัก ' + progMainText, { run: { bold: true } }),
+    P('(ระบุว่าโครงการอยู่ภายใต้แผนงานหลักใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)', { run: { italics: true, size: 22, color: '666666' } }),
+    P('แผนงาน ' + progText, { run: { bold: true } }),
+    P('(ระบุว่าโครงการอยู่ภายใต้แผนงานย่อยใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)', { run: { italics: true, size: 22, color: '666666', spacing: { after: 200 } } })
+  ];
+
+  var rows = [];
+  rows.push(new D.TableRow({
+    tableHeader: true,
+    children: [
+      cell(P('หัวข้อ', { run: { bold: true } }), { width: 25, shaded: true }),
+      cell(P('รายละเอียด', { run: { bold: true } }), { width: 75, shaded: true })
+    ]
+  }));
+  rows.push(headRow('๑. ชื่อโครงการสำคัญ', [P(row.name)]));
+  rows.push(headRow('2. หลักการและเหตุผล', [P(row.reason)]));
+  rows.push(headRow('3. วัตถุประสงค์ของโครงการ', [P(row.obj)]));
+  rows.push(headRow('4. ตัวชี้วัดและค่าเป้าหมาย', kpiLines.map(function(k){return P(k);})));
+  rows.push(headRow('5. พื้นที่เป้าหมาย', [P(row.area)]));
+
+  var actParas = [];
+  if (!acts.length) {
+    actParas.push(P('—'));
+  } else {
+    acts.forEach(function(a, i) {
+      actParas.push(P((i + 1) + '. กิจกรรมที่ ' + (i + 1) + ': ' + (a.name || '—'), { run: { bold: true } }));
+      actParas.push(P('งบประมาณ: ' + j11FmtMoney(a.budget)));
+      actParas.push(P('หน่วยงานผู้รับผิดชอบ: ' + (a.agency || '—')));
+      actParas.push(P('หน่วยงานที่เกี่ยวข้อง: ' + (a.related || '—'), { run: { spacing: { after: 150 } } }));
+    });
+  }
+  rows.push(headRow('6. ขอบเขตของกิจกรรมหลักโดยสังเขป', actParas));
+
+  rows.push(headRow('7. หน่วยงานดำเนินการ', [
+    P('หน่วยงานรับผิดชอบหลัก: ' + (row.agency || '—')),
+    P('หน่วยงานที่เกี่ยวข้อง: ' + (row.related || '—'))
+  ]));
+  rows.push(headRow('8. ระยะเวลาในการดำเนินโครงการ', [
+    P('พ.ศ. ' + (row.ys || '—') + (row.ye && row.ye !== row.ys ? ' – ' + row.ye : ''))
+  ]));
+
+  var budgetParas = [
+    P('งบประมาณรวม: ' + j11FmtMoney(row.btotal) + ' (แหล่งงบประมาณ: ' + (BSRC_LABELS[row.bsrc] || row.bsrc || '—') + ')')
+  ];
+  [['2571', row.b71], ['2572', row.b72], ['2573', row.b73], ['2574', row.b74], ['2575', row.b75]].forEach(function(y) {
+    if (y[1]) budgetParas.push(P('ปี ' + y[0] + ': ' + j11FmtMoney(y[1])));
+  });
+  rows.push(headRow('9. งบประมาณ', budgetParas));
+
+  rows.push(headRow('10. ผลผลิต (Output)', [P(row.output)]));
+  rows.push(headRow('๑1. ผลลัพธ์จากการดำเนินโครงการ (Outcome)', [P(row.outcome)]));
+
+  var table = new D.Table({
+    width: { size: 100, type: D.WidthType.PERCENTAGE },
+    rows: rows
+  });
+
+  var doc = new D.Document({
+    sections: [{
+      properties: { page: { size: { width: 11906, height: 16838 } } }, // A4
+      children: headerParas.concat([table])
+    }]
+  });
+  return doc;
+}
+
+async function j11DownloadDoc(row, filenameBase) {
+  if (!window.docx) { alert('⚠ ไม่สามารถโหลดไลบรารีสร้างไฟล์ Word ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'); return; }
+  if (!row.name || !row.name.trim()) { alert('⚠ กรุณาระบุชื่อโครงการก่อนดาวน์โหลด'); return; }
+  try {
+    var doc = await buildJ11Document(row);
+    var blob = await window.docx.Packer.toBlob(doc);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (filenameBase || 'จ.1-1_' + row.name).replace(/[\\/:*?"<>|]/g, '_') + '.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  } catch (e) {
+    alert('⚠ เกิดข้อผิดพลาดในการสร้างไฟล์ Word: ' + e.message);
+  }
+}
+
+function downloadCurrentFormAsWord() {
+  var row = collectCurrentFormRow();
+  j11DownloadDoc(row);
+}
+
+function downloadProjectWord(row) {
+  if (!row) return;
+  j11DownloadDoc(row);
+}
+
 async function saveToSheet() {
   var name = document.getElementById('f-name').value.trim();
   var issue = document.getElementById('f-issue').value;
@@ -2421,16 +2632,17 @@ function renderList() {
   var fi = document.getElementById('fil-i').value;
   var fr = document.getElementById('fil-r').value;
   var list = projects.filter(p=>(!fi||p.issue===fi)&&(!fr||p.ready===fr));
+  window.__listCache = list;
   document.getElementById('list-count').textContent = list.length+'/'+projects.length+' โครงการ';
   if(!list.length){
     document.getElementById('list-tbl').innerHTML='<div style="padding:2rem;text-align:center;color:var(--t2)">ไม่พบโครงการ</div>';
     return;
   }
-  var html='<table><thead><tr><th>#</th><th>ชื่อโครงการ</th><th>ประเด็น</th><th>หน่วยงาน</th><th style="text-align:right">งบรวม</th><th style="text-align:right">งบ 2571</th><th>ปี</th><th>ยุทธ.</th><th>ภาคเหนือ</th><th>สถานะ</th></tr></thead><tbody>';
+  var html='<table><thead><tr><th>#</th><th>ชื่อโครงการ</th><th>ประเด็น</th><th>หน่วยงาน</th><th style="text-align:right">งบรวม</th><th style="text-align:right">งบ 2571</th><th>ปี</th><th>ยุทธ.</th><th>ภาคเหนือ</th><th>สถานะ</th><th>ไฟล์</th></tr></thead><tbody>';
   list.forEach((p,i)=>{
     var im=ISSUE_MAP[p.issue]||{s:p.issue,c:'#888'};
     var rm=READY_MAP[p.ready]||{l:p.ready,c:'bgr'};
-    html+=`<tr><td style="color:var(--t3)">${i+1}</td><td style="font-size:12px"><strong>${p.name}</strong><br><span style="color:var(--t2);font-size:11px">${p.agency}</span></td><td><span class="badge" style="background:${im.c}22;color:${im.c};font-size:11px">${im.s}</span></td><td style="font-size:11px;color:var(--t2)">${p.agency}</td><td style="text-align:right;font-size:12px">${(p.btotal||0).toLocaleString()}</td><td style="text-align:right;font-size:12px">${(p.b71||0).toLocaleString()}</td><td style="font-size:11px">${p.ys||'—'}${p.ye&&p.ye!==p.ys?'–'+p.ye:''}</td><td style="font-size:11px">${p.nat?'A'+p.nat:'—'}</td><td style="font-size:11px">${p.north||'—'}</td><td><span class="badge ${rm.c}">${rm.l}</span></td></tr>`;
+    html+=`<tr><td style="color:var(--t3)">${i+1}</td><td style="font-size:12px"><strong>${p.name}</strong><br><span style="color:var(--t2);font-size:11px">${p.agency}</span></td><td><span class="badge" style="background:${im.c}22;color:${im.c};font-size:11px">${im.s}</span></td><td style="font-size:11px;color:var(--t2)">${p.agency}</td><td style="text-align:right;font-size:12px">${(p.btotal||0).toLocaleString()}</td><td style="text-align:right;font-size:12px">${(p.b71||0).toLocaleString()}</td><td style="font-size:11px">${p.ys||'—'}${p.ye&&p.ye!==p.ys?'–'+p.ye:''}</td><td style="font-size:11px">${p.nat?'A'+p.nat:'—'}</td><td style="font-size:11px">${p.north||'—'}</td><td><span class="badge ${rm.c}">${rm.l}</span></td><td><button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="downloadProjectWord(window.__listCache[${i}])">📄 Word</button></td></tr>`;
   });
   html+='</tbody></table>';
   document.getElementById('list-tbl').innerHTML=html;
@@ -2717,7 +2929,11 @@ function tlStatus(item) {
   var d = TL_DATES[item.no];
   if (!d) return 'unknown';
   var today = new Date(); today.setHours(0,0,0,0);
-  var s = new Date(d[0]), e = new Date(d[1]);
+  function parseLocal(str) {
+    var p = str.split('-');
+    return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+  }
+  var s = parseLocal(d[0]), e = parseLocal(d[1]);
   if (today > e) return 'done';
   if (today < s) return 'upcoming';
   return 'current';
