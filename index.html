@@ -2496,11 +2496,12 @@ function parseThaiTS(str) {
 function getActiveProjList() {
   var j3Converted = j3Projects.map(function(p){
     return {
-      name: p.name, agency: p.agency||'', issue: p.issue||'agri',
+      name: p.name, agency: p.agency||'', issue: J3_ISSUE_TO_APPROACH_KEY[p.issue] || '',
       bsrc: '2', btotal: p.budget||0,
       b71:0,b72:0,b73:0,b74:0,b75:0,
       ready: p.readiness&&p.readiness.indexOf('ทันที')>=0 ? 'ready' : 'partial',
       timestamp: p.timestamp||'',
+      area: p.area||'',
       _src: 'j3', _ministry: p.ministry||'', _dept: p.dept||''
     };
   });
@@ -2514,8 +2515,9 @@ function renderDashboard() {
   var j1pl = projects;
   var j3pl = j3Projects;
 
-  var budget = j1pl.reduce(function(a,p){return a+(p.btotal||0);},0);
-  var b71 = j1pl.reduce(function(a,p){return a+(p.b71||0);},0);
+  var j1provOnly = j1pl.filter(function(p){return p.bsrc==='1';}); // งบจังหวัดเท่านั้น (ไม่รวมกระทรวง/อปท./เอกชน)
+  var budget = j1provOnly.reduce(function(a,p){return a+(p.btotal||0);},0);
+  var b71 = j1provOnly.reduce(function(a,p){return a+(p.b71||0);},0);
   var j3budget = j3pl.reduce(function(a,p){return a+(p.budget||0);},0);
   var ready = pl.filter(function(p){return p.ready==='ready';}).length;
   var notready = pl.filter(function(p){return p.ready==='notready';}).length;
@@ -2528,7 +2530,7 @@ function renderDashboard() {
     {l:'งบ ปี 2571 (จ.1)',v:b71>0?(b71/1e6).toFixed(1)+' ล้าน':'—',s:'บาท',c:'a'}
   ] : [
     {l:'โครงการทั้งหมด',v:pl.length,s:'โครงการ',c:''},
-    {l:'งบรวม',v:(pl.reduce(function(a,p){return a+(p.btotal||p.budget||0);},0)/1e6).toFixed(1)+' ล้าน',s:'บาท',c:'g'},
+    {l:'งบรวม',v:((dashView==='j1'?j1provOnly:pl).reduce(function(a,p){return a+(p.btotal||p.budget||0);},0)/1e6).toFixed(1)+' ล้าน',s:'บาท',c:'g'},
     {l:'งบ ปี 2571',v:b71>0?(b71/1e6).toFixed(1)+' ล้าน':'—',s:'บาท',c:'b'},
     {l:'พร้อมดำเนินการ',v:ready,s:'โครงการ',c:'g'},
     {l:'ยังไม่พร้อม',v:notready,s:'โครงการ',c:'r'}
@@ -2562,7 +2564,7 @@ function renderDashboard() {
   else {
     if(cardYr)cardYr.style.display='';
     var yrKeys = ['b71','b72','b73','b74','b75'];
-    var yrData = yrKeys.map(function(k){return +(j1pl.reduce(function(a,p){return a+(p[k]||0);},0)/1e6).toFixed(2);});
+    var yrData = yrKeys.map(function(k){return +(j1provOnly.reduce(function(a,p){return a+(p[k]||0);},0)/1e6).toFixed(2);});
     destroyChart('c3');
     charts['c3'] = new Chart(document.getElementById('c3'),{type:'line',data:{labels:['2571','2572','2573','2574','2575'].map(function(y){return 'พ.ศ.'+y;}),datasets:[{label:'งบ (ล้านบาท)',data:yrData,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',fill:true,tension:.35,pointRadius:5,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return v+'M';}}}}}});
   }
@@ -3643,7 +3645,7 @@ var SDG_DATA = [
   {id:11, icon:'🏙️', color:'#FD9D24', name:'เมืองและชุมชนที่ยั่งยืน',  short:'เมืองยั่งยืน',           nan:'red',    keywords:['เมือง','ชุมชน','ที่อยู่อาศัย','แหล่งน้ำชุมชน','ขยะ','สวนสาธารณะ','ท้องถิ่น','อบต','เทศบาล']},
   {id:12, icon:'♻️', color:'#BF8B2E', name:'การผลิตและบริโภคที่ยั่งยืน', short:'ผลิต-บริโภคยั่งยืน',  nan:'yellow', keywords:['ขยะ','รีไซเคิล','BCG','green','สีเขียว','คาร์บอน','ของเสีย','ประหยัด','ลดใช้']},
   {id:13, icon:'🌡️', color:'#3F7E44', name:'รับมือการเปลี่ยนแปลงสภาพภูมิอากาศ', short:'Climate Action', nan:'orange', keywords:['สภาพภูมิอากาศ','PM2.5','ฝุ่น','carbon','คาร์บอน','โลกร้อน','ภัยพิบัติ','น้ำท่วม','ภัยแล้ง']},
-  {id:14, icon:'🐋', color:'#0A97D9', name:'ทรัพยากรทางทะเล',         short:'ทรัพยากรทะเล',           nan:'',       keywords:['ทะเล','มหาสมุทร','ประมงทะเล','ชายฝั่ง']},
+  {id:14, icon:'🐋', color:'#0A97D9', name:'ทรัพยากรทางทะเล',         short:'ทรัพยากรทะเล',           nan:'', notApplicable:true, keywords:['ทะเลสาบ','มหาสมุทร','ประมงทะเล','ชายฝั่งทะเล','ปะการัง','สัตว์น้ำทะเล']},
   {id:15, icon:'🌳', color:'#56C02B', name:'ระบบนิเวศบนบก',           short:'ระบบนิเวศบนบก',          nan:'orange', keywords:['ป่า','ป่าไม้','พื้นที่ป่า','ต้นน้ำ','ดิน','ระบบนิเวศ','ความหลากหลาย','สัตว์ป่า','ปลูกป่า','อนุรักษ์']},
   {id:16, icon:'☮️', color:'#00689D', name:'สังคมสงบสุขและยุติธรรม',  short:'สังคมสงบสุข',            nan:'red',    keywords:['ยาเสพติด','ความปลอดภัย','กฎหมาย','อาชญากรรม','สันติภาพ','ยุติธรรม','ชายแดน','ความมั่นคง']},
   {id:17, icon:'🤝', color:'#19486A', name:'หุ้นส่วนการพัฒนาที่ยั่งยืน', short:'หุ้นส่วนการพัฒนา',   nan:'green',  keywords:['ความร่วมมือ','บูรณาการ','ภาคี','MOU','หุ้นส่วน','ประสาน','เครือข่าย','องค์กร']}
@@ -3724,9 +3726,9 @@ function renderSdgPage() {
   grid.innerHTML = goalsToShow.map(function(g){
     var linked = all.filter(function(p){return p.sdgMatched.indexOf(g.id)>=0;});
     if(!linked.length && filterGoal===0) return ''; // hide empty goals when showing all
-    var nanSt = NAN_STATUS[g.nan]||'—';
-    var nanCol = NAN_STATUS_COL[g.nan]||'#aaa';
-    var nanBg  = NAN_STATUS_BG[g.nan]||'#f5f4f0';
+    var nanSt = g.notApplicable ? 'ไม่มีพื้นที่ติดทะเล' : (NAN_STATUS[g.nan]||'—');
+    var nanCol = g.notApplicable ? '#888' : (NAN_STATUS_COL[g.nan]||'#aaa');
+    var nanBg  = g.notApplicable ? '#eee' : (NAN_STATUS_BG[g.nan]||'#f5f4f0');
     var j1cnt = linked.filter(function(p){return p._src==='j1';}).length;
     var j3cnt = linked.filter(function(p){return p._src==='j3';}).length;
     var budget = linked.reduce(function(a,p){return a+(p.btotal||p.budget||0);},0);
@@ -3743,7 +3745,7 @@ function renderSdgPage() {
       +'<span style="font-size:24px">'+g.icon+'</span>'
       +'<div style="flex:1"><div style="font-weight:700;font-size:13px">SDG '+g.id+' — '+g.name+'</div>'
       +'<div style="display:flex;gap:6px;margin-top:3px">'
-      +(g.nan?'<span style="background:'+nanBg+';color:'+nanCol+';font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600">'+nanSt+'</span>':'')
+      +((g.nan||g.notApplicable)?'<span style="background:'+nanBg+';color:'+nanCol+';font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600">'+nanSt+'</span>':'')
       +'<span class="badge bg" style="font-size:10px">จ.1: '+j1cnt+'</span>'
       +'<span class="badge bb" style="font-size:10px">จ.3: '+j3cnt+'</span>'
       +(budget>0?'<span class="badge" style="background:var(--gl);color:var(--gd);font-size:10px">'+((budget/1e6).toFixed(1))+' ล.บ.</span>':'')
@@ -3773,13 +3775,13 @@ function renderSdgPage() {
     var j1c = linked.filter(function(p){return p._src==='j1';}).length;
     var j3c = linked.filter(function(p){return p._src==='j3';}).length;
     var budget = linked.reduce(function(a,p){return a+(p.btotal||p.budget||0);},0);
-    var nanCol = NAN_STATUS_COL[g.nan]||'#aaa';
-    var nanBg  = NAN_STATUS_BG[g.nan]||'#f5f4f0';
-    var nanSt  = NAN_STATUS[g.nan]||'—';
+    var nanCol = g.notApplicable ? '#888' : (NAN_STATUS_COL[g.nan]||'#aaa');
+    var nanBg  = g.notApplicable ? '#eee' : (NAN_STATUS_BG[g.nan]||'#f5f4f0');
+    var nanSt  = g.notApplicable ? 'ไม่มีพื้นที่ติดทะเล' : (NAN_STATUS[g.nan]||'—');
     return '<tr>'
       +'<td><span style="display:inline-flex;align-items:center;gap:4px;font-weight:700;color:'+g.color+'">'+g.icon+' '+g.id+'</span></td>'
       +'<td style="font-size:12px">'+g.name+'</td>'
-      +(g.nan?'<td><span style="background:'+nanBg+';color:'+nanCol+';font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">'+nanSt+'</span></td>':'<td style="color:var(--t3)">—</td>')
+      +((g.nan||g.notApplicable)?'<td><span style="background:'+nanBg+';color:'+nanCol+';font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">'+nanSt+'</span></td>':'<td style="color:var(--t3)">—</td>')
       +'<td style="text-align:center;font-weight:700;color:var(--gd)">'+j1c+'</td>'
       +'<td style="text-align:center;font-weight:700;color:var(--b)">'+j3c+'</td>'
       +'<td style="text-align:center;font-weight:700">'+(j1c+j3c)+'</td>'
