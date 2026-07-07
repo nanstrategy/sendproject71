@@ -2575,10 +2575,13 @@ function renderDashboard() {
   else{rel.innerHTML=pl.slice(0,8).map(function(p){var pct=p.ready==='ready'?100:p.ready==='partial'?50:20;var col=p.ready==='ready'?'var(--g)':p.ready==='partial'?'var(--a)':'var(--r)';var tag=p._src==='j3'?'<span class="badge bb" style="font-size:10px;margin-left:4px">จ.3</span>':'';return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:72%">'+p.name+tag+'</span><span style="color:'+col+';font-weight:700">'+pct+'%</span></div><div class="pb"><div class="pf" style="width:'+pct+'%;background:'+col+'"></div></div></div>';}).join('');}
 
   // Chart 4 - budget source
-  var bsrcs = [['1','งบจังหวัด','#1D9E75'],['2','งบกระทรวง','#185FA5'],['3','งบ อปท.','#EF9F27'],['4','งบเอกชน','#D4537E']];
+  var bsrcsAll = [['1','งบจังหวัด','#1D9E75'],['2','งบกระทรวง','#185FA5'],['3','งบ อปท.','#EF9F27'],['4','งบเอกชน','#D4537E']];
+  // ปุ่มงบพัฒนาจังหวัด (j1): แสดงเฉพาะงบจังหวัดเท่านั้น ไม่แสดงแหล่งงบอื่น
+  var bsrcs = dashView==='j1' ? bsrcsAll.filter(function(b){return b[0]==='1';}) : bsrcsAll;
   var j3bTotal = dashView!=='j1' ? j3pl.reduce(function(a,p){return a+(p.budget||0);},0) : 0;
+  var blist = dashView==='j1' ? j1provOnly : pl; // ปุ่มงบพัฒนาจังหวัด: กรองเฉพาะ bsrc=1 เท่านั้น (กันข้อมูลผิดพลาดหลุดมาด้วย)
   var bData = bsrcs.map(function(b){
-    var sum = pl.filter(function(p){return p.bsrc===b[0];}).reduce(function(a,p){return a+(p.btotal||0);},0)/1e6;
+    var sum = blist.filter(function(p){return p.bsrc===b[0];}).reduce(function(a,p){return a+(p.btotal||0);},0)/1e6;
     if(b[0]==='2' && dashView!=='j1') sum += j3bTotal/1e6;
     return +sum.toFixed(2);
   });
