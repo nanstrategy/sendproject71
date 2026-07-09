@@ -1082,6 +1082,7 @@ tr:hover td{background:#faf9f6}
       <a href="https://docs.google.com/spreadsheets/d/1x73TIgDGg736RPAUsx4JGYSjtclCRNQr72SdYS2_5Kw/edit?gid=0#gid=0" target="_blank" class="btn btn-p">📊 เปิด Google Sheets</a>
       <a href="https://script.google.com" target="_blank" class="btn btn-b">⚙ เปิด Apps Script</a>
       <button class="btn btn-s" onclick="syncFromSheet()">🔄 ทดสอบโหลดข้อมูล</button>
+      <button class="btn btn-s" style="background:#fde8e8;color:#b91c1c" onclick="if(confirm('ล้างข้อมูล จ.3 ที่ค้างใน Local ของเบราว์เซอร์นี้ทั้งหมด แล้วโหลดใหม่จาก Sheet?\n\n(ใช้เมื่อหน้าเว็บโชว์โครงการที่ไม่มีอยู่ใน Google Sheets จริงแล้ว)')){localStorage.removeItem('nan_j3_projects');localStorage.removeItem('nan_j3_last_sync');j3Projects=[];syncFromSheet();}">🧹 ล้าง Local Cache (จ.3)</button>
     </div>
     <div class="alert a-warn" style="margin-top:12px">
       <div>
@@ -1821,20 +1822,31 @@ async function syncFromSheet() {
       // Sheet คือข้อมูลจริงเสมอ — sync มาทับข้อมูล local ทุกครั้งที่ดึงสำเร็จ (แม้ชีตจะว่างเปล่าก็ต้องทับ)
       j3Projects = sheetJ3;
       j3SaveLocal();
+      j3MarkSynced();
       loaded2 = true;
       if(dot2) dot2.style.background='var(--g)';
       if(info2) info2.textContent = j3Projects.length+' โครงการ · อัปเดต '+new Date().toLocaleTimeString('th-TH');
     } else { throw new Error(json2.error||'error'); }
   } catch(e2) {
-    if(dot2) dot2.style.background='var(--a)';
-    if(info2) info2.textContent = 'ใช้ข้อมูล Local ('+j3Projects.length+' โครงการ)';
-    loaded2 = true; // local ok
+    // เชื่อมต่อไม่สำเร็จ — กำลังโชว์ข้อมูลเก่าที่ค้างใน localStorage ของเบราว์เซอร์นี้
+    // ข้อมูลชุดนี้อาจไม่ตรงกับ Google Sheets ปัจจุบันแล้ว
+    if(dot2) dot2.style.background='var(--r)';
+    var lastSync = j3TimeSinceSync();
+    var syncNote = lastSync ? ('sync ล่าสุดสำเร็จ: '+lastSync) : 'ไม่เคย sync สำเร็จบนเครื่องนี้เลย';
+    if(info2) info2.innerHTML = '⚠️ เชื่อมต่อ Sheet ไม่ได้ กำลังใช้ข้อมูล Local เก่า ('+j3Projects.length+' โครงการ) — '+syncNote;
+    loaded2 = true; // ยังแสดงผลได้ แต่ไม่ใช่ข้อมูลสดจากชีต
   }
 
   if(loaded1||loaded2) {
     if(!loaded1) useSampleData();
-    setSheetStatus('✅ โหลดข้อมูลสำเร็จ · จ.1: <strong>'+projects.length+' โครงการ</strong> · จ.3: <strong>'+j3Projects.length+' โครงการ</strong> · อัปเดตเมื่อ '+new Date().toLocaleTimeString('th-TH'), 'a-suc');
-    setBadge('จ.1 '+projects.length+' | จ.3 '+j3Projects.length, true);
+    var j3Stale = (dot2 && dot2.style.background==='var(--r)');
+    if (j3Stale) {
+      setSheetStatus('⚠️ จ.1 โหลดสำเร็จ (<strong>'+projects.length+' โครงการ</strong>) แต่ <strong>จ.3 เชื่อมต่อ Sheet ไม่ได้</strong> กำลังโชว์ข้อมูล Local เก่า ('+j3Projects.length+' โครงการ) ที่อาจไม่ตรงกับชีตปัจจุบัน — ลองกด "โหลดข้อมูลใหม่" อีกครั้ง', 'err');
+      setBadge('จ.1 '+projects.length+' | จ.3 ⚠️ Local ('+j3Projects.length+')', true);
+    } else {
+      setSheetStatus('✅ โหลดข้อมูลสำเร็จ · จ.1: <strong>'+projects.length+' โครงการ</strong> · จ.3: <strong>'+j3Projects.length+' โครงการ</strong> · อัปเดตเมื่อ '+new Date().toLocaleTimeString('th-TH'), 'a-suc');
+      setBadge('จ.1 '+projects.length+' | จ.3 '+j3Projects.length, true);
+    }
     renderDashboard();
     renderList();
     j3RenderAll();
@@ -3281,6 +3293,22 @@ var j3Activities = []; // กิจกรรมของโครงการท
 
 function j3SaveLocal() {
   localStorage.setItem('nan_j3_projects', JSON.stringify(j3Projects));
+}
+
+function j3MarkSynced() {
+  localStorage.setItem('nan_j3_last_sync', Date.now().toString());
+}
+
+function j3TimeSinceSync() {
+  var t = parseInt(localStorage.getItem('nan_j3_last_sync')) || 0;
+  if (!t) return null;
+  var mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 1) return 'เมื่อสักครู่';
+  if (mins < 60) return mins + ' นาทีที่แล้ว';
+  var hrs = Math.round(mins / 60);
+  if (hrs < 24) return hrs + ' ชั่วโมงที่แล้ว';
+  var days = Math.round(hrs / 24);
+  return days + ' วันที่แล้ว';
 }
 
 function j3AddActivity() {
