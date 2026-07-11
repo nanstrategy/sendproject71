@@ -465,7 +465,10 @@ tr:hover td{background:#faf9f6}
 
   <!-- Check List เอกสาร -->
   <div class="card" id="card-checklist-pre" style="background:#FFF8EC;border:2px solid #F0B429;box-shadow:0 2px 12px rgba(240,180,41,.18)">
-    <div style="font-size:14px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F0B429">⚠️ ตรวจสอบความสมบูรณ์ก่อนแนบไฟล์</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F0B429">
+      <div style="font-size:14px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.5px">⚠️ ตรวจสอบความสมบูรณ์ก่อนแนบไฟล์</div>
+      <button class="btn btn-b" style="font-size:13px;font-weight:700;padding:8px 16px" onclick="window.open('https://drive.google.com/drive/folders/1-x1GHZvxj-Plaa2qfpTaV-HiTlsoe2vI','_blank')">📥 ดาวน์โหลดแบบฟอร์มโครงการ</button>
+    </div>
     <div style="margin-bottom:12px;font-size:13px;color:#92400E">กรุณาตรวจสอบรายการด้านล่างก่อนดำเนินการแนบไฟล์เอกสาร</div>
     <div class="brow" style="margin-bottom:12px">
       <button id="btn-toggle-checklist" class="btn btn-warn" style="font-size:14px;padding:14px 22px;font-weight:700;line-height:1.5;text-align:left;max-width:700px;white-space:normal;height:auto;box-shadow:0 2px 8px rgba(0,0,0,.15);border:none;cursor:pointer" onclick="toggleFormChecklist()"><span id="checklist-toggle-icon" style="display:inline-block;transition:transform .15s">▶</span> ☑ กดเพื่อดู Checklist เอกสาร<br><span style="font-size:11px;font-weight:400;opacity:.85">(หากโครงการใดไม่มีรายละเอียดข้อมูลอย่างครบถ้วน โครงการนั้นจะไม่ได้รับการพิจารณาจาก ก.น.บ.)</span></button>
