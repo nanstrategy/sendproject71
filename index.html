@@ -21,7 +21,9 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--t1);font-size:14px;line-height:1.6}
-.topbar{background:var(--g);color:#fff;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+label.label-missing{color:var(--r)!important}
+input.field-missing,select.field-missing,textarea.field-missing{border-color:var(--r)!important;background:var(--rl)!important;transition:border-color .15s,background .15s}
+.topbar{background:linear-gradient(135deg,#3B0764,#5A0096);color:#fff;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .topbar h1{font-size:16px;font-weight:700}
 .topbar-sub{font-size:11px;opacity:.8;margin-top:1px}
 .topbar-right{display:flex;gap:8px;align-items:center}
@@ -244,6 +246,7 @@ tr:hover td{background:#faf9f6}
   </div>
   <div class="alert a-warn">⚠ กรอกข้อมูลให้ครบถ้วน แล้วเลื่อนลงด้านล่างสุดกด <strong>"💾 บันทึก"</strong></div>
 <div id="form-status-top"></div>
+<div id="edit-mode-banner"></div>
 
   <div class="card">
     <div style="font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)">ส่วนที่ 1 — ข้อมูลทั่วไป</div>
@@ -251,7 +254,7 @@ tr:hover td{background:#faf9f6}
       <div><label>1. ชื่อโครงการ *</label><input id="f-name" placeholder="ระบุชื่อโครงการที่ชัดเจน" onkeydown="if(event.key==='Enter'){event.preventDefault();saveToSheet()}"></div>
       <div><label>2. หน่วยงานผู้รับผิดชอบหลัก *</label><input id="f-agency" placeholder="เช่น สนง.เกษตรจังหวัดน่าน"></div>
     </div>
-    <div><label>หน่วยงานที่เกี่ยวข้อง</label><input id="f-related" placeholder="เช่น สนง.ส่งเสริมการเกษตร, อบจ.น่าน"></div>
+    <div><label>หน่วยงานที่เกี่ยวข้อง *</label><input id="f-related" placeholder="เช่น สนง.ส่งเสริมการเกษตร, อบจ.น่าน"></div>
     <div>
       <label>3. ประเด็นการพัฒนาจังหวัด *</label>
       <select id="f-issue" onchange="populateApproachOptions();populateProvincialKPIOptions()">
@@ -264,21 +267,21 @@ tr:hover td{background:#faf9f6}
       </select>
     </div>
     <div>
-      <label>4. แนวทางการพัฒนา <span style="color:var(--t3);font-weight:400">(เลือกตามประเด็นการพัฒนาในข้อ 3)</span></label>
+      <label>4. แนวทางการพัฒนา * <span style="color:var(--t3);font-weight:400">(เลือกตามประเด็นการพัฒนาในข้อ 3)</span></label>
       <select id="f-approach"><option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option></select>
     </div>
     <div>
-      <label>5. ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา <span style="color:var(--t3);font-weight:400">(เลือกตามประเด็นการพัฒนาในข้อ 3)</span></label>
+      <label>5. ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา * <span style="color:var(--t3);font-weight:400">(เลือกตามประเด็นการพัฒนาในข้อ 3)</span></label>
       <select id="f-issue-kpi"><option value="">— เลือกประเด็นการพัฒนา (ข้อ 3) ก่อน —</option></select>
     </div>
-    <label>6. แผนงานหลัก (ระบุว่าโครงการอยู่ภายใต้แผนงานหลักใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
+    <label>6. แผนงานหลัก * (ระบุว่าโครงการอยู่ภายใต้แผนงานหลักใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
     <select id="f-prog-main">
       <option value="">— เลือกแผนงานหลัก —</option>
       <option value="1">1. ส่งเสริมและพัฒนาทรัพยากรมนุษย์ทุกช่วงวัยให้มีคุณภาพพร้อมสำหรับวิถีชีวิตในศตวรรษที่ 21</option>
       <option value="2">2. ยกระดับการผลิต อุตสาหกรรม การท่องเที่ยว และการบริการ ให้เป็นเมืองเป้าหมายการลงทุนการค้าชายแดนและการค้าผ่านแดน ด้วยเครือข่ายความร่วมมือทุกภาคส่วน และนวัตกรรมที่สอดคล้องกับบริบทการเปลี่ยนแปลง</option>
       <option value="3">3. ส่งเสริมการพัฒนาในทุกมิติเพื่อให้เกิดการเติบโตที่เป็นมิตรกับสิ่งแวดล้อม</option>
     </select>
-    <label>7. แผนงาน (ระบุว่าโครงการอยู่ภายใต้แผนงานย่อยใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
+    <label>7. แผนงาน * (ระบุว่าโครงการอยู่ภายใต้แผนงานย่อยใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)</label>
     <select id="f-prog">
       <option value="">— เลือกแผนงานย่อย —</option>
       <option value="1">1. ขยายผลการพัฒนาเมืองอัจฉริยะในท้องถิ่น เชื่อมโยงเครือข่ายเมืองอัจฉริยะในระดับประเทศ</option>
@@ -300,19 +303,21 @@ tr:hover td{background:#faf9f6}
     <textarea id="f-obj" rows="2" placeholder="ระบุวัตถุประสงค์แบบ SMART"></textarea>
     <div class="r2">
       <div>
-        <label>10. ตัวชี้วัดและค่าเป้าหมาย * <span style="color:var(--t3);font-weight:400">(เพิ่มได้สูงสุด 5 ตัวชี้วัด)</span></label>
+        <label>10. ตัวชี้วัดและค่าเป้าหมาย * <span style="color:var(--t3);font-weight:400">(เพิ่มได้สูงสุด 15 ตัวชี้วัด)</span></label>
         <div id="kpi-items-list" style="margin-bottom:6px"></div>
         <div style="display:flex;gap:6px">
-          <textarea id="kpi-input" rows="2" placeholder="พิมพ์ตัวชี้วัดทีละบรรทัด แล้วกด ➕ เพื่อเพิ่มทีเดียวได้สูงสุด 5 ตัว เช่น&#10;รายได้เกษตรกรเพิ่มขึ้น ≥15% ใน 3 ปี&#10;เกษตรกรผ่านการอบรม ≥500 ราย" style="flex:1"></textarea>
+          <textarea id="kpi-input" rows="2" placeholder="พิมพ์ตัวชี้วัดทีละบรรทัด แล้วกด ➕ เพื่อเพิ่มทีเดียวได้สูงสุด 15 ตัว เช่น&#10;รายได้เกษตรกรเพิ่มขึ้น ≥15% ใน 3 ปี&#10;เกษตรกรผ่านการอบรม ≥500 ราย" style="flex:1"></textarea>
           <button class="btn btn-p" type="button" onclick="addKPIItem()">➕</button>
         </div>
         <input type="hidden" id="f-kpi">
       </div>
       <div><label>11. พื้นที่เป้าหมาย *</label><input id="f-area" placeholder="เช่น อ.เมืองน่าน, ทุก 15 อำเภอ"></div>
     </div>
-    <label>12. ขอบเขตของกิจกรรมหลักโดยสังเขป (ระบุแนวทางและวิธีการดำเนินงานที่เป็นกิจกรรมที่ส่งผลให้โครงการบรรลุวัตถุประสงค์) *</label>
+    <label>12. ขอบเขตของกิจกรรมหลักโดยสังเขป (ระบุแนวทางและวิธีการดำเนินงานที่เป็นกิจกรรมที่ส่งผลให้โครงการบรรลุวัตถุประสงค์)</label>
+    <textarea id="f-act-overview" rows="2" placeholder="สรุปภาพรวมขอบเขตของกิจกรรมหลักทั้งหมดโดยสังเขป ก่อนแตกเป็นรายกิจกรรมด้านล่าง"></textarea>
     <div class="brow" style="margin-top:6px;margin-bottom:8px">
       <button class="btn btn-p" type="button" onclick="addActivity()">➕ <span id="act-next-label">เพิ่มกิจกรรมหลักที่ 1</span></button>
+      <span style="font-size:11px;color:var(--r);align-self:center">* ต้องเพิ่มอย่างน้อย 1 กิจกรรม</span>
     </div>
     <div id="activity-list"></div>
     <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r8);padding:12px;margin-top:8px">
@@ -327,8 +332,8 @@ tr:hover td{background:#faf9f6}
       </div>
     </div>
     <div class="r2">
-      <div><label>13. ผลผลิต (Outputs)</label><textarea id="f-output" rows="2" placeholder="เช่น เกษตรกร 500 รายได้รับรอง Organic"></textarea></div>
-      <div><label>14. ผลลัพธ์ (Outcomes)</label><textarea id="f-outcome" rows="2" placeholder="เช่น รายได้เพิ่มขึ้น 15,000 บาท/ครัวเรือน"></textarea></div>
+      <div><label>13. ผลผลิต (Outputs) *</label><textarea id="f-output" rows="2" placeholder="เช่น เกษตรกร 500 รายได้รับรอง Organic"></textarea></div>
+      <div><label>14. ผลลัพธ์ (Outcomes) *</label><textarea id="f-outcome" rows="2" placeholder="เช่น รายได้เพิ่มขึ้น 15,000 บาท/ครัวเรือน"></textarea></div>
     </div>
   </div>
 
@@ -345,15 +350,15 @@ tr:hover td{background:#faf9f6}
         </select>
       </div>
       <div><label>งบรวม 5 ปี (บาท)</label><input id="f-btotal" type="number" min="0" placeholder="0" readonly style="background:var(--bg);font-weight:700"></div>
-      <div><label>งบ ปี 2571 (บาท)</label><input id="f-b71" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
-      <div><label>งบ ปี 2572 (บาท)</label><input id="f-b72" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2571 (บาท) *</label><input id="f-b71" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2572 (บาท) *</label><input id="f-b72" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
     </div>
     <div class="r4">
-      <div><label>งบ ปี 2573 (บาท)</label><input id="f-b73" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
-      <div><label>งบ ปี 2574 (บาท)</label><input id="f-b74" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
-      <div><label>งบ ปี 2575 (บาท)</label><input id="f-b75" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2573 (บาท) *</label><input id="f-b73" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2574 (บาท) *</label><input id="f-b74" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
+      <div><label>งบ ปี 2575 (บาท) *</label><input id="f-b75" type="number" min="0" placeholder="0" oninput="calcBudgetTotal()"></div>
       <div>
-        <label>ความพร้อม</label>
+        <label>ความพร้อม *</label>
         <select id="f-ready">
           <option value="ready">พร้อมดำเนินการ</option>
           <option value="partial">พร้อมบางส่วน</option>
@@ -362,16 +367,12 @@ tr:hover td{background:#faf9f6}
       </div>
     </div>
     <div class="r4">
-      <div>
-        <label>ปีเริ่มต้น</label>
-        <select id="f-ys"><option>2571</option><option>2572</option><option>2573</option><option>2574</option><option>2575</option></select>
+      <div style="grid-column:span 2">
+        <label>ระยะเวลาดำเนินการ *</label>
+        <input id="f-duration" placeholder="เช่น ตุลาคม 2570 - กันยายน 2571">
       </div>
       <div>
-        <label>ปีสิ้นสุด</label>
-        <select id="f-ye"><option>2571</option><option>2572</option><option>2573</option><option>2574</option><option>2575</option></select>
-      </div>
-      <div>
-        <label>ยุทธศาสตร์ชาติ (A)</label>
+        <label>ยุทธศาสตร์ชาติ (A) *</label>
         <select id="f-nat">
           <option value="">— เลือก —</option>
           <option value="1">1 — ความมั่นคง</option>
@@ -383,7 +384,7 @@ tr:hover td{background:#faf9f6}
         </select>
       </div>
       <div>
-        <label>แผนภาคเหนือ (D)</label>
+        <label>แผนภาคเหนือ (D) *</label>
         <select id="f-north">
           <option value="">— เลือก —</option>
           <option value="N1">N1 — เกษตรมูลค่าสูงบนฐานนวัตกรรมสีเขียวที่ตรวจสอบได้</option>
@@ -397,7 +398,7 @@ tr:hover td{background:#faf9f6}
     </div>
     <div class="r2">
       <div>
-        <label>แผนแม่บทภายใต้ยุทธศาสตร์ชาติ (B)</label>
+        <label>แผนแม่บทภายใต้ยุทธศาสตร์ชาติ (B) *</label>
         <select id="f-master">
           <option value="">— เลือก —</option>
           <option value="01">01 — ความมั่นคง</option>
@@ -426,7 +427,7 @@ tr:hover td{background:#faf9f6}
         </select>
       </div>
       <div>
-        <label>แผนพัฒนาเศรษฐกิจฯ ฉ.14 (C)</label>
+        <label>แผนพัฒนาเศรษฐกิจฯ ฉ.14 (C) *</label>
         <select id="f-econ">
           <option value="">— เลือก —</option>
           <optgroup label="Transform — เศรษฐกิจ">
@@ -459,18 +460,18 @@ tr:hover td{background:#faf9f6}
         </select>
       </div>
     </div>
-    <div><label>กลุ่มภารกิจ (Cluster)</label><input id="f-cluster" placeholder="เช่น เศรษฐกิจ, สังคม, ทรัพยากรฯ"></div>
+    <div><label>กลุ่มภารกิจ (Cluster) *</label><input id="f-cluster" placeholder="เช่น เศรษฐกิจ, สังคม, ทรัพยากรฯ"></div>
   </div>
 
   <!-- Check List เอกสาร -->
-  <div class="card" id="card-checklist-pre">
-    <div style="font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)">ตรวจสอบความสมบูรณ์ก่อนแนบไฟล์</div>
-    <div style="margin-bottom:12px;font-size:13px;color:var(--t2)">กรุณาตรวจสอบรายการด้านล่างก่อนดำเนินการแนบไฟล์เอกสาร</div>
+  <div class="card" id="card-checklist-pre" style="background:#FFF8EC;border:2px solid #F0B429;box-shadow:0 2px 12px rgba(240,180,41,.18)">
+    <div style="font-size:14px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F0B429">⚠️ ตรวจสอบความสมบูรณ์ก่อนแนบไฟล์</div>
+    <div style="margin-bottom:12px;font-size:13px;color:#92400E">กรุณาตรวจสอบรายการด้านล่างก่อนดำเนินการแนบไฟล์เอกสาร</div>
     <div class="brow" style="margin-bottom:12px">
-      <button class="btn btn-warn" style="font-size:13px;padding:10px 20px;font-weight:700;line-height:1.5;text-align:left;max-width:700px;white-space:normal;height:auto" onclick="toggleFormChecklist()">☑ checklist เอกสาร<br><span style="font-size:11px;font-weight:400;opacity:.85">(หากโครงการใดไม่มีรายละเอียดข้อมูลอย่างครบถ้วน โครงการนั้นจะไม่ได้รับการพิจารณาจาก ก.น.บ.)</span></button>
+      <button id="btn-toggle-checklist" class="btn btn-warn" style="font-size:14px;padding:14px 22px;font-weight:700;line-height:1.5;text-align:left;max-width:700px;white-space:normal;height:auto;box-shadow:0 2px 8px rgba(0,0,0,.15);border:none;cursor:pointer" onclick="toggleFormChecklist()"><span id="checklist-toggle-icon" style="display:inline-block;transition:transform .15s">▶</span> ☑ กดเพื่อดู Checklist เอกสาร<br><span style="font-size:11px;font-weight:400;opacity:.85">(หากโครงการใดไม่มีรายละเอียดข้อมูลอย่างครบถ้วน โครงการนั้นจะไม่ได้รับการพิจารณาจาก ก.น.บ.)</span></button>
       <span id="form-cl-summary" style="font-size:12px;color:var(--t2);align-self:center"></span>
     </div>
-    <div id="form-checklist-panel" style="display:none;border:1px solid var(--bdr);border-radius:var(--r8);overflow:hidden">
+    <div id="form-checklist-panel" style="display:none;border:1px solid var(--bdr);border-radius:var(--r8);overflow:hidden;background:#fff">
       <div id="fcl-all" style="padding:8px 14px"></div>
     </div>
   </div>
@@ -493,7 +494,7 @@ tr:hover td{background:#faf9f6}
   <!-- ผู้บันทึกข้อมูล -->
   <div class="card" style="border:2px solid var(--bdr)">
     <div style="font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr)">👤 ผู้บันทึกข้อมูล</div>
-    <div class="r3">
+    <div class="r4">
       <div>
         <label>ชื่อ-นามสกุล ผู้บันทึกข้อมูล <span style="color:var(--r)">*</span></label>
         <input id="f-recorder" placeholder="เช่น นายสมชาย ใจดี" oninput="checkRecorderFields()">
@@ -509,15 +510,21 @@ tr:hover td{background:#faf9f6}
         <input id="f-recorder-org" placeholder="เช่น สำนักงานจังหวัดน่าน" oninput="checkRecorderFields()">
         <div id="err-recorder-org" style="font-size:11px;color:var(--r);margin-top:3px;display:none">⚠ กรุณากรอกหน่วยงาน</div>
       </div>
+      <div>
+        <label>เบอร์โทรศัพท์ <span style="color:var(--r)">*</span></label>
+        <input id="f-recorder-phone" placeholder="เช่น 08X-XXX-XXXX" oninput="checkRecorderFields()">
+        <div id="err-recorder-phone" style="font-size:11px;color:var(--r);margin-top:3px;display:none">⚠ กรุณากรอกเบอร์โทรศัพท์</div>
+      </div>
     </div>
     <div style="margin-top:10px;font-size:12px;color:var(--t3)">📅 วันที่บันทึก: <span id="f-record-date" style="font-weight:600;color:var(--t2)"></span></div>
   </div>
 
   <div style="background:var(--gl);border:2px solid var(--g);border-radius:var(--r12);padding:18px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-p" style="font-size:15px;padding:12px 28px;font-weight:700" onclick="saveToSheet()">💾 บันทึก</button>
+      <button id="btn-save-j1" class="btn btn-p" style="font-size:15px;padding:12px 28px;font-weight:700" onclick="saveToSheet()">💾 บันทึก</button>
       <button class="btn btn-s" onclick="clearForm()">🗑 ล้างข้อมูล</button>
       <button class="btn btn-s" onclick="downloadCurrentFormAsWord()">📄 ดาวน์โหลด Word (จ.1-1)</button>
+      <button class="btn btn-s" onclick="printCurrentFormAsJ11()">🖨 พิมพ์แบบ จ.1-1</button>
       <button class="btn btn-b" onclick="syncFromSheet();go('list',document.querySelector('.ntab:nth-child(3)'))">📋 ดูบัญชีโครงการ</button>
     </div>
   </div>
@@ -773,6 +780,7 @@ tr:hover td{background:#faf9f6}
 
   <div class="alert a-info">ℹ กรอกข้อมูลโครงการแต่ละรายการแล้วกด <strong>➕ เพิ่มโครงการ</strong> แล้วกด <strong>แนบไฟล์เอกสาร จ.3 (แนบทั้งไฟล์ PDF และ Word)</strong></div>
   <div id="j3-sheet-status" class="alert a-suc" style="display:none"></div>
+  <div id="j3-edit-banner"></div>
 
   <!-- === ตารางสรุปรายกระทรวง/กรม === -->
   <div class="card">
@@ -787,7 +795,7 @@ tr:hover td{background:#faf9f6}
   </div>
 
   <!-- === ฟอร์มกรอกโครงการ === -->
-  <div class="card">
+  <div class="card" id="j3-form-card">
     <div class="ctitle"><span class="ico" style="background:#E1F5EE">✏️</span>กรอกข้อมูลโครงการแบบย่อ (๑ ชุด : ๑ โครงการ)</div>
 
     <div class="r2">
@@ -919,7 +927,7 @@ tr:hover td{background:#faf9f6}
       </div>
       <div>
         <label>19. งบประมาณรวม (บาท) *</label>
-        <input id="j3-budget" type="number" placeholder="0" oninput="j3UpdateBudget()">
+        <input id="j3-budget" type="number" placeholder="0">
       </div>
     </div>
 
@@ -949,7 +957,7 @@ tr:hover td{background:#faf9f6}
     </div>
 
     <div class="brow">
-      <button class="btn btn-p" onclick="j3AddProject()">➕ เพิ่มโครงการ</button>
+      <button id="btn-save-j3" class="btn btn-p" onclick="j3AddProject()">➕ เพิ่มโครงการ</button>
       <button class="btn btn-s" onclick="j3ClearForm()">🗑 ล้างฟอร์ม</button>
       <a href="https://drive.google.com/drive/folders/1lvKX7fjWmuH624Ib-_PjZAgOCAM0jIDG" target="_blank" class="btn btn-b" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">📁 แนบไฟล์เอกสาร จ.3 (ทั้งไฟล์ PDF และ Word)</a>
     </div>
@@ -977,11 +985,12 @@ tr:hover td{background:#faf9f6}
             <th>รายการ (สงป.)</th>
             <th>หน่วยดำเนินการ</th>
             <th style="text-align:right">งบประมาณ (บาท)</th>
+            <th style="width:110px">แก้ไขล่าสุด</th>
             <th style="width:60px">จัดการ</th>
           </tr>
         </thead>
         <tbody id="j3-projects-body">
-          <tr><td colspan="10" style="text-align:center;color:var(--t3);padding:20px">ยังไม่มีโครงการ — กรอกข้อมูลด้านบนแล้วกด "➕ เพิ่มโครงการ"</td></tr>
+          <tr><td colspan="11" style="text-align:center;color:var(--t3);padding:20px">ยังไม่มีโครงการ — กรอกข้อมูลด้านบนแล้วกด "➕ เพิ่มโครงการ"</td></tr>
         </tbody>
       </table>
     </div>
@@ -1174,6 +1183,7 @@ var ganttItems = [];
 var kpis = [];
 var activities = [];
 var kpiItems = [];
+var editingRowJ1 = null; // เลขแถวใน Sheet ที่กำลังแก้ไขอยู่ (null = กำลังเพิ่มโครงการใหม่)
 
 // ============================================================
 // แนวทางการพัฒนา (ข้อ 6) — เชื่อมโยงกับประเด็นการพัฒนาจังหวัด (ข้อ 3)
@@ -1424,13 +1434,14 @@ var HEADERS = [
   [_COLS[62],'b74','Number','งบ พ.ศ. 2574'],
   [_COLS[63],'b75','Number','งบ พ.ศ. 2575'],
   [_COLS[64],'ready','Text','ความพร้อม (ready/partial/notready)'],
-  [_COLS[65],'ys','Number','ปีเริ่มต้น'],
-  [_COLS[66],'ye','Number','ปีสิ้นสุด'],
+  [_COLS[65],'ys','Text','ระยะเวลาดำเนินการ (เช่น ตุลาคม 2570 - กันยายน 2571)'],
+  [_COLS[66],'ye','Text','(ไม่ใช้แล้ว — คงคอลัมน์ไว้เพื่อความเข้ากันได้กับข้อมูลเดิม)'],
   [_COLS[67],'nat','Text','ยุทธศาสตร์ชาติ (A)'],
   [_COLS[68],'master','Text','แผนแม่บทฯ (B)'],
   [_COLS[69],'econ','Text','แผนพัฒนาเศรษฐกิจฯ ฉ.14 (C)'],
   [_COLS[70],'north','Text','แนวทางพัฒนาภาคเหนือ (D)'],
-  [_COLS[71],'cluster','Text','กลุ่มภารกิจ (Cluster)']
+  [_COLS[71],'cluster','Text','กลุ่มภารกิจ (Cluster)'],
+  [_COLS[72],'actOverview','Text','ขอบเขตของกิจกรรมหลักโดยสังเขป (ภาพรวม)']
 ];
 
 // ============================================================
@@ -1517,9 +1528,9 @@ function renderDistrictBudget(pl) {
 
 var ISSUE_MAP = {
   social:{n:'ประเด็นที่ 1 สุขภาพดี สร้างโอกาส และสังคมที่ร่มเย็น',s:'ปพ.1 สังคม',c:'#D4537E'},
-  trade:{n:'ประเด็นที่ 2 เศรษฐกิจสร้างสรรค์ (การค้า/ลงทุน/โลจิสติกส์)',s:'ปพ.2 การค้า',c:'#EF9F27'},
-  agri:{n:'ประเด็นที่ 2 เศรษฐกิจสร้างสรรค์ (การเกษตร)',s:'ปพ.2 เกษตร',c:'#1D9E75'},
-  tour:{n:'ประเด็นที่ 2 เศรษฐกิจสร้างสรรค์ (การท่องเที่ยว)',s:'ปพ.2 ท่องเที่ยว',c:'#185FA5'},
+  trade:{n:'ประเด็นการพัฒนาที่ 2 เศรษฐกิจสร้างสรรค์และมูลค่าสูง',s:'ปพ.2 การค้า',c:'#EF9F27'},
+  agri:{n:'ประเด็นการพัฒนาที่ 2 เศรษฐกิจสร้างสรรค์และมูลค่าสูง',s:'ปพ.2 เกษตร',c:'#1D9E75'},
+  tour:{n:'ประเด็นการพัฒนาที่ 2 เศรษฐกิจสร้างสรรค์และมูลค่าสูง',s:'ปพ.2 ท่องเที่ยว',c:'#185FA5'},
   env:{n:'ประเด็นที่ 3 เติบโตอย่างเป็นมิตรกับสิ่งแวดล้อม',s:'ปพ.3 สิ่งแวดล้อม',c:'#639922'}
 };
 var BSRC_MAP = {'1':'งบจังหวัด','2':'งบกระทรวง/กรม','3':'งบ อปท.','4':'งบเอกชน'};
@@ -1551,7 +1562,8 @@ var HEADERS = [
   'output','outcome',
   'bsrc','btotal','b71','b72','b73','b74','b75',
   'ready','ys','ye','nat','master','econ','north','cluster',
-  'recorder','recorderPos','recorderOrg','recordDate'
+  'recorder','recorderPos','recorderOrg','recorderPhone','recordDate',
+  'actOverview'
 ];
 
 function doGet(e) {
@@ -1574,6 +1586,9 @@ function doGet(e) {
     } else if (action === 'write') {
       var data = JSON.parse(e.parameter.data || '{}');
       output = writeRow(sheet, data, sheetTarget);
+    } else if (action === 'update') {
+      var data = JSON.parse(e.parameter.data || '{}');
+      output = updateRow(sheet, e.parameter.row, data, sheetTarget);
     } else {
       output = readData(sheet, sheetTarget);
     }
@@ -1589,18 +1604,20 @@ function doGet(e) {
 function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
-    var action, dataRaw, sheetTarget;
+    var action, dataRaw, sheetTarget, rowNum;
     // hidden form ส่งมาเป็น form-urlencoded -> อยู่ใน e.parameter
     if (e.parameter && e.parameter.action) {
       action = e.parameter.action;
       dataRaw = e.parameter.data || '{}';
       sheetTarget = e.parameter.sheetTarget || '';
+      rowNum = e.parameter.row || '';
     } else if (e.postData && e.postData.contents) {
       // เผื่อกรณีส่งมาเป็น JSON body ตรงๆ
       var parsed = JSON.parse(e.postData.contents);
       action = parsed.action;
       dataRaw = JSON.stringify(parsed.row || parsed.data || {});
       sheetTarget = parsed.sheetTarget || '';
+      rowNum = parsed.rowNum || '';
     } else {
       throw new Error('ไม่พบข้อมูลที่ส่งมา');
     }
@@ -1616,6 +1633,9 @@ function doPost(e) {
     if (action === 'write') {
       var row = JSON.parse(dataRaw);
       output = writeRow(sheet, row, sheetTarget);
+    } else if (action === 'update') {
+      var row2 = JSON.parse(dataRaw);
+      output = updateRow(sheet, rowNum, row2, sheetTarget);
     } else {
       output = {ok: false, error: 'Unknown action: ' + action};
     }
@@ -1634,7 +1654,8 @@ var HEADERS_J3 = [
   'issue','strategy','plan','rationale','objective','kpi',
   'area','target','item','activities',
   'type','duration','method','budget',
-  'output','outcome','readiness','maintenance'
+  'output','outcome','readiness','maintenance',
+  'updatedAt'
 ];
 
 function initSheet(sheet, sheetTarget) {
@@ -1673,13 +1694,34 @@ function readData(sheet, sheetTarget) {
   if (lastRow < 2) return {ok: true, data: [], total: 0};
   var values = sheet.getRange(2,1,lastRow-1,headers.length).getValues();
   var data = values
-    .map(function(row) {
+    .map(function(row, i) {
       var obj = {};
       headers.forEach(function(h,i){ obj[h] = row[i]; });
+      obj._row = i + 2; // เลขแถวจริงใน Sheet (ใช้อ้างอิงตอนแก้ไข)
       return obj;
     })
     .filter(function(r){ return r.name; });
   return {ok: true, data: data, total: data.length};
+}
+
+// แก้ไขข้อมูลแถวที่มีอยู่แล้ว (ไม่แก้ timestamp เดิม เพื่อรักษาเวลาที่บันทึกครั้งแรก)
+function updateRow(sheet, rowNum, data, sheetTarget) {
+  var headers = (sheetTarget === 'j3') ? HEADERS_J3 : HEADERS;
+  rowNum = parseInt(rowNum);
+  var lastRow = sheet.getLastRow();
+  if (!rowNum || rowNum < 2 || rowNum > lastRow) {
+    return {ok: false, error: 'ไม่พบแถวที่ระบุ (row: ' + rowNum + ') อาจมีการเปลี่ยนแปลงลำดับใน Sheet — กรุณาโหลดข้อมูลใหม่แล้วลองอีกครั้ง'};
+  }
+  var existing = sheet.getRange(rowNum, 1, 1, headers.length).getValues()[0];
+  var nowStr = new Date().toLocaleString('th-TH', {timeZone:'Asia/Bangkok'});
+  var newRow = headers.map(function(h, i) {
+    if (h === 'timestamp') return existing[i]; // เก็บเวลาบันทึกครั้งแรกไว้เสมอ
+    if (h === 'updatedAt') return nowStr; // ประทับเวลาแก้ไขล่าสุดทุกครั้งที่มีการอัปเดต
+    return data[h] !== undefined ? data[h] : existing[i];
+  });
+  sheet.getRange(rowNum, 1, 1, newRow.length).setValues([newRow]);
+  SpreadsheetApp.flush();
+  return {ok: true, row: rowNum};
 }
 
 function writeRow(sheet, row, sheetTarget) {
@@ -1794,6 +1836,7 @@ async function syncFromSheet() {
       var sheetJ3 = (json2.data||[]).map(function(r){
         return {
           id: Date.now()+Math.random(),
+          _row: r._row || null,
           priority: parseInt(r.priority)||0,
           name: r.name||'',
           ministry: r.ministry||'',
@@ -1816,7 +1859,8 @@ async function syncFromSheet() {
           output: r.output||'',
           outcome: r.outcome||'',
           readiness: r.readiness||'',
-          maintenance: r.maintenance||''
+          maintenance: r.maintenance||'',
+          updatedAt: r.updatedAt||''
         };
       }).filter(function(r){return !!r.name;});
       // Sheet คือข้อมูลจริงเสมอ — sync มาทับข้อมูล local ทุกครั้งที่ดึงสำเร็จ (แม้ชีตจะว่างเปล่าก็ต้องทับ)
@@ -1871,10 +1915,15 @@ function normalizeRow(r) {
     btotal: parseFloat(r.btotal) || 0, b71: parseFloat(r.b71) || 0,
     b72: parseFloat(r.b72) || 0, b73: parseFloat(r.b73) || 0,
     b74: parseFloat(r.b74) || 0, b75: parseFloat(r.b75) || 0,
-    ready: r.ready || 'partial', ys: r.ys || '2571', ye: r.ye || '2571',
+    ready: r.ready || 'partial', ys: r.ys || '', ye: r.ye || '',
     nat: String(r.nat || ''), master: r.master || '', econ: r.econ || '',
     north: r.north || '', cluster: r.cluster || '',
-    timestamp: r.timestamp || ''
+    timestamp: r.timestamp || '',
+    actOverview: r.actOverview || '',
+    recorder: r.recorder || '', recorderPos: r.recorderPos || '',
+    recorderOrg: r.recorderOrg || '', recorderPhone: r.recorderPhone || '',
+    recordDate: r.recordDate || '',
+    _row: r._row || null
   };
   // รองรับทั้งโครงสร้างใหม่ (act1_name…) และเก่า (activity text)
   for (var ai = 1; ai <= 10; ai++) {
@@ -1886,7 +1935,7 @@ function normalizeRow(r) {
   return base;
 }
 
-function writeViaHiddenForm(row) {
+function writeViaHiddenForm(row, action, rowNum) {
   return new Promise(function(resolve) {
     var frameName = 'gas_sink_' + Date.now();
     var ifr = document.createElement('iframe');
@@ -1902,13 +1951,20 @@ function writeViaHiddenForm(row) {
 
     var fAction = document.createElement('input');
     fAction.name = 'action';
-    fAction.value = 'write';
+    fAction.value = action || 'write';
     form.appendChild(fAction);
 
     var fTarget = document.createElement('input');
     fTarget.name = 'sheetTarget';
     fTarget.value = row._sheetTarget || '';
     form.appendChild(fTarget);
+
+    if (action === 'update' && rowNum) {
+      var fRow = document.createElement('input');
+      fRow.name = 'row';
+      fRow.value = rowNum;
+      form.appendChild(fRow);
+    }
 
     var fData = document.createElement('input');
     fData.name = 'data';
@@ -1971,11 +2027,14 @@ function isSectionHeader(text) {
 
 function toggleFormChecklist() {
   var panel = document.getElementById('form-checklist-panel');
+  var icon = document.getElementById('checklist-toggle-icon');
   if (panel.style.display === 'none') {
     panel.style.display = 'block';
+    if (icon) icon.style.transform = 'rotate(90deg)';
     renderFormChecklist();
   } else {
     panel.style.display = 'none';
+    if (icon) icon.style.transform = 'rotate(0deg)';
   }
 }
 
@@ -2019,9 +2078,11 @@ function checkRecorderFields() {
   var r = document.getElementById('f-recorder').value.trim();
   var p = document.getElementById('f-recorder-pos').value.trim();
   var o = document.getElementById('f-recorder-org').value.trim();
+  var ph = document.getElementById('f-recorder-phone').value.trim();
   document.getElementById('err-recorder').style.display = r ? 'none' : 'block';
   document.getElementById('err-recorder-pos').style.display = p ? 'none' : 'block';
   document.getElementById('err-recorder-org').style.display = o ? 'none' : 'block';
+  document.getElementById('err-recorder-phone').style.display = ph ? 'none' : 'block';
 }
 
 // Set current date for record-date display
@@ -2093,11 +2154,11 @@ function collectCurrentFormRow() {
     progMain: v('f-prog-main'), prog: v('f-prog'), approach: v('f-approach'),
     issueKpi: v('f-issue-kpi'),
     reason: v('f-reason'), obj: v('f-obj'), kpi: v('f-kpi'),
-    area: v('f-area'),
+    area: v('f-area'), actOverview: v('f-act-overview'),
     output: v('f-output'), outcome: v('f-outcome'),
     bsrc: v('f-bsrc'), btotal: n('f-btotal'), b71: n('f-b71'),
     b72: n('f-b72'), b73: n('f-b73'), b74: n('f-b74'), b75: n('f-b75'),
-    ready: v('f-ready'), ys: v('f-ys'), ye: v('f-ye')
+    ready: v('f-ready'), ys: v('f-duration'), ye: ''
   }, actFields);
 }
 
@@ -2117,6 +2178,14 @@ async function buildJ11Document(row) {
     return new D.Paragraph(Object.assign({
       children: [new D.TextRun(Object.assign({ text: text || '—', font: 'TH Sarabun New', size: 28 }, opts.run || {}))]
     }, opts.para || {}));
+  }
+  function PLV(label, value, paraOpts) {
+    return new D.Paragraph(Object.assign({
+      children: [
+        new D.TextRun({ text: label + ' ', font: 'TH Sarabun New', size: 28, bold: true }),
+        new D.TextRun({ text: value || '—', font: 'TH Sarabun New', size: 28, bold: false })
+      ]
+    }, paraOpts || {}));
   }
   function cell(children, opts) {
     opts = opts || {};
@@ -2141,16 +2210,14 @@ async function buildJ11Document(row) {
   var progText = PROG_LABELS[row.prog] || row.prog || '—';
 
   var headerParas = [
-    P('แบบ จ.1-1', { run: { bold: true, size: 32 }, para: { alignment: D.AlignmentType.CENTER } }),
-    P('(Project Brief รายโครงการ)', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER } }),
+    P('แบบ จ.1-1', { run: { bold: true, size: 32 }, para: { alignment: D.AlignmentType.RIGHT } }),
+    P('(Project Brief รายโครงการ)', { run: { bold: true }, para: { alignment: D.AlignmentType.RIGHT } }),
     P('แบบฟอร์มโครงการแบบย่อ (Project Brief) ของโครงการสำคัญภายใต้งบประมาณของจังหวัด', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER, spacing: { after: 200 } } }),
-    P('ประเด็นการพัฒนาจังหวัด ' + issueFull, { run: { bold: true } }),
-    P('แนวทางการพัฒนา ' + (row.approach || '—'), { run: { bold: true } }),
-    P('ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา ' + (row.issueKpi || '—'), { run: { bold: true } }),
-    P('แผนงานหลัก ' + progMainText, { run: { bold: true } }),
-    P('(ระบุว่าโครงการอยู่ภายใต้แผนงานหลักใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)', { run: { italics: true, size: 22, color: '666666' } }),
-    P('แผนงาน ' + progText, { run: { bold: true } }),
-    P('(ระบุว่าโครงการอยู่ภายใต้แผนงานย่อยใดตามเป้าหมายการพัฒนาจังหวัด 20 ปี)', { run: { italics: true, size: 22, color: '666666', spacing: { after: 200 } } })
+    PLV('ประเด็นการพัฒนาจังหวัด', issueFull),
+    PLV('แนวทางการพัฒนา', row.approach || '—'),
+    PLV('ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา', row.issueKpi || '—'),
+    PLV('แผนงานหลัก', progMainText),
+    PLV('แผนงาน', progText, { spacing: { after: 200 } })
   ];
 
   var rows = [];
@@ -2161,13 +2228,16 @@ async function buildJ11Document(row) {
       cell(P('รายละเอียด', { run: { bold: true } }), { width: 75, shaded: true })
     ]
   }));
-  rows.push(headRow('๑. ชื่อโครงการสำคัญ', [P(row.name)]));
+  rows.push(headRow('1. ชื่อโครงการสำคัญ', [P(row.name)]));
   rows.push(headRow('2. หลักการและเหตุผล', [P(row.reason)]));
   rows.push(headRow('3. วัตถุประสงค์ของโครงการ', [P(row.obj)]));
   rows.push(headRow('4. ตัวชี้วัดและค่าเป้าหมาย', kpiLines.map(function(k){return P(k);})));
   rows.push(headRow('5. พื้นที่เป้าหมาย', [P(row.area)]));
 
   var actParas = [];
+  if (row.actOverview && String(row.actOverview).trim()) {
+    actParas.push(P(row.actOverview, { para: { spacing: { after: 150 } } }));
+  }
   if (!acts.length) {
     actParas.push(P('—'));
   } else {
@@ -2185,19 +2255,16 @@ async function buildJ11Document(row) {
     P('หน่วยงานที่เกี่ยวข้อง: ' + (row.related || '—'))
   ]));
   rows.push(headRow('8. ระยะเวลาในการดำเนินโครงการ', [
-    P('พ.ศ. ' + (row.ys || '—') + (row.ye && row.ye !== row.ys ? ' – ' + row.ye : ''))
+    P(row.ys || '—')
   ]));
 
   var budgetParas = [
-    P('งบประมาณรวม: ' + j11FmtMoney(row.btotal) + ' (แหล่งงบประมาณ: ' + (BSRC_LABELS[row.bsrc] || row.bsrc || '—') + ')')
+    P('งบประมาณรวม: ' + j11FmtMoney(row.btotal))
   ];
-  [['2571', row.b71], ['2572', row.b72], ['2573', row.b73], ['2574', row.b74], ['2575', row.b75]].forEach(function(y) {
-    if (y[1]) budgetParas.push(P('ปี ' + y[0] + ': ' + j11FmtMoney(y[1])));
-  });
   rows.push(headRow('9. งบประมาณ', budgetParas));
 
   rows.push(headRow('10. ผลผลิต (Output)', [P(row.output)]));
-  rows.push(headRow('๑1. ผลลัพธ์จากการดำเนินโครงการ (Outcome)', [P(row.outcome)]));
+  rows.push(headRow('11. ผลลัพธ์จากการดำเนินโครงการ (Outcome)', [P(row.outcome)]));
 
   var table = new D.Table({
     width: { size: 100, type: D.WidthType.PERCENTAGE },
@@ -2237,27 +2304,253 @@ function downloadCurrentFormAsWord() {
   j11DownloadDoc(row);
 }
 
+// ============================================================
+// PRINT-READY HTML EXPORT (แบบ จ.1-1 Project Brief)
+// ============================================================
+function j11Esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function j11EscNl(s) {
+  return j11Esc(s).replace(/\n/g, '<br>');
+}
+
+function buildJ11PrintHTML(row) {
+  var kpiLines = (row.kpi || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  if (!kpiLines.length) kpiLines = ['—'];
+  var acts = j11ActivitiesFromRow(row);
+  if (!acts.length) acts = [{ name: '', budget: 0, agency: '', related: '' }];
+  var issueFull = (ISSUE_MAP[row.issue] || {}).n || row.issue || '—';
+  var progMainText = PROG_MAIN_LABELS[row.progMain] || row.progMain || '—';
+  var progText = PROG_LABELS[row.prog] || row.prog || '—';
+
+  var budgetHtml = 'งบประมาณรวม <b>' + j11FmtMoney(row.btotal) + '</b>';
+
+  var kpiHtml = kpiLines.map(function (k) { return j11Esc(k); }).join('<br>');
+
+  function tr(label, content) {
+    return '<tr><td class="lbl">' + label + '</td><td class="val">' + content + '</td></tr>';
+  }
+
+  // แถวหัวข้อ 6.x กิจกรรมหลัก แต่ละกิจกรรม (ตามรูปแบบต้นฉบับ: ป้ายชื่อฟิลด์ซ้าย เรียงคู่กับค่าขวา)
+  var actRowsHtml = acts.map(function (a, i) {
+    var lbl = '<b>6.' + (i + 1) + ' กิจกรรมที่ ' + (i + 1) + '</b><br>ชื่อกิจกรรม<br>งบประมาณ<br>หน่วยงานผู้รับผิดชอบ<br>หน่วยงานที่เกี่ยวข้อง';
+    var val = '<br>' + j11Esc(a.name || '—') + '<br>' + j11FmtMoney(a.budget) + '<br>' + j11Esc(a.agency || '—') + '<br>' + j11Esc(a.related || '—');
+    return tr(lbl, val);
+  }).join('');
+
+  return '' +
+    '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>แบบ จ.1-1 — ' + j11Esc(row.name || '') + '</title>' +
+    '<style>' +
+    '@page{size:A4;margin:2cm 1.8cm}' +
+    'body{font-family:"TH Sarabun New","Sarabun",sans-serif;font-size:16pt;line-height:1.5;color:#111;margin:0;padding:0}' +
+    '.hd{margin-bottom:2px}' +
+    '.hd p{margin:0;font-weight:bold}' +
+    '.hd-r{text-align:right}' +
+    '.hd-c{text-align:center}' +
+    '.meta{margin-top:8px}' +
+    '.meta p{margin:2px 0;font-weight:normal}' +
+    '.meta .sub{font-weight:normal;font-style:italic;font-size:13.5pt;color:#333;margin:0 0 6px}' +
+    'table.frm{width:100%;border-collapse:collapse;margin-top:10px}' +
+    'table.frm th,table.frm td{border:1px solid #000;padding:7px 10px;vertical-align:top;text-align:left}' +
+    'table.frm th{font-weight:bold;border-bottom:2px solid #000}' +
+    'table.frm td.lbl{width:32%;font-weight:bold}' +
+    'table.frm td.val{width:68%;font-weight:normal}' +
+    '@media print{.noprint{display:none}}' +
+    '</style></head><body>' +
+    '<div class="noprint" style="text-align:center;padding:14px;background:#eef6f1;border-bottom:2px solid #1D9E75">' +
+    '<button onclick="window.print()" style="font-size:14pt;padding:8px 22px;font-family:inherit;cursor:pointer;background:#1D9E75;color:#fff;border:none;border-radius:6px">🖨 พิมพ์เอกสารนี้</button>' +
+    '<span style="margin-left:10px;color:#555">(หรือกด Ctrl+P / Cmd+P)</span>' +
+    '<div style="margin-top:10px;font-size:13px;color:#555">⚠ หากมีข้อความมุมกระดาษ (วันที่ / ชื่อไฟล์ / URL / หมายเลขหน้า) ในหน้าต่างพิมพ์ ให้กด <b>"เพิ่มเติม" (More settings)</b> แล้วปิดตัวเลือก <b>"หัวกระดาษและท้ายกระดาษ" (Headers and footers)</b> ก่อนกดพิมพ์ — เป็นค่าที่เบราว์เซอร์เพิ่มเอง ไม่สามารถปิดจากหน้าเว็บได้โดยตรง</div>' +
+    '</div>' +
+    '<div style="padding:0 4px">' +
+    '<div class="hd hd-r">' +
+    '<p style="font-size:20pt">แบบ จ.1-1</p>' +
+    '<p>(Project Brief รายโครงการ)</p>' +
+    '</div>' +
+    '<div class="hd hd-c">' +
+    '<p style="margin-bottom:6px">แบบฟอร์มโครงการแบบย่อ (Project Brief) ของโครงการสำคัญภายใต้งบประมาณของจังหวัด</p>' +
+    '</div>' +
+    '<div class="meta">' +
+    '<p><b>ประเด็นการพัฒนาจังหวัด</b> ' + j11Esc(issueFull) + '</p>' +
+    '<p><b>แนวทางการพัฒนา</b> ' + j11Esc(row.approach || '—') + '</p>' +
+    '<p><b>ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา</b> ' + j11Esc(row.issueKpi || '—') + '</p>' +
+    '<p><b>แผนงานหลัก</b> ' + j11Esc(progMainText) + '</p>' +
+    '<p style="margin-bottom:6px"><b>แผนงาน</b> ' + j11Esc(progText) + '</p>' +
+    '</div>' +
+    '<table class="frm">' +
+    '<thead><tr><th style="width:32%">หัวข้อ</th><th style="width:68%">รายละเอียด</th></tr></thead>' +
+    '<tbody>' +
+    tr('1. ชื่อโครงการสำคัญ', j11Esc(row.name)) +
+    tr('2. หลักการและเหตุผล', j11EscNl(row.reason)) +
+    tr('3. วัตถุประสงค์ของโครงการ', j11EscNl(row.obj)) +
+    tr('4. ตัวชี้วัดและค่าเป้าหมาย', kpiHtml) +
+    tr('5. พื้นที่เป้าหมาย', j11Esc(row.area)) +
+    tr('6. ขอบเขตของกิจกรรมหลักโดยสังเขป', row.actOverview && String(row.actOverview).trim() ? j11EscNl(row.actOverview) : '&nbsp;') +
+    actRowsHtml +
+    tr('7. หน่วยงานดำเนินการ', 'หน่วยงานรับผิดชอบหลัก: ' + j11Esc(row.agency || '—') + '<br>หน่วยงานที่เกี่ยวข้อง: ' + j11Esc(row.related || '—')) +
+    tr('8. ระยะเวลาในการดำเนินโครงการ', j11Esc(row.ys || '—')) +
+    tr('9. งบประมาณ', budgetHtml) +
+    tr('10. ผลผลิต (Output)', j11EscNl(row.output)) +
+    tr('11. ผลลัพธ์จากการดำเนินโครงการ (Outcome)', j11EscNl(row.outcome)) +
+    '</tbody>' +
+    '</table>' +
+    '</div>' +
+    '</body></html>';
+}
+
+function j11OpenPrintWindow(row) {
+  if (!row || !row.name || !String(row.name).trim()) { alert('⚠ กรุณาระบุชื่อโครงการก่อนพิมพ์'); return; }
+  var html = buildJ11PrintHTML(row);
+  var w = window.open('', '_blank');
+  if (!w) { alert('⚠ เบราว์เซอร์บล็อกการเปิดหน้าต่างใหม่ กรุณาอนุญาต pop-up แล้วลองอีกครั้ง'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+function printCurrentFormAsJ11() {
+  j11OpenPrintWindow(collectCurrentFormRow());
+}
+
+function printCurrentFormAsJ11FromRow(row) {
+  j11OpenPrintWindow(row);
+}
+
 function downloadProjectWord(row) {
   if (!row) return;
   j11DownloadDoc(row);
 }
 
+// ============================================================
+// ระบบเน้นสีแดงให้ฟิลด์ที่บังคับกรอกแต่ยังกรอกไม่ครบ (ใช้ร่วมกันทั้งฟอร์ม จ.1 และ จ.3)
+// ============================================================
+// หา <label> ที่เกี่ยวข้องกับฟิลด์ (label มักอยู่เป็น sibling ก่อนหน้า หรืออยู่ในกล่องเดียวกัน)
+function findAssociatedLabel(el) {
+  if (!el) return null;
+  if (el.previousElementSibling && el.previousElementSibling.tagName === 'LABEL') {
+    return el.previousElementSibling;
+  }
+  var node = el.parentElement;
+  for (var depth = 0; depth < 3 && node; depth++) {
+    if (node.previousElementSibling && node.previousElementSibling.tagName === 'LABEL') {
+      return node.previousElementSibling;
+    }
+    if (node.firstElementChild && node.firstElementChild.tagName === 'LABEL') {
+      return node.firstElementChild;
+    }
+    node = node.parentElement;
+  }
+  return null;
+}
+
+// ทำ/ยกเลิกเครื่องหมายสีแดงให้ฟิลด์ (input/select/textarea) และ label ของมัน
+function markFieldMissing(id, missing) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('field-missing', !!missing);
+  var label = findAssociatedLabel(el);
+  if (label) label.classList.toggle('label-missing', !!missing);
+}
+
+// เมื่อผู้ใช้พิมพ์/เลือกข้อมูลในฟิลด์ใดก็ตามที่เคยถูกทำเครื่องหมายว่าขาด ให้ยกเลิกเครื่องหมายสีแดงทันทีที่กรอกแล้ว
+function clearFieldMissingIfFilled(el) {
+  if (!el || !el.id || !el.classList || !el.classList.contains('field-missing')) return;
+  var val = (el.value || '').toString().trim();
+  if (val) markFieldMissing(el.id, false);
+}
+document.addEventListener('input', function(e) { clearFieldMissingIfFilled(e.target); });
+document.addEventListener('change', function(e) { clearFieldMissingIfFilled(e.target); });
+
+// รายการฟิลด์ที่บังคับกรอกทุกช่องในแบบฟอร์มบันทึกโครงการ
+var REQUIRED_TEXT_FIELDS = [
+  ['f-name','1. ชื่อโครงการ'],
+  ['f-agency','2. หน่วยงานผู้รับผิดชอบหลัก'],
+  ['f-related','หน่วยงานที่เกี่ยวข้อง'],
+  ['f-issue','3. ประเด็นการพัฒนาจังหวัด'],
+  ['f-approach','4. แนวทางการพัฒนา'],
+  ['f-issue-kpi','5. ตัวชี้วัดและค่าเป้าหมายของประเด็นการพัฒนา'],
+  ['f-prog-main','6. แผนงานหลัก'],
+  ['f-prog','7. แผนงาน'],
+  ['f-reason','8. หลักการและเหตุผล'],
+  ['f-obj','9. วัตถุประสงค์'],
+  ['f-area','11. พื้นที่เป้าหมาย'],
+  ['f-output','13. ผลผลิต (Outputs)'],
+  ['f-outcome','14. ผลลัพธ์ (Outcomes)'],
+  ['f-bsrc','15. แหล่งงบประมาณ'],
+  ['f-b71','งบ ปี 2571'],
+  ['f-b72','งบ ปี 2572'],
+  ['f-b73','งบ ปี 2573'],
+  ['f-b74','งบ ปี 2574'],
+  ['f-b75','งบ ปี 2575'],
+  ['f-ready','ความพร้อม'],
+  ['f-duration','ระยะเวลาดำเนินการ'],
+  ['f-nat','ยุทธศาสตร์ชาติ (A)'],
+  ['f-master','แผนแม่บทภายใต้ยุทธศาสตร์ชาติ (B)'],
+  ['f-econ','แผนพัฒนาเศรษฐกิจฯ ฉ.14 (C)'],
+  ['f-north','แผนภาคเหนือ (D)'],
+  ['f-cluster','กลุ่มภารกิจ (Cluster)'],
+  ['f-recorder','ชื่อ-นามสกุล ผู้บันทึกข้อมูล'],
+  ['f-recorder-pos','ตำแหน่งผู้บันทึกข้อมูล'],
+  ['f-recorder-org','หน่วยงานผู้บันทึกข้อมูล'],
+  ['f-recorder-phone','เบอร์โทรศัพท์ผู้บันทึกข้อมูล']
+];
+
+function validateAllRequiredFields() {
+  var missing = [];
+  REQUIRED_TEXT_FIELDS.forEach(function(f) {
+    var el = document.getElementById(f[0]);
+    var isMissing = !el || !String(el.value || '').trim();
+    markFieldMissing(f[0], isMissing);
+    if (isMissing) missing.push(f);
+  });
+  var kpiMissing = !kpiItems || !kpiItems.length;
+  markFieldMissing('kpi-input', kpiMissing);
+  if (kpiMissing) missing.push(['kpi-input','10. ตัวชี้วัดและค่าเป้าหมาย (เพิ่มอย่างน้อย 1 รายการ)']);
+  var actMissing = !activities || !activities.length;
+  markFieldMissing('act-name', actMissing);
+  if (actMissing) missing.push(['act-name','12. กิจกรรมหลัก (เพิ่มอย่างน้อย 1 กิจกรรม)']);
+  return missing;
+}
+
+// รายการ checklist ที่บังคับต้องติ๊กก่อนบันทึก: ข้อ 1, ข้อ 6, ข้อ 7 (index ใน FORM_CL_ITEMS)
+var REQUIRED_CHECKLIST_INDEXES = [0, 25, 26];
+function validateFormChecklist() {
+  return REQUIRED_CHECKLIST_INDEXES.filter(function(i) { return !formClChecks['fcl_' + i]; });
+}
+
 async function saveToSheet() {
+  var missing = validateAllRequiredFields();
+  if (missing.length) {
+    var firstEl = document.getElementById(missing[0][0]);
+    if (firstEl) firstEl.scrollIntoView({behavior:'smooth', block:'center'});
+    checkRecorderFields();
+    showFormStatus('⚠ กรุณากรอกข้อมูลให้ครบทุกข้อก่อนบันทึก ยังขาด: <strong>' + missing.map(function(m){return m[1];}).join(', ') + '</strong>', 'warn');
+    return;
+  }
+
+  var missingChecklist = validateFormChecklist();
+  if (missingChecklist.length) {
+    var clPanel = document.getElementById('form-checklist-panel');
+    var clIcon = document.getElementById('checklist-toggle-icon');
+    if (clPanel && clPanel.style.display === 'none') {
+      clPanel.style.display = 'block';
+      if (clIcon) clIcon.style.transform = 'rotate(90deg)';
+      renderFormChecklist();
+    }
+    var clCard = document.getElementById('card-checklist-pre');
+    if (clCard) clCard.scrollIntoView({behavior:'smooth', block:'center'});
+    var clLabels = missingChecklist.map(function(i){ return FORM_CL_ITEMS[i]; });
+    showFormStatus('⚠ กรุณากลับไป <strong>"ตรวจสอบความสมบูรณ์ก่อนแนบไฟล์"</strong> และติ๊กรายการที่ยังไม่ได้ทำเครื่องหมาย: <strong>' + clLabels.join(', ') + '</strong> ก่อนบันทึก', 'warn');
+    return;
+  }
   var name = document.getElementById('f-name').value.trim();
   var issue = document.getElementById('f-issue').value;
-  if (!name) { showFormStatus('⚠ กรุณาระบุชื่อโครงการ', 'warn'); return; }
-  if (!issue) { showFormStatus('⚠ กรุณาเลือกประเด็นการพัฒนา', 'warn'); return; }
+  var duration = document.getElementById('f-duration').value.trim();
 
-  // ตรวจสอบผู้บันทึกข้อมูล (จำเป็น)
   var recorder = document.getElementById('f-recorder').value.trim();
   var recorderPos = document.getElementById('f-recorder-pos').value.trim();
   var recorderOrg = document.getElementById('f-recorder-org').value.trim();
-  if (!recorder || !recorderPos || !recorderOrg) {
-    checkRecorderFields();
-    document.getElementById('f-recorder').scrollIntoView({behavior:'smooth', block:'center'});
-    showFormStatus('⚠ กรุณากรอกข้อมูล <strong>ผู้บันทึกข้อมูล ตำแหน่ง และหน่วยงาน</strong> ก่อนบันทึก', 'warn');
-    return;
-  }
+  var recorderPhone = document.getElementById('f-recorder-phone').value.trim();
 
   // แยกกิจกรรมหลักออกเป็นฟิลด์รายคอลัมน์ (สูงสุด 10 กิจกรรม × 4 ฟิลด์)
   var actFields = {};
@@ -2275,21 +2568,26 @@ async function saveToSheet() {
     progMain: v('f-prog-main'), prog: v('f-prog'), approach: v('f-approach'),
     issueKpi: v('f-issue-kpi'),
     reason: v('f-reason'), obj: v('f-obj'), kpi: v('f-kpi'),
-    area: v('f-area'),
+    area: v('f-area'), actOverview: v('f-act-overview'),
     actCount: activities.length,
     actBudgetTotal: actBudgetTotal,
     output: v('f-output'), outcome: v('f-outcome'),
     bsrc: v('f-bsrc'), btotal: n('f-btotal'), b71: n('f-b71'),
     b72: n('f-b72'), b73: n('f-b73'), b74: n('f-b74'), b75: n('f-b75'),
-    ready: v('f-ready'), ys: v('f-ys'), ye: v('f-ye'),
+    ready: v('f-ready'), ys: duration, ye: '',
     nat: v('f-nat'), master: v('f-master'), econ: v('f-econ'),
     north: v('f-north'), cluster: v('f-cluster'),
-    recorder: recorder, recorderPos: recorderPos, recorderOrg: recorderOrg,
+    recorder: recorder, recorderPos: recorderPos, recorderOrg: recorderOrg, recorderPhone: recorderPhone,
     recordDate: new Date().toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'})
   }, actFields);
 
+  var isEdit = !!editingRowJ1;
   var url = API_URL;
   if (!url) {
+    if (isEdit) {
+      showFormStatus('⚠ ยังไม่ได้ตั้งค่า Apps Script URL — ไม่สามารถแก้ไขข้อมูลใน Sheet ได้ ไปตั้งค่าที่ <a href="#" onclick="go(\'setup\',document.querySelector(\'.ntab:last-child\'))">⚙ ตั้งค่า Sheet</a>', 'warn');
+      return;
+    }
     projects.push(row);
     showFormStatus('⚠ ยังไม่ได้ตั้งค่า Apps Script URL — บันทึกในหน่วยความจำแล้ว ไปตั้งค่าที่ <a href="#" onclick="go(\'setup\',document.querySelector(\'.ntab:last-child\'))">⚙ ตั้งค่า Sheet</a>', 'warn');
     clearForm();
@@ -2297,31 +2595,54 @@ async function saveToSheet() {
     return;
   }
 
-  showFormStatus('<span class="spin">⟳</span> กำลังส่งข้อมูลไปยัง Google Sheets...', 'info');
+  showFormStatus('<span class="spin">⟳</span> กำลัง' + (isEdit ? 'บันทึกการแก้ไข' : 'ส่งข้อมูล') + 'ไปยัง Google Sheets...', 'info');
 
   try {
     var params = new URLSearchParams();
-    params.append('action', 'write');
+    params.append('action', isEdit ? 'update' : 'write');
     params.append('sheetTarget', '');
+    if (isEdit) params.append('row', editingRowJ1);
     params.append('data', JSON.stringify(row));
     var res = await fetch(url + '?' + params.toString());
     var json = await res.json();
     if (json.ok) {
-      projects.push(row);
-      showFormStatus('✅ บันทึกลง Google Sheets สำเร็จ! (แถวที่ ' + json.row + ') — <a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit?gid=0#gid=0" target="_blank" style="color:var(--gd);font-weight:700">ดูใน Sheet ↗</a>', 'suc');
-      clearForm();
-      renderDashboard();
+      if (isEdit) {
+        showFormStatus('✅ แก้ไขข้อมูลใน Google Sheets สำเร็จ! (แถวที่ ' + json.row + ') — <a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit?gid=0#gid=0" target="_blank" style="color:var(--gd);font-weight:700">ดูใน Sheet ↗</a>', 'suc');
+        editingRowJ1 = null;
+        var banner = document.getElementById('edit-mode-banner');
+        if (banner) banner.innerHTML = '';
+        var btn = document.getElementById('btn-save-j1');
+        if (btn) btn.textContent = '💾 บันทึก';
+        clearForm();
+        syncFromSheet();
+      } else {
+        projects.push(row);
+        showFormStatus('✅ บันทึกลง Google Sheets สำเร็จ! (แถวที่ ' + json.row + ') — <a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit?gid=0#gid=0" target="_blank" style="color:var(--gd);font-weight:700">ดูใน Sheet ↗</a>', 'suc');
+        clearForm();
+        renderDashboard();
+      }
       return;
     }
     throw new Error(json.error || 'unknown');
   } catch(e) {
     showFormStatus('<span class="spin">⟳</span> กำลังส่งข้อมูล (วิธีสำรอง)...', 'info');
     try {
-      await writeViaHiddenForm(row);
-      projects.push(row);
-      showFormStatus('✅ ส่งข้อมูลไปยัง Google Sheets แล้ว — <a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit?gid=0#gid=0" target="_blank" style="color:var(--gd);font-weight:700">ตรวจสอบใน Sheet ↗</a><br><small style="color:var(--t2)">ข้อมูลจะปรากฏใน Sheet ภายในไม่กี่วินาที</small>', 'suc');
-      clearForm();
-      renderDashboard();
+      await writeViaHiddenForm(row, isEdit ? 'update' : 'write', isEdit ? editingRowJ1 : null);
+      if (isEdit) {
+        showFormStatus('✅ ส่งคำขอแก้ไขไปยัง Google Sheets แล้ว — <a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit?gid=0#gid=0" target="_blank" style="color:var(--gd);font-weight:700">ตรวจสอบใน Sheet ↗</a><br><small style="color:var(--t2)">ข้อมูลจะปรากฏใน Sheet ภายในไม่กี่วินาที</small>', 'suc');
+        editingRowJ1 = null;
+        var banner2 = document.getElementById('edit-mode-banner');
+        if (banner2) banner2.innerHTML = '';
+        var btn2 = document.getElementById('btn-save-j1');
+        if (btn2) btn2.textContent = '💾 บันทึก';
+        clearForm();
+        syncFromSheet();
+      } else {
+        projects.push(row);
+        showFormStatus('✅ ส่งข้อมูลไปยัง Google Sheets แล้ว — <a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit?gid=0#gid=0" target="_blank" style="color:var(--gd);font-weight:700">ตรวจสอบใน Sheet ↗</a><br><small style="color:var(--t2)">ข้อมูลจะปรากฏใน Sheet ภายในไม่กี่วินาที</small>', 'suc');
+        clearForm();
+        renderDashboard();
+      }
     } catch(e2) {
       showFormStatus('❌ บันทึกไม่สำเร็จ: ' + e2.message + ' — <a href="#" onclick="go(\'setup\',document.querySelector(\'.ntab:last-child\'))">ตรวจสอบการตั้งค่า</a>', 'err');
     }
@@ -2345,7 +2666,7 @@ function calcBudgetTotal() {
 }
 
 // ============================================================
-// KPI LIST (ข้อ 9 — ตัวชี้วัดและค่าเป้าหมาย: สูงสุด 5 ตัวชี้วัด)
+// KPI LIST (ข้อ 9 — ตัวชี้วัดและค่าเป้าหมาย: สูงสุด 15 ตัวชี้วัด)
 // ============================================================
 function addKPIItem() {
   var inp = document.getElementById('kpi-input');
@@ -2353,13 +2674,14 @@ function addKPIItem() {
   if (!lines.length) { alert('กรุณากรอกตัวชี้วัดและค่าเป้าหมาย'); return; }
   var added = 0, skipped = 0;
   lines.forEach(function(line) {
-    if (kpiItems.length < 5) { kpiItems.push(line); added++; }
+    if (kpiItems.length < 15) { kpiItems.push(line); added++; }
     else { skipped++; }
   });
   inp.value = '';
   renderKPIItemList();
   inp.focus();
-  if (skipped > 0) { alert('เพิ่มได้ ' + added + ' รายการ — อีก ' + skipped + ' รายการไม่ถูกเพิ่มเพราะเกินสูงสุด 5 ตัวชี้วัด'); }
+  markFieldMissing('kpi-input', false);
+  if (skipped > 0) { alert('เพิ่มได้ ' + added + ' รายการ — อีก ' + skipped + ' รายการไม่ถูกเพิ่มเพราะเกินสูงสุด 15 ตัวชี้วัด'); }
 }
 
 function delKPIItem(i) {
@@ -2373,7 +2695,7 @@ function renderKPIItemList() {
   if (hidden) hidden.value = kpiItems.map(function(k, i) { return (i + 1) + '. ' + k; }).join('\n');
   if (!el) return;
   if (!kpiItems.length) {
-    el.innerHTML = '<div class="alert a-info">ยังไม่มีตัวชี้วัด — กรอกแล้วกด ➕ (สูงสุด 5 ตัวชี้วัด)</div>';
+    el.innerHTML = '<div class="alert a-info">ยังไม่มีตัวชี้วัด — กรอกแล้วกด ➕ (สูงสุด 15 ตัวชี้วัด)</div>';
     return;
   }
   el.innerHTML = kpiItems.map(function(k, i) {
@@ -2398,6 +2720,7 @@ function addActivity() {
   document.getElementById('act-budget').value = '';
   document.getElementById('act-agency').value = '';
   document.getElementById('act-related').value = '';
+  markFieldMissing('act-name', false);
   renderActivityList();
 }
 
@@ -2430,12 +2753,101 @@ function renderActivityList() {
     '</tbody></table></div>';
 }
 
+function editProjectJ1(i) {
+  var row = window.__listCache && window.__listCache[i];
+  if (!row) { alert('ไม่พบข้อมูลโครงการนี้'); return; }
+  if (!row._row) {
+    alert('ไม่พบหมายเลขแถวอ้างอิงสำหรับโครงการนี้ กรุณากด "โหลดข้อมูลใหม่จาก Sheet" แล้วลองอีกครั้ง');
+    return;
+  }
+  clearForm();
+  editingRowJ1 = row._row;
+
+  var setVal = function(id, val) { var el = document.getElementById(id); if (el) el.value = (val === undefined || val === null) ? '' : val; };
+
+  setVal('f-name', row.name);
+  setVal('f-agency', row.agency);
+  setVal('f-related', row.related);
+  setVal('f-issue', row.issue);
+  populateApproachOptions();
+  populateProvincialKPIOptions();
+  setVal('f-approach', row.approach);
+  setVal('f-issue-kpi', row.issueKpi);
+  setVal('f-prog-main', row.progMain);
+  setVal('f-prog', row.prog);
+  setVal('f-reason', row.reason);
+  setVal('f-obj', row.obj);
+  setVal('f-area', row.area);
+  setVal('f-act-overview', row.actOverview);
+  setVal('f-output', row.output);
+  setVal('f-outcome', row.outcome);
+  setVal('f-bsrc', row.bsrc);
+  setVal('f-btotal', row.btotal);
+  setVal('f-b71', row.b71);
+  setVal('f-b72', row.b72);
+  setVal('f-b73', row.b73);
+  setVal('f-b74', row.b74);
+  setVal('f-b75', row.b75);
+  setVal('f-ready', row.ready);
+  setVal('f-duration', row.ys);
+  setVal('f-nat', row.nat);
+  setVal('f-master', row.master);
+  setVal('f-econ', row.econ);
+  setVal('f-north', row.north);
+  setVal('f-cluster', row.cluster);
+  setVal('f-recorder', row.recorder);
+  setVal('f-recorder-pos', row.recorderPos);
+  setVal('f-recorder-org', row.recorderOrg);
+  setVal('f-recorder-phone', row.recorderPhone);
+
+  // ตัวชี้วัด (kpi) — แยกจากสตริง "1. xxx\n2. yyy" กลับเป็นรายการ
+  kpiItems = String(row.kpi || '')
+    .split('\n')
+    .map(function(s){ return s.replace(/^\s*\d+\.\s*/, '').trim(); })
+    .filter(function(s){ return s; });
+  renderKPIItemList();
+
+  // กิจกรรมหลัก (act1_name…act10_name)
+  activities = [];
+  for (var ai = 1; ai <= 10; ai++) {
+    var name = row['act'+ai+'_name'];
+    if (name) {
+      activities.push({
+        name: name,
+        budget: parseFloat(row['act'+ai+'_budget']) || 0,
+        agency: row['act'+ai+'_agency'] || '',
+        related: row['act'+ai+'_related'] || ''
+      });
+    }
+  }
+  renderActivityList();
+
+  var banner = document.getElementById('edit-mode-banner');
+  if (banner) {
+    banner.innerHTML = '<div class="alert a-warn">✏️ กำลังแก้ไขโครงการ: <strong>' + row.name + '</strong> — แก้ไขข้อมูลด้านล่างแล้วกด "บันทึกการแก้ไข" <button class="btn btn-s" style="margin-left:8px;font-size:11px;padding:4px 10px" onclick="cancelEditJ1()">✕ ยกเลิกการแก้ไข</button></div>';
+  }
+  var btn = document.getElementById('btn-save-j1');
+  if (btn) btn.textContent = '💾 บันทึกการแก้ไข';
+
+  go('form', document.querySelector('.ntab[onclick*="\'form\'"]') || document.querySelector('.ntab'));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function cancelEditJ1() {
+  editingRowJ1 = null;
+  clearForm();
+  var banner = document.getElementById('edit-mode-banner');
+  if (banner) banner.innerHTML = '';
+  var btn = document.getElementById('btn-save-j1');
+  if (btn) btn.textContent = '💾 บันทึก';
+}
+
 function clearForm() {
   ['f-name','f-agency','f-related','f-prog-main','f-prog','f-approach','f-issue-kpi',
-   'f-reason','f-obj','f-area','f-output','f-outcome',
-   'f-btotal','f-b71','f-b72','f-b73','f-b74','f-b75','f-cluster',
+   'f-reason','f-obj','f-area','f-act-overview','f-output','f-outcome',
+   'f-btotal','f-b71','f-b72','f-b73','f-b74','f-b75','f-cluster','f-duration',
    'act-name','act-budget','act-agency','act-related','kpi-input',
-   'f-recorder','f-recorder-pos','f-recorder-org']
+   'f-recorder','f-recorder-pos','f-recorder-org','f-recorder-phone']
     .forEach(id => { var el = document.getElementById(id); if(el) el.value = ''; });
   kpiItems = [];
   renderKPIItemList();
@@ -2443,7 +2855,7 @@ function clearForm() {
   populateApproachOptions();
   populateProvincialKPIOptions();
   // ซ่อน error messages
-  ['err-recorder','err-recorder-pos','err-recorder-org'].forEach(id => {
+  ['err-recorder','err-recorder-pos','err-recorder-org','err-recorder-phone'].forEach(id => {
     var el = document.getElementById(id); if(el) el.style.display='none';
   });
   // ซ่อน checklist panel และรีเซ็ต
@@ -2659,7 +3071,8 @@ function renderList() {
   list.forEach((p,i)=>{
     var im=ISSUE_MAP[p.issue]||{s:p.issue,c:'#888'};
     var rm=READY_MAP[p.ready]||{l:p.ready,c:'bgr'};
-    html+=`<tr><td style="color:var(--t3)">${i+1}</td><td style="font-size:12px"><strong>${p.name}</strong><br><span style="color:var(--t2);font-size:11px">${p.agency}</span></td><td><span class="badge" style="background:${im.c}22;color:${im.c};font-size:11px">${im.s}</span></td><td style="font-size:11px;color:var(--t2)">${p.agency}</td><td style="text-align:right;font-size:12px">${(p.btotal||0).toLocaleString()}</td><td style="text-align:right;font-size:12px">${(p.b71||0).toLocaleString()}</td><td style="font-size:11px">${p.ys||'—'}${p.ye&&p.ye!==p.ys?'–'+p.ye:''}</td><td style="font-size:11px">${p.nat?'A'+p.nat:'—'}</td><td style="font-size:11px">${p.north||'—'}</td><td><span class="badge ${rm.c}">${rm.l}</span></td><td><button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="downloadProjectWord(window.__listCache[${i}])">📄 Word</button></td></tr>`;
+    var editBtn = p._row ? `<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="editProjectJ1(${i})">✏️ แก้ไข</button> ` : '';
+    html+=`<tr><td style="color:var(--t3)">${i+1}</td><td style="font-size:12px"><strong>${p.name}</strong><br><span style="color:var(--t2);font-size:11px">${p.agency}</span></td><td><span class="badge" style="background:${im.c}22;color:${im.c};font-size:11px">${im.s}</span></td><td style="font-size:11px;color:var(--t2)">${p.agency}</td><td style="text-align:right;font-size:12px">${(p.btotal||0).toLocaleString()}</td><td style="text-align:right;font-size:12px">${(p.b71||0).toLocaleString()}</td><td style="font-size:11px">${p.ys||'—'}</td><td style="font-size:11px">${p.nat?'A'+p.nat:'—'}</td><td style="font-size:11px">${p.north||'—'}</td><td><span class="badge ${rm.c}">${rm.l}</span></td><td>${editBtn}<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="downloadProjectWord(window.__listCache[${i}])">📄 Word</button> <button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="printCurrentFormAsJ11FromRow(window.__listCache[${i}])">🖨 พิมพ์</button></td></tr>`;
   });
   html+='</tbody></table>';
   document.getElementById('list-tbl').innerHTML=html;
@@ -3203,7 +3616,7 @@ function exportCSV(){
   for(var ai=1;ai<=10;ai++) actHdrs.push('กิจกรรม'+ai+'_ชื่อ','กิจกรรม'+ai+'_งบ(บาท)','กิจกรรม'+ai+'_หน่วยงานรับผิดชอบ','กิจกรรม'+ai+'_หน่วยงานที่เกี่ยวข้อง');
   var hdrs=['ลำดับ','ชื่อโครงการ','ประเด็น','หน่วยงาน','จำนวนกิจกรรม','งบรวมกิจกรรม(บาท)']
     .concat(actHdrs)
-    .concat(['ผลผลิต','ผลลัพธ์','งบรวม5ปี','งบ2571','งบ2572','งบ2573','งบ2574','งบ2575','แหล่งงบ','สถานะ','ปีเริ่ม','ปีสิ้นสุด','ยุทธ.A','แผนแม่บทB','แผนพัฒนาC','ภาคเหนือD','KPI','พื้นที่','Cluster']);
+    .concat(['ผลผลิต','ผลลัพธ์','งบรวม5ปี','งบ2571','งบ2572','งบ2573','งบ2574','งบ2575','แหล่งงบ','สถานะ','ระยะเวลาดำเนินการ','ยุทธ.A','แผนแม่บทB','แผนพัฒนาC','ภาคเหนือD','KPI','พื้นที่','Cluster']);
   var rows=projects.map(function(p,i){
     var actCols=[];
     for(var ai=1;ai<=10;ai++) actCols.push(
@@ -3218,7 +3631,7 @@ function exportCSV(){
       .concat(['"'+p.output+'"','"'+p.outcome+'"',
         p.btotal,p.b71,p.b72,p.b73,p.b74,p.b75,
         BSRC_MAP[p.bsrc]||p.bsrc,(READY_MAP[p.ready]||{l:p.ready}).l,
-        p.ys,p.ye,p.nat||'—',p.master||'—',p.econ||'—',p.north||'—',
+        '"'+(p.ys||'')+'"',p.nat||'—',p.master||'—',p.econ||'—',p.north||'—',
         '"'+p.kpi+'"','"'+p.area+'"','"'+(p.cluster||'')+ '"'])
       .join(',');
   });
@@ -3290,6 +3703,8 @@ function copyScript(){
 // ============================================================
 var j3Projects = JSON.parse(localStorage.getItem('nan_j3_projects') || '[]');
 var j3Activities = []; // กิจกรรมของโครงการที่กำลังกรอกอยู่
+var editingRowJ3 = null; // เลขแถวใน Sheet (จ3) ที่กำลังแก้ไขอยู่ (null = กำลังเพิ่มโครงการใหม่)
+var editingIdJ3 = null; // local id ของโครงการที่กำลังแก้ไข (เพื่ออัปเดต j3Projects ในเครื่อง)
 
 function j3SaveLocal() {
   localStorage.setItem('nan_j3_projects', JSON.stringify(j3Projects));
@@ -3356,11 +3771,24 @@ function j3AddProject() {
   var name = document.getElementById('j3-name').value.trim();
   var ministry = document.getElementById('j3-ministry').value.trim();
   var dept = document.getElementById('j3-dept').value.trim();
-  if (!name) { alert('กรุณาระบุชื่อโครงการ'); return; }
-  if (!ministry || !dept) { alert('กรุณาระบุกระทรวงและกรมที่ขอรับการสนับสนุน'); return; }
+
+  markFieldMissing('j3-name', !name);
+  markFieldMissing('j3-ministry', !ministry);
+  markFieldMissing('j3-dept', !dept);
+
+  if (!name) {
+    document.getElementById('j3-name').scrollIntoView({behavior:'smooth', block:'center'});
+    alert('กรุณาระบุชื่อโครงการ');
+    return;
+  }
+  if (!ministry || !dept) {
+    document.getElementById(!ministry ? 'j3-ministry' : 'j3-dept').scrollIntoView({behavior:'smooth', block:'center'});
+    alert('กรุณาระบุกระทรวงและกรมที่ขอรับการสนับสนุน');
+    return;
+  }
 
   var proj = {
-    id: Date.now(),
+    id: editingIdJ3 || Date.now(),
     priority: priority,
     name: name,
     issue: document.getElementById('j3-issue').value,
@@ -3386,6 +3814,29 @@ function j3AddProject() {
     maintenance: document.getElementById('j3-maintenance').value.trim()
   };
 
+  if (editingRowJ3) {
+    // แก้ไขโครงการที่มีอยู่แล้ว
+    proj.updatedAt = new Date().toLocaleString('th-TH', {timeZone:'Asia/Bangkok'});
+    var idx = j3Projects.findIndex(function(p){ return p.id === editingIdJ3; });
+    if (idx >= 0) { proj._row = editingRowJ3; j3Projects[idx] = proj; }
+    j3Projects.sort(function(a, b) { return a.priority - b.priority; });
+    j3SaveLocal();
+    var rowToUpdate = editingRowJ3;
+    j3Activities = [];
+    j3ClearForm();
+    editingRowJ3 = null;
+    editingIdJ3 = null;
+    var banner = document.getElementById('j3-edit-banner');
+    if (banner) banner.innerHTML = '';
+    var btn = document.getElementById('btn-save-j3');
+    if (btn) btn.textContent = '➕ เพิ่มโครงการ';
+    j3RenderAll();
+    j3SaveToSheet(proj, 'update', rowToUpdate);
+    var el2 = document.getElementById('j3-projects-tbl');
+    if (el2) el2.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+
   j3Projects.push(proj);
   j3Projects.sort(function(a, b) { return a.priority - b.priority; });
   j3SaveLocal();
@@ -3397,8 +3848,90 @@ function j3AddProject() {
   el.scrollIntoView({ behavior: 'smooth' });
 }
 
-function j3SaveToSheet(proj) {
+// แปลงสตริงกิจกรรมที่เก็บใน Sheet (เช่น "1. ชื่อ [1,000 บาท] (หน่วยงาน) | 2. ...") กลับเป็น array
+function parseJ3ActivitiesString(str) {
+  if (!str || typeof str !== 'string') return [];
+  return str.split(' | ').map(function(s) {
+    var t = s.replace(/^\s*\d+\.\s*/, '');
+    var budget = 0;
+    var bm = t.match(/\[(.*?)\]/);
+    if (bm) { budget = parseFloat(bm[1].replace(/[^\d.]/g, '')) || 0; t = t.replace(bm[0], ''); }
+    var agency = '';
+    var am = t.match(/\((.*?)\)\s*$/);
+    if (am) { agency = am[1]; t = t.replace(am[0], ''); }
+    return { name: t.trim(), budget: budget, agency: agency };
+  }).filter(function(a) { return a.name; });
+}
+
+function editProjectJ3(id) {
+  var proj = j3Projects.find(function(p) { return p.id === id; });
+  if (!proj) { alert('ไม่พบโครงการนี้'); return; }
+  if (!proj._row) {
+    alert('ไม่พบหมายเลขแถวอ้างอิงสำหรับโครงการนี้ กรุณากด "โหลดข้อมูลใหม่จาก Sheet" แล้วลองอีกครั้ง');
+    return;
+  }
+  j3ClearForm();
+  editingRowJ3 = proj._row;
+  editingIdJ3 = proj.id;
+
+  var setVal = function(id2, val) { var el = document.getElementById(id2); if (el) el.value = (val === undefined || val === null) ? '' : val; };
+  setVal('j3-priority', proj.priority);
+  setVal('j3-name', proj.name);
+  setVal('j3-issue', proj.issue);
+  populateJ3ApproachOptions();
+  setVal('j3-strategy', proj.strategy);
+  setVal('j3-plan', proj.plan);
+  setVal('j3-ministry', proj.ministry);
+  setVal('j3-dept', proj.dept);
+  setVal('j3-agency', proj.agency);
+  setVal('j3-rationale', proj.rationale);
+  setVal('j3-objective', proj.objective);
+  setVal('j3-kpi', proj.kpi);
+  setVal('j3-area', proj.area);
+  setVal('j3-target', proj.target);
+  setVal('j3-item', proj.item);
+  setVal('j3-type', proj.type);
+  setVal('j3-duration', proj.duration);
+  setVal('j3-method', proj.method);
+  setVal('j3-budget', proj.budget);
+  setVal('j3-output', proj.output);
+  setVal('j3-outcome', proj.outcome);
+  setVal('j3-readiness', proj.readiness);
+  setVal('j3-maintenance', proj.maintenance);
+
+  j3Activities = Array.isArray(proj.activities) ? proj.activities.slice() : parseJ3ActivitiesString(proj.activities);
+  j3RenderActivityList();
+
+  var banner = document.getElementById('j3-edit-banner');
+  if (banner) {
+    banner.innerHTML = '<div class="alert a-warn">✏️ กำลังแก้ไขโครงการ: <strong>' + proj.name + '</strong> — แก้ไขข้อมูลด้านล่างแล้วกด "บันทึกการแก้ไข" <button class="btn btn-s" style="margin-left:8px;font-size:11px;padding:4px 10px" onclick="cancelEditJ3()">✕ ยกเลิกการแก้ไข</button></div>';
+  }
+  var btn = document.getElementById('btn-save-j3');
+  if (btn) btn.textContent = '💾 บันทึกการแก้ไข';
+
+  go('j3', document.querySelector('.ntab[onclick*="\'j3\'"]') || document.querySelector('.ntab'));
+  var formCard = document.getElementById('j3-form-card');
+  if (formCard) {
+    formCard.scrollIntoView({behavior:'smooth', block:'start'});
+  } else {
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+function cancelEditJ3() {
+  editingRowJ3 = null;
+  editingIdJ3 = null;
+  j3Activities = [];
+  j3ClearForm();
+  var banner = document.getElementById('j3-edit-banner');
+  if (banner) banner.innerHTML = '';
+  var btn = document.getElementById('btn-save-j3');
+  if (btn) btn.textContent = '➕ เพิ่มโครงการ';
+}
+
+function j3SaveToSheet(proj, action, rowNum) {
   if (!API_URL) return;
+  action = action || 'write';
   // แปลงกิจกรรมเป็น string
   var actStr = (proj.activities || []).map(function(a, i) {
     return (i+1) + '. ' + a.name + (a.budget ? ' [' + a.budget.toLocaleString('th-TH') + ' บาท]' : '') + (a.agency ? ' (' + a.agency + ')' : '');
@@ -3431,14 +3964,19 @@ function j3SaveToSheet(proj) {
   };
 
   var j3StatusEl = document.getElementById('j3-sheet-status');
-  if (j3StatusEl) { j3StatusEl.innerHTML = '<span class="spin">⟳</span> กำลังบันทึกลง Google Sheets...'; j3StatusEl.style.display='flex'; }
+  var actionLabel = action === 'update' ? 'กำลังบันทึกการแก้ไขลง Google Sheets...' : 'กำลังบันทึกลง Google Sheets...';
+  var doneLabel = action === 'update' ? '✅ แก้ไขข้อมูลใน Google Sheets (sheet: จ3) สำเร็จ' : '✅ บันทึกลง Google Sheets (sheet: จ3) แล้ว';
+  if (j3StatusEl) { j3StatusEl.innerHTML = '<span class="spin">⟳</span> ' + actionLabel; j3StatusEl.style.display='flex'; j3StatusEl.className='alert a-info'; }
+
+  var formFields = [['action', action], ['sheetTarget', 'j3'], ['data', JSON.stringify(row)]];
+  if (action === 'update' && rowNum) formFields.push(['row', rowNum]);
 
   var form = document.createElement('form');
   form.method = 'POST';
   form.action = API_URL;
   form.target = 'j3_iframe';
   form.style.display = 'none';
-  [['action','write'],['sheetTarget','j3'],['data',JSON.stringify(row)]].forEach(function(p) {
+  formFields.forEach(function(p) {
     var inp = document.createElement('input');
     inp.name = p[0]; inp.value = p[1]; form.appendChild(inp);
   });
@@ -3449,21 +3987,24 @@ function j3SaveToSheet(proj) {
   document.body.appendChild(iframe);
 
   iframe.onload = function() {
-    if (j3StatusEl) { j3StatusEl.innerHTML = '✅ บันทึกลง Google Sheets (sheet: จ3) แล้ว'; j3StatusEl.className = 'alert a-suc'; }
+    if (j3StatusEl) { j3StatusEl.innerHTML = doneLabel; j3StatusEl.className = 'alert a-suc'; }
     setTimeout(function(){ if (j3StatusEl) j3StatusEl.style.display='none'; }, 4000);
+    if (action === 'update') syncFromSheet();
   };
 
   form.submit();
   document.body.removeChild(form);
 
   // fallback fetch
+  var body = 'action=' + encodeURIComponent(action) + '&sheetTarget=j3&data=' + encodeURIComponent(JSON.stringify(row));
+  if (action === 'update' && rowNum) body += '&row=' + encodeURIComponent(rowNum);
   fetch(API_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'action=write&sheetTarget=j3&data=' + encodeURIComponent(JSON.stringify(row))
+    body: body
   }).then(function() {
-    if (j3StatusEl) { j3StatusEl.innerHTML = '✅ บันทึกลง Google Sheets (sheet: จ3) แล้ว'; j3StatusEl.className = 'alert a-suc'; }
+    if (j3StatusEl) { j3StatusEl.innerHTML = doneLabel; j3StatusEl.className = 'alert a-suc'; }
     setTimeout(function(){ if (j3StatusEl) j3StatusEl.style.display='none'; }, 4000);
   }).catch(function(err) {
     if (j3StatusEl) { j3StatusEl.innerHTML = '⚠ บันทึกใน Local แล้ว แต่ส่ง Sheets ไม่สำเร็จ: ' + err.message; j3StatusEl.className = 'alert a-warn'; }
@@ -3551,7 +4092,7 @@ function j3RenderMinistryTable() {
 function j3RenderProjectsTable() {
   var tbody = document.getElementById('j3-projects-body');
   if (!j3Projects.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--t3);padding:20px">ยังไม่มีโครงการ</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--t3);padding:20px">ยังไม่มีโครงการ</td></tr>';
     return;
   }
   var html = '';
@@ -3574,7 +4115,8 @@ function j3RenderProjectsTable() {
       + '<td style="font-size:11px">' + (p.item||'—') + '</td>'
       + '<td style="font-size:11px">' + (p.agency||'—') + '</td>'
       + '<td style="text-align:right;font-weight:600;color:var(--gd)">' + p.budget.toLocaleString('th-TH') + '</td>'
-      + '<td><button class="btn btn-danger" onclick="j3DeleteProject(' + p.id + ')">🗑</button></td>'
+      + '<td style="font-size:11px;color:var(--t2)">' + (p.updatedAt ? p.updatedAt : '—') + '</td>'
+      + '<td>' + (p._row ? '<button class="btn btn-s" style="padding:5px 8px;font-size:11px" onclick="editProjectJ3(' + p.id + ')">✏️</button> ' : '') + '<button class="btn btn-danger" onclick="j3DeleteProject(' + p.id + ')">🗑</button></td>'
       + '</tr>';
   });
   tbody.innerHTML = html;
