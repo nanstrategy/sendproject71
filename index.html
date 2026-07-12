@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบการจัดส่งโครงการและเชื่อมโยงแผนพัฒนาจังหวัดน่าน พ.ศ. 2571–2575</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -31,9 +32,9 @@ input.field-missing,select.field-missing,textarea.field-missing{border-color:var
 .ntab{padding:11px 15px;font-size:13px;border:none;background:none;color:var(--t2);cursor:pointer;white-space:nowrap;border-bottom:2.5px solid transparent;font-family:inherit;font-weight:500;transition:all .15s}
 .ntab:hover{color:var(--t1);background:var(--bg)}
 .ntab.on{color:var(--g);border-bottom-color:var(--g);font-weight:700}
-.ntab-blue{color:#1565C0!important;font-weight:700!important}
-.ntab-blue:hover{background:#E3F2FD!important}
-.ntab-blue.on{color:#0D47A1!important;border-bottom-color:#1565C0!important;background:#E3F2FD!important}
+.ntab-blue{color:#1565C0!important;font-weight:700!important;background:#E3F2FD!important}
+.ntab-blue:hover{background:#C9E4FA!important}
+.ntab-blue.on{color:#0D47A1!important;border-bottom-color:#1565C0!important;background:#B3D8F7!important}
 .ntab-green{color:#7a5a00!important;font-weight:700!important;background:#FFF8DC!important}
 .ntab-green:hover{background:#FFEEA0!important}
 .ntab-green.on{color:#5a4000!important;border-bottom-color:#E6B800!important;background:#FFE94D!important}
@@ -136,8 +137,9 @@ tr:hover td{background:#faf9f6}
   <button class="ntab ntab-green on" onclick="go('form',this)">➕ บันทึกโครงการ (งบพัฒนาจังหวัด)</button>
   <button class="ntab" onclick="go('list',this)">📋 บัญชีโครงการ (งบพัฒนาจังหวัด)</button>
   <button class="ntab ntab-green" onclick="go('j3',this)">📝 บันทึกโครงการ จ.3</button>
-  <button class="ntab" onclick="go('dash',this)">📊 Dashboard</button>
-  <button class="ntab" onclick="go('sdg',this)">🌐 SDG Mapping</button>
+  <button class="ntab ntab-blue" onclick="go('dash',this)">📊 Dashboard</button>
+  <button class="ntab ntab-blue" onclick="go('sdg',this)">🌐 SDG Mapping</button>
+  <button class="ntab ntab-blue" onclick="go('policy',this)">🧭 วิเคราะห์ตามนโยบายจังหวัด</button>
   <button class="ntab" onclick="go('lf',this)">🔗 Logical Framework</button>
   <button class="ntab" onclick="go('align',this)">✅ ความสอดคล้อง</button>
   <button class="ntab" onclick="go('gantt',this)">📅 Gantt</button>
@@ -686,6 +688,115 @@ tr:hover td{background:#faf9f6}
     <div class="brow"><button class="btn btn-p" onclick="buildAlign()">📊 สร้างตารางความสอดคล้อง</button></div>
   </div>
   <div id="align-out"></div>
+</div>
+
+<!-- ===================== POLICY ANALYSIS ===================== -->
+<div id="pg-policy" class="pg">
+  <div class="pghdr">
+    <h2>🧭 วิเคราะห์โครงการตามนโยบายจังหวัด (11 แนวทางหลัก)</h2>
+    <p>วิเคราะห์โครงการ จ.1-1 และ จ.3 ที่หน่วยงานคีย์เข้ามา ว่าสอดคล้องกับ 11 นโยบายหลักของ ผวจ.น่าน (18 มิ.ย. 69) แนวทางใด และอยู่ใน Cluster เศรษฐกิจใดใน 9 คลัสเตอร์ — จับคู่อัตโนมัติด้วยการวิเคราะห์คำสำคัญจากชื่อโครงการ เหตุผล วัตถุประสงค์ ผลผลิต/ผลลัพธ์ และพื้นที่</p>
+  </div>
+
+  <div class="alert a-info" style="margin-bottom:14px;font-size:12px">
+    <span>ℹ️</span>
+    <span>การจับคู่นี้เป็นการวิเคราะห์อัตโนมัติจากคำสำคัญในข้อมูลโครงการที่บันทึกไว้ (ไม่ใช่การจัดกลุ่มที่ตายตัว) โครงการที่ข้อมูลระบุรายละเอียดไม่ชัดเจนอาจถูกจัดอยู่ในกลุ่ม "ยังไม่สามารถระบุได้ชัดเจน" — ควรตรวจสอบและปรับปรุงคำอธิบายโครงการให้ชัดเจนขึ้นเพื่อผลการวิเคราะห์ที่แม่นยำ<br><br>
+    <strong>หมายเหตุนโยบายข้อ 10</strong> ("ผลักดันสู่นครแห่งความสุขและการพัฒนาที่ยั่งยืน" / ขับเคลื่อน SDGs ทุกมิติ) เป็นนโยบายเชิงบูรณาการที่ครอบคลุมทุกมิติโดยธรรมชาติ จึง<strong>ไม่ใช้แข่งแบบผูกขาด (exclusive)</strong> กับอีก 10 นโยบายเฉพาะด้านในตารางเหมือนข้ออื่น — โครงการทุกโครงการจะถูกจัดอยู่ในนโยบายเฉพาะด้านที่ตรงที่สุดก่อน (ข้อ 1-9, 11) แล้วจึงตรวจแยกต่างหากว่าเข้าข่าย "บูรณาการ/SDGs" ข้อ 10 ด้วยหรือไม่ (จากคำสำคัญเฉพาะ หรือจากการที่โครงการนั้นเชื่อมโยงกับนโยบายเฉพาะด้านมากกว่า 1 ข้อพร้อมกัน) ตัวเลขในแถวข้อ 10 จึง<strong>ซ้อนทับ (นับซ้ำ) กับแถวอื่นได้</strong> ไม่ใช่ตัวเลขที่แยกจากกัน</span>
+  </div>
+
+  <!-- แถบเปลี่ยน view -->
+  <div style="display:flex;gap:6px;margin-bottom:14px;background:var(--bg);padding:4px;border-radius:var(--r8);width:fit-content">
+    <button class="btn btn-p" id="pv-all" onclick="setPolicyView('all')" style="font-size:12px;padding:6px 14px">🔢 ภาพรวมทั้งหมด</button>
+    <button class="btn btn-s" id="pv-j1" onclick="setPolicyView('j1')" style="font-size:12px;padding:6px 14px">📗 งบพัฒนาจังหวัด</button>
+    <button class="btn btn-s" id="pv-j3" onclick="setPolicyView('j3')" style="font-size:12px;padding:6px 14px">📘 โครงการ จ.3</button>
+  </div>
+
+  <div id="policy-view-debug" style="font-size:11px;color:var(--t3);margin-bottom:6px"></div>
+  <div class="g5" id="policy-metrics"></div>
+
+  <div class="card" id="dup-card" style="display:none">
+    <div class="ctitle"><span class="ico" style="background:#FCEBEB">⚠️</span><span id="dup-title">ตรวจพบโครงการที่อาจซ้ำกันในข้อมูล</span></div>
+    <div class="alert a-err" style="margin-bottom:12px;font-size:12px">
+      <span>โครงการด้านล่างนี้มี "ชื่อโครงการ" ตรงกันทุกตัวอักษรมากกว่า 1 แถวในข้อมูล (Google Sheets) โดยรายการที่ถือว่า <strong>"ซ้ำแน่นอน"</strong> (งบที่แสดงในคอลัมน์ขวาสุด) ต้องมีทั้ง "งบประมาณ" และ "ชื่อกิจกรรมหลัก" (คอลัมน์ N เป็นต้นไป — กิจกรรมหลักที่ 1, ที่ 2, ...) ตรงกันเป๊ะด้วย — ถ้าชื่อโครงการ/งบตรงกัน แต่ชื่อกิจกรรมหลักต่างกัน ระบบจะถือว่าน่าจะเป็นคนละรายการจริง (คนละกิจกรรม/จุดดำเนินการ) ไม่ใช่ข้อมูลซ้ำ ซึ่งอาจเกิดจากการคีย์ข้อมูลซ้ำ/กดบันทึกซ้ำ ทำให้ตัวเลขสรุปงบประมาณในทุกหน้า Dashboard (รวมถึงตารางนโยบาย) <strong>สูงเกินจริง</strong> — ควรตรวจสอบและลบแถวที่ซ้ำแน่นอนออกจาก Google Sheets ต้นทาง</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:36px">#</th><th>ชื่อโครงการ</th><th style="text-align:center">จำนวนครั้งที่พบชื่อนี้</th><th>รายละเอียดแต่ละรายการ (ประเภท · งบประมาณ)</th><th style="text-align:right">งบที่ซ้ำแน่นอน (บาท)</th></tr></thead>
+        <tbody id="dup-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle"><span class="ico" style="background:#E1F5EE">📊</span>จำนวนโครงการตามนโยบาย (11 นโยบายหลัก)</div>
+      <div style="position:relative;height:340px"><canvas id="pc1"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><span class="ico" style="background:#FAEEDA">💰</span>งบประมาณตามนโยบาย (ล้านบาท)</div>
+      <div style="position:relative;height:340px"><canvas id="pc2"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="background:#FFF8EC;border:2px solid #F0B429;box-shadow:0 2px 12px rgba(240,180,41,.18)">
+    <div class="ctitle"><span class="ico" style="background:#E6F1FB">📋</span>ตารางสรุปโครงการแยกตามนโยบาย</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:36px">#</th><th>นโยบาย</th><th style="text-align:center">จำนวนโครงการ</th><th style="text-align:right">งบประมาณรวม (บาท)</th><th style="width:90px"></th></tr></thead>
+        <tbody id="policy-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="overlap-card">
+    <div class="ctitle"><span class="ico" style="background:#FCEBEB">🔀</span>ตรวจสอบความซ้ำซ้อนระหว่างนโยบาย (ไม่รวมนโยบายข้อ 10)</div>
+    <div class="alert a-info" style="margin-bottom:12px;font-size:12px">
+      <span>ℹ️</span>
+      <span>โครงการแต่ละรายการถูกจัดนโยบายหลัก (คอลัมน์ "นโยบายที่จับได้") แบบผูกขาด (คะแนนสูงสุดชนะ) แต่บางโครงการอาจมีคำสำคัญของนโยบายอื่นปนอยู่ด้วยจนได้คะแนน &gt; 0 เช่นกัน — ตารางนี้แสดง<strong>เฉพาะโครงการที่มีคะแนนนโยบายอื่น (ไม่รวมข้อ 10) มากกว่า 0 ข้อขึ้นไปพร้อมกับนโยบายหลัก</strong> เรียงจาก "ก้ำกึ่งที่สุด" (คะแนนนโยบายหลักกับนโยบายรองใกล้กันมาก) ไปหา "ชัดเจน" เพื่อช่วยตรวจทานว่าจัดหมวดถูกต้องหรือไม่ — ไม่ได้แปลว่าจัดผิดเสมอไป บางโครงการก็เกี่ยวข้องกับหลายมิติจริงๆ</span>
+    </div>
+    <div id="overlap-summary" style="font-size:12px;color:var(--t3);margin-bottom:10px"></div>
+    <button class="btn btn-s" id="overlap-toggle-btn" onclick="toggleOverlapGroups()" style="font-size:12px;padding:6px 14px;margin-bottom:10px">👀 ดูรายละเอียด</button>
+    <div id="overlap-groups" style="display:none"></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle"><span class="ico" style="background:#EEEDFE">🧵</span>สัดส่วนตาม Cluster เศรษฐกิจ (9 คลัสเตอร์)</div>
+      <div style="position:relative;height:280px"><canvas id="pc3"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><span class="ico" style="background:#FCEBEB">🧵</span>ตารางสรุปตาม Cluster เศรษฐกิจ</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Cluster</th><th style="text-align:center">จำนวนโครงการ</th><th style="text-align:right">งบประมาณ (บาท)</th></tr></thead>
+          <tbody id="cluster-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle"><span class="ico" style="background:#FCEBEB">⚠️</span><span id="unmatched-title">โครงการที่ยังไม่สามารถระบุนโยบายได้ชัดเจน</span></div>
+    <div class="alert a-warn" style="margin-bottom:12px;font-size:12px">โครงการเหล่านี้ควรปรับปรุงคำอธิบาย (เหตุผล/วัตถุประสงค์/ผลผลิต) ให้ระบุแนวทางที่ชัดเจนขึ้น เพื่อให้จัดกลุ่มนโยบายได้แม่นยำ</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>ชื่อโครงการ</th><th>ประเภท</th><th style="text-align:right">งบประมาณ (บาท)</th><th style="width:110px"></th></tr></thead>
+        <tbody id="policy-unmatched-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle"><span class="ico" style="background:#EEEDFE">🧩</span><span id="noncross-title">โครงการที่ไม่เข้าเกณฑ์ "บูรณาการ/SDGs" (ไม่ถูกนับในแถวนโยบายข้อ 10)</span></div>
+    <div class="alert a-info" style="margin-bottom:12px;font-size:12px">
+      <span>โครงการกลุ่มนี้มีนโยบายเฉพาะด้านที่ตรงที่สุดอยู่แล้ว (แสดงในคอลัมน์ "นโยบายหลักที่จับได้") แต่<strong>ไม่เข้าเงื่อนไข crossCutting ของข้อ 10</strong> เพราะ (1) ไม่มีคำสำคัญ SDGs/นครแห่งความสุขโดยตรง <em>และ</em> (2) จับคีย์เวิร์ดนโยบายภาคส่วน (ข้อ 1-9, 11) ได้ไม่ถึง 2 ข้อพร้อมกัน — จึงเป็นสาเหตุที่งบรวมของนโยบายข้อ 10 น้อยกว่างบรวมทั้งหมด</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>ชื่อโครงการ</th><th>ประเภท</th><th>นโยบายหลักที่จับได้</th><th style="text-align:center">จำนวนนโยบายภาคส่วนที่จับได้</th><th style="text-align:right">งบประมาณ (บาท)</th></tr></thead>
+        <tbody id="policy-noncross-body"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- ===================== GANTT ===================== -->
@@ -1358,6 +1469,10 @@ function populateProvincialKPIOptions() {
 }
 var clChecks = {};
 var charts = {};
+if (typeof ChartDataLabels !== 'undefined') {
+  Chart.register(ChartDataLabels);
+  Chart.defaults.set('plugins.datalabels', { display: false }); // ปิดไว้เป็นค่าเริ่มต้น เปิดเฉพาะกราฟที่ต้องการทีละจุด
+}
 var kpiChart = null;
 
 // สร้าง column letters สำหรับ 70 คอลัมน์
@@ -1774,6 +1889,7 @@ function go(name, btn) {
   if (name === 'checklist') renderChecklist();
   if (name === 'sdg') renderSdgPage();
   if (name === 'align') populateAlignNameList();
+  if (name === 'policy') renderPolicyAnalysis();
   if (name === 'timeline') renderTimeline();
   if (name === 'setup') initSetupPage();
 }
@@ -2941,6 +3057,8 @@ function renderDashboard() {
   var pl = getActiveProjList();
   var j1pl = projects;
   var j3pl = j3Projects;
+  var fmtM = function(n){ return (n/1e6).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1}); }; // แสดงทศนิยม 1 ตำแหน่ง + คั่นหลักพันด้วย ,
+  var fmtInt = function(n){ return n.toLocaleString('th-TH'); };
 
   var j1provOnly = j1pl.filter(function(p){return p.bsrc==='1';}); // งบจังหวัดเท่านั้น (ไม่รวมกระทรวง/อปท./เอกชน)
   var budget = j1provOnly.reduce(function(a,p){return a+(p.btotal||0);},0);
@@ -2950,17 +3068,17 @@ function renderDashboard() {
   var notready = pl.filter(function(p){return p.ready==='notready';}).length;
 
   var metItems = dashView==='all' ? [
-    {l:'โครงการ จ.1 (งบจังหวัด)',v:j1pl.length,s:'โครงการ',c:'g'},
-    {l:'งบพัฒนาจังหวัด รวม 5 ปี',v:budget>0?(budget/1e6).toFixed(1)+' ล้าน':'—',s:'บาท',c:'g'},
-    {l:'โครงการ จ.3 (ของบกระทรวง)',v:j3pl.length,s:'โครงการ',c:'b'},
-    {l:'งบ จ.3 รวม',v:j3budget>0?(j3budget/1e6).toFixed(1)+' ล้าน':'—',s:'บาท',c:'b'},
-    {l:'งบ ปี 2571 (จ.1)',v:b71>0?(b71/1e6).toFixed(1)+' ล้าน':'—',s:'บาท',c:'a'}
+    {l:'โครงการ จ.1 (งบจังหวัด)',v:fmtInt(j1pl.length),s:'โครงการ',c:'g'},
+    {l:'งบพัฒนาจังหวัด รวม 5 ปี',v:budget>0?fmtM(budget)+' ล้าน':'—',s:'บาท',c:'g'},
+    {l:'โครงการ จ.3 (ของบกระทรวง)',v:fmtInt(j3pl.length),s:'โครงการ',c:'b'},
+    {l:'งบ จ.3 รวม',v:j3budget>0?fmtM(j3budget)+' ล้าน':'—',s:'บาท',c:'b'},
+    {l:'งบ ปี 2571 (จ.1)',v:b71>0?fmtM(b71)+' ล้าน':'—',s:'บาท',c:'a'}
   ] : [
-    {l:'โครงการทั้งหมด',v:pl.length,s:'โครงการ',c:''},
-    {l:'งบรวม',v:((dashView==='j1'?j1provOnly:pl).reduce(function(a,p){return a+(p.btotal||p.budget||0);},0)/1e6).toFixed(1)+' ล้าน',s:'บาท',c:'g'},
-    {l:'งบ ปี 2571',v:b71>0?(b71/1e6).toFixed(1)+' ล้าน':'—',s:'บาท',c:'b'},
-    {l:'พร้อมดำเนินการ',v:ready,s:'โครงการ',c:'g'},
-    {l:'ยังไม่พร้อม',v:notready,s:'โครงการ',c:'r'}
+    {l:'โครงการทั้งหมด',v:fmtInt(pl.length),s:'โครงการ',c:''},
+    {l:'งบรวม',v:fmtM((dashView==='j1'?j1provOnly:pl).reduce(function(a,p){return a+(p.btotal||p.budget||0);},0))+' ล้าน',s:'บาท',c:'g'},
+    {l:'งบ ปี 2571',v:b71>0?fmtM(b71)+' ล้าน':'—',s:'บาท',c:'b'},
+    {l:'พร้อมดำเนินการ',v:fmtInt(ready),s:'โครงการ',c:'g'},
+    {l:'ยังไม่พร้อม',v:fmtInt(notready),s:'โครงการ',c:'r'}
   ];
   document.getElementById('metrics').innerHTML = metItems.map(function(m){return '<div class="met '+m.c+'"><div class="lbl">'+m.l+'</div><div class="val">'+m.v+'</div><div class="sub">'+m.s+'</div></div>';}).join('');
 
@@ -2971,7 +3089,7 @@ function renderDashboard() {
   var iLabels = keys.map(function(k){return ISSUE_MAP[k].s;});
   document.getElementById('leg1').innerHTML = keys.map(function(k,i){return '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:'+iColors[i]+'"></span>'+iLabels[i]+'</span>';}).join('');
   destroyChart('c1');
-  charts['c1'] = new Chart(document.getElementById('c1'),{type:'bar',data:{labels:iLabels,datasets:[{data:iData,backgroundColor:iColors,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return v+'M';}}}}}});
+  charts['c1'] = new Chart(document.getElementById('c1'),{type:'bar',data:{labels:iLabels,datasets:[{data:iData,backgroundColor:iColors,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:22}},plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'top',offset:2,color:'#3d3b36',font:{size:11,weight:'bold'},formatter:function(v){ return v>0 ? v.toLocaleString('th-TH',{maximumFractionDigits:1})+'M' : ''; }}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return v+'M';}}}}}});
 
   // Chart 2 - dimensions
   var dims = ['ปพ.1 สังคม', 'ปพ.2 เศรษฐกิจ', 'ปพ.3 สิ่งแวดล้อม'];
@@ -2983,7 +3101,7 @@ function renderDashboard() {
   ].map(function(v){return +v.toFixed(2);});
   document.getElementById('leg2').innerHTML = dims.map(function(d,i){return '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:'+dColors[i]+'"></span>'+d+'</span>';}).join('');
   destroyChart('c2');
-  charts['c2'] = new Chart(document.getElementById('c2'),{type:'doughnut',data:{labels:dims,datasets:[{data:dData,backgroundColor:dColors,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+  charts['c2'] = new Chart(document.getElementById('c2'),{type:'doughnut',data:{labels:dims,datasets:[{data:dData,backgroundColor:dColors,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}},datalabels:{display:true,color:'#fff',font:{size:11,weight:'bold'},formatter:function(v, ctx){ var total = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); var pct = total>0 ? (v/total*100).toFixed(1) : '0'; return v>0 ? v.toLocaleString('th-TH',{maximumFractionDigits:1})+'M\n('+pct+'%)' : ''; }}}}});
 
   // Chart 3 - yearly (j1 only)
   var cardYr = document.getElementById('card-yearly');
@@ -3063,9 +3181,13 @@ function renderDashboard() {
 function renderList() {
   var fi = document.getElementById('fil-i').value;
   var fr = document.getElementById('fil-r').value;
-  var list = projects.filter(p=>(!fi||p.issue===fi)&&(!fr||p.ready===fr));
+  var provOnly = projects.filter(function(p){ return p.bsrc==='1'; }); // หน้านี้คือ "บัญชีโครงการ (งบพัฒนาจังหวัด)" ตัดงบกระทรวง/อปท./เอกชนออกทั้งหมด
+  var list = provOnly.filter(p=>(!fi||p.issue===fi)&&(!fr||p.ready===fr));
   window.__listCache = list;
-  document.getElementById('list-count').textContent = list.length+'/'+projects.length+' โครงการ';
+  var totalBudget = list.reduce(function(a,p){ return a+(p.btotal||0); }, 0);
+  var fmtM = function(n){ return (n/1e6).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1}); };
+  document.getElementById('list-count').innerHTML = list.length+'/'+provOnly.length+' โครงการ (เฉพาะงบพัฒนาจังหวัด)'
+    + ' · งบรวม <strong style="color:var(--gd)">'+totalBudget.toLocaleString('th-TH')+' บาท</strong> ('+fmtM(totalBudget)+' ล้านบาท)';
   if(!list.length){
     document.getElementById('list-tbl').innerHTML='<div style="padding:2rem;text-align:center;color:var(--t2)">ไม่พบโครงการ</div>';
     return;
@@ -3613,14 +3735,15 @@ function updateCLScore(){
 // EXPORT CSV
 // ============================================================
 function exportCSV(){
-  if(!projects.length){alert('ยังไม่มีข้อมูล');return;}
+  var src = (window.__listCache && window.__listCache.length) ? window.__listCache : [];
+  if(!src.length){alert('ยังไม่มีข้อมูล (เฉพาะงบพัฒนาจังหวัดตามตัวกรองปัจจุบัน)');return;}
   // หัวคอลัมน์กิจกรรม 1–10
   var actHdrs=[];
   for(var ai=1;ai<=10;ai++) actHdrs.push('กิจกรรม'+ai+'_ชื่อ','กิจกรรม'+ai+'_งบ(บาท)','กิจกรรม'+ai+'_หน่วยงานรับผิดชอบ','กิจกรรม'+ai+'_หน่วยงานที่เกี่ยวข้อง');
   var hdrs=['ลำดับ','ชื่อโครงการ','ประเด็น','หน่วยงาน','จำนวนกิจกรรม','งบรวมกิจกรรม(บาท)']
     .concat(actHdrs)
     .concat(['ผลผลิต','ผลลัพธ์','งบรวม5ปี','งบ2571','งบ2572','งบ2573','งบ2574','งบ2575','แหล่งงบ','สถานะ','ระยะเวลาดำเนินการ','ยุทธ.A','แผนแม่บทB','แผนพัฒนาC','ภาคเหนือD','KPI','พื้นที่','Cluster']);
-  var rows=projects.map(function(p,i){
+  var rows=src.map(function(p,i){
     var actCols=[];
     for(var ai=1;ai<=10;ai++) actCols.push(
       '"'+(p['act'+ai+'_name']||'')  +'"',
@@ -4380,6 +4503,817 @@ document.addEventListener('keydown', function(e) {
     go('setup', btn);
   }
 });
+
+// ============================================================
+// วิเคราะห์โครงการตามนโยบายจังหวัด (11 แนวทางหลัก) + Cluster เศรษฐกิจ (9 คลัสเตอร์)
+// อ้างอิง: "โครงการที่ควรผลักดันในปีงบประมาณ พ.ศ. 2571 (11 แนวทางหลัก)"
+//          และสไลด์มอบนโยบาย ผวจ.น่าน 18 มิ.ย. 69 (Cluster เศรษฐกิจ 9 คลัสเตอร์)
+// ============================================================
+var POLICY_DATA = [
+  { id:1, title:'ขับเคลื่อนสู่เมืองมรดกโลก (UNESCO World Heritage)',
+    kw:['มรดกโลก','unesco','ยูเนสโก','เมืองเก่าน่าน','โบราณสถาน','ศิลปวัฒนธรรม','ภูมิปัญญาท้องถิ่น','creative city','วัดภูมินทร์','จิตรกรรม','tentative list','หอศิลป'] },
+  { id:2, title:'ยกระดับภาคเกษตรสู่เกษตรมูลค่าสูงและเกษตรอัจฉริยะ',
+    kw:['เกษตรมูลค่าสูง','เกษตรอัจฉริยะ','smart farmer','ห่วงโซ่คุณค่า','value chain','โกโก้','แมคคาเดเมีย','สมุนไพร','พืชเศรษฐกิจ','แปรรูปสินค้าเกษตร','bcg','เกษตรปลอดภัย','gap','เกษตรอินทรีย์','พืชยา','สินค้าอัตลักษณ์','ส้มสีทอง','ลำไย','มะม่วง'] },
+  { id:3, title:'ส่งเสริมเศรษฐกิจสร้างสรรค์และ Soft Power',
+    kw:['เศรษฐกิจสร้างสรรค์','soft power','สินค้าอัตลักษณ์','ผ้าทอ','เครื่องเงิน','งานหัตถกรรม','หัตถกรรม','อาหารพื้นถิ่น','เทศกาล','อีเวนต์','event','นวัตกรรมการออกแบบ','การตลาดดิจิทัล','ภูมิปัญญา','เมืองสร้างสรรค์'] },
+  { id:4, title:'พัฒนาการท่องเที่ยวคุณภาพและการท่องเที่ยวยั่งยืน',
+    kw:['ท่องเที่ยว','เชิงวัฒนธรรม','เชิงสุขภาพ','เชิงนิเวศ','ท่องเที่ยวชุมชน','โครงสร้างพื้นฐานท่องเที่ยว','มาตรฐานความปลอดภัย','นักท่องเที่ยว','แหล่งท่องเที่ยว','carbon neutral','happy model'] },
+  { id:5, title:'พัฒนาแหล่งน้ำและระบบบริหารจัดการน้ำอย่างยั่งยืน',
+    kw:['แหล่งน้ำ','กักเก็บน้ำ','ชลประทาน','กระจายน้ำ','อ่างเก็บน้ำ','ระบบประปา','บริหารจัดการน้ำ','ภัยแล้ง','ฝาย'] },
+  { id:6, title:'ป้องกันและแก้ไขปัญหาหมอกควัน ไฟป่า และการเปลี่ยนแปลงสภาพภูมิอากาศ',
+    kw:['หมอกควัน','ไฟป่า','pm2.5','pm 2.5','จุดความร้อน','hotspot','เผาไหม้','เศรษฐกิจสีเขียว','low carbon','ก๊าซเรือนกระจก','คาร์บอนเครดิต','เปลี่ยนแปลงสภาพภูมิอากาศ','เลิกเผา'] },
+  { id:7, title:'พัฒนาโครงสร้างพื้นฐานและระบบโลจิสติกส์',
+    kw:['ถนน','คมนาคม','โครงข่ายดิจิทัล','ไฟฟ้า','ประปา','อินเทอร์เน็ต','โลจิสติกส์','ด่านห้วยโก๋น','การค้าชายแดน','สะพาน','ทางหลวง'] },
+  { id:8, title:'พัฒนาคุณภาพชีวิตและความมั่นคงทางสังคม',
+    kw:['to be number one','ยาเสพติด','ความยากจน','ความเหลื่อมล้ำ','สาธารณสุข','การศึกษา','สวัสดิการสังคม','เด็กและเยาวชน','ผู้สูงอายุ','คนพิการ','กลุ่มเปราะบาง','สุขภาวะ','ฆ่าตัวตาย'] },
+  { id:9, title:'เสริมสร้างความพร้อมรับมืออุทกภัยและภัยพิบัติ',
+    kw:['อุทกภัย','น้ำท่วม','ขุดลอก','แม่น้ำน่าน','เตือนภัยล่วงหน้า','ภัยพิบัติ','ดินโคลนถล่ม','ดินถล่ม','น้ำป่าไหลหลาก','สาธารณภัย'] },
+  { id:10, title:'ผลักดันสู่นครแห่งความสุขและการพัฒนาที่ยั่งยืน',
+    kw:['sdgs','เป้าหมายการพัฒนาที่ยั่งยืน','เมืองน่าอยู่','เมืองแห่งความสุข','การพัฒนาที่ยั่งยืน','เมืองน่าอยู่อัจฉริยะ','คุณภาพชีวิตที่ดี','ดัชนีความสุข','บูรณาการการพัฒนา','สมดุลเศรษฐกิจ สังคม สิ่งแวดล้อม','นครแห่งความสุข'] },
+  { id:11, title:'โครงการอันเนื่องมาจากพระราชดำริ',
+    kw:['พระราชดำริ','บ้านน้ำรีพัฒนา','ขุนนาน','โครงการหลวง','องคมนตรี','พรด.','พรด. น้ำรี','พรด.น้ำรี','น้ำรี'] }
+];
+
+// คีย์เวิร์ดสำหรับติดป้าย "โครงการแก้ไขปัญหาน้ำท่วม" แบบแยกต่างหาก (ไม่กระทบการจัดหมวดนโยบายหลักโดยตรง
+// แต่มีผลต่อการบังคับย้ายนโยบายหลักเป็นข้อ 9 ด้วย — ดูจุดที่ใช้ floodMatch)
+// แบ่งเป็นคำ "หนักแน่น" (ชี้ชัดว่าเป็นเรื่องอุทกภัย/การป้องกันน้ำท่วมจริงๆ)
+// กับคำ "อ่อน" (คลุมเครือ อาจ false-positive ได้ เช่น "น้ำท่วมขัง" จากถนนชำรุดเป็นหลุมบ่อ
+// หรือ "ระบายน้ำ" ที่เป็นแค่ท่อระบายน้ำข้างถนนทั่วไป ไม่ใช่งานป้องกัน/แก้ไขอุทกภัย)
+var FLOOD_KW_STRONG = ['อุทกภัย','ป้องกันน้ำท่วม','แก้ไขปัญหาน้ำท่วม','คันกั้นน้ำ','คลองระบายน้ำ','สถานีสูบน้ำ','ผันน้ำ','น้ำหลาก','น้ำป่าไหลหลาก'];
+var FLOOD_KW_WEAK = ['น้ำท่วม','ระบายน้ำ'];
+// คำที่บ่งชี้ว่าโครงการเป็นงานถนน/ผิวจราจรเป็นแก่นหลัก — ถ้าเจอคำเหล่านี้ร่วมกับคำ "อ่อน" เท่านั้น (ไม่มีคำหนักแน่น)
+// ให้ถือว่าไม่ใช่โครงการแก้ปัญหาน้ำท่วม/อุทกภัย (เช่น น้ำท่วมขังเพราะถนนเป็นหลุมเป็นบ่อ)
+var ROAD_KW = ['ถนน','คอนกรีตเสริมเหล็ก','คสล.','ผิวจราจร','ผิวทาง','แอสฟัลท์','ลาดยาง'];
+
+function isFloodRelated(textL) {
+  var hasStrong = FLOOD_KW_STRONG.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
+  if (hasStrong) return true;
+  var hasWeak = FLOOD_KW_WEAK.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
+  if (!hasWeak) return false;
+  var looksLikeRoadProject = ROAD_KW.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
+  if (looksLikeRoadProject) return false; // งานถนนที่ติดคำอ่อนเพียงอย่างเดียว → ไม่นับเป็นโครงการน้ำท่วม
+  return true;
+}
+
+// คีย์เวิร์ดสำหรับติดป้าย "โครงการอันเนื่องมาจากพระราชดำริ" แบบแยกต่างหาก (ทำงานคู่กับ policy 11)
+// มีผลต่อการบังคับย้ายนโยบายหลักเป็นข้อ 11 ด้วย เช่นเดียวกับที่ floodMatch มีผลต่อข้อ 9
+// ใช้ชุดคีย์เวิร์ดเดียวกับ POLICY_DATA ข้อ 11 เพื่อความสอดคล้องกัน
+var ROYAL_KW = ['พระราชดำริ','บ้านน้ำรีพัฒนา','ขุนนาน','โครงการหลวง','องคมนตรี','พรด.','พรด. น้ำรี','พรด.น้ำรี','น้ำรี'];
+
+// รายชื่อโครงการ (หรือบางส่วนของชื่อ) ที่ยืนยันแล้วว่า "ไม่ใช่โครงการอันเนื่องมาจากพระราชดำริจริง"
+// แต่ระบบเผลอไปจับคำสำคัญ ROYAL_KW เจอในเนื้อหาช่องอื่น (เช่น วัตถุประสงค์ที่กล่าวอ้างอิงแนวพระราชดำริ
+// เพื่อสนับสนุนความชอบธรรมของโครงการ แต่แก่นการดำเนินงานจริงเป็นเรื่องอื่น เช่น งานหัตถกรรม/การค้า)
+// ใช้ตรวจด้วย "ชื่อโครงการ" เพื่อยกเว้นไม่ให้ติด royalMatch/ถูกบังคับย้ายไปนโยบายข้อ 11
+// เพิ่ม/ตัดรายการนี้ได้เรื่อยๆ เมื่อพบโครงการที่จัดผิดเพิ่มเติม
+var ROYAL_EXCLUDE_NAMES = [
+  'มหกรรมเครื่องเงินและผ้าทอเมืองน่าน'
+];
+
+function isRoyalExcluded(name) {
+  if (!name) return false;
+  var nameL = name.toLowerCase();
+  return ROYAL_EXCLUDE_NAMES.some(function(n){ return nameL.indexOf(n.toLowerCase()) >= 0; });
+}
+
+function isRoyalRelated(textL, name) {
+  if (isRoyalExcluded(name)) return false;
+  return ROYAL_KW.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
+}
+
+// คีย์เวิร์ดสำหรับติดป้ายกลุ่มย่อย "โครงการที่เกี่ยวข้องกับน้ำรี" ภายในนโยบายข้อ 11
+// ('น้ำรี' เป็น substring ของคำอื่นในกลุ่ม ROYAL_KW อยู่แล้ว เช่น 'บ้านน้ำรีพัฒนา', 'พรด. น้ำรี', 'พรด.น้ำรี'
+// จึงใช้คำเดียวคำนี้ก็ครอบคลุมทั้งหมด)
+var NAMRI_KW = ['น้ำรี'];
+
+function isNamRiRelated(textL) {
+  return NAMRI_KW.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
+}
+
+// คีย์เวิร์ดสำหรับติดป้าย "โครงการที่เกี่ยวข้องกับแหล่งน้ำ" แบบแยกต่างหาก (ใช้แสดงรายการอ้างอิงคู่กับ policy 5
+// เช่นเดียวกับ floodMatch/royalMatch — ไม่มีผลต่อการบังคับย้ายนโยบายหลัก แค่ใช้ดึงรายการมาแสดงแยกไว้ให้เห็นชัด)
+// ใช้ชุดคีย์เวิร์ดเดียวกับ POLICY_DATA ข้อ 5 เพื่อความสอดคล้องกัน
+var WATER_KW = ['แหล่งน้ำ','กักเก็บน้ำ','ชลประทาน','กระจายน้ำ','อ่างเก็บน้ำ','ระบบประปา','บริหารจัดการน้ำ','ภัยแล้ง','ฝาย'];
+
+// รายชื่อโครงการ (หรือบางส่วนของชื่อ) ที่ยืนยันแล้วว่า "ไม่เกี่ยวข้องกับแหล่งน้ำจริง" แต่ระบบเผลอไปจับ
+// คำสำคัญ WATER_KW เจอในเนื้อหาช่องอื่น (เช่น เหตุผล/วัตถุประสงค์ที่กล่าวถึงบริบททรัพยากรธรรมชาติ/ป่าไม้
+// โดยรวม ซึ่งมีคำว่า "แหล่งน้ำ" ปนอยู่ทั้งที่แก่นโครงการจริงไม่เกี่ยวกับน้ำ) — ใช้ตรวจด้วย "ชื่อโครงการ"
+// (หรือบางส่วนของชื่อ) เพื่อยกเว้นไม่ให้ติด waterMatch อีก โดยไม่กระทบโครงการน้ำจริงๆ อื่น
+// เพิ่ม/ตัดรายการนี้ได้เรื่อยๆ เมื่อพบโครงการที่จัดผิดเพิ่มเติม
+var WATER_EXCLUDE_NAMES = [
+  'โครงการสำรวจและจัดทำฐานข้อมูลทรัพยากรชีวภาพและภูมิปัญญาท้องถิ่นตำบลชนแดน',
+  'โครงการก่อสร้างศูนย์การเรียนรู้เมืองท่องเที่ยวเชิงสร้างสรรค์ ศิลปะ และหัตถกรรม หนองน้ำครก',
+  'โครงการป้องกัน แก้ไขปัญหาไฟป่าและหมอกควัน โดยการมีส่วนร่วม',
+  'ปลูกป่า 3 อย่าง ประโยชน์ 4 อย่าง',
+  'สร้างการมีส่วนร่วมเพื่อการรับมือกับผลกระทบจากมลพิษ',
+  'โครงการจัดทำแนวกันไฟฝายห้วยกับไฟ',
+  'โครงการส่งเสริมการแปรรูปและเพิ่มช่องทางการตลาดผลิตภัณฑ์จากทรัพยากรท้องถิ่นในพื้นที่บ้านกอก',
+  'โครงการอนุรักษ์และฟื้นฟูป่าต้นน้ำบ้านกอก',
+  'โครงการยกระดับขีดความสามารถในการแข่งขันให้น่านเป็นเมืองเป้าหมายการท่องเที่ยว',
+  'โครงการอนุรักษ์พันธุกรรมพืชอันเนื่องมาจากพระราชดำริ สมเด็จพระเทพรัตนราชสุดา'
+];
+
+function isWaterExcluded(name) {
+  if (!name) return false;
+  var nameL = name.toLowerCase();
+  return WATER_EXCLUDE_NAMES.some(function(n){ return nameL.indexOf(n.toLowerCase()) >= 0; });
+}
+
+function isWaterRelated(textL, name) {
+  if (isWaterExcluded(name)) return false;
+  return WATER_KW.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
+}
+
+
+var CLUSTER_DATA = [
+  { id:1, title:'ผ้าทอ', kw:['ผ้าทอ','สิ่งทอ','งานทอ','ผ้าทอมือ'] },
+  { id:2, title:'เครื่องเงิน', kw:['เครื่องเงิน','งานเงิน','silverware'] },
+  { id:3, title:'กาแฟ', kw:['กาแฟ','specialty coffee','coffee'] },
+  { id:4, title:'เกษตรแปรรูป', kw:['เกษตรแปรรูป','แปรรูปสินค้าเกษตร','agro processing','แปรรูปผลผลิต'] },
+  { id:5, title:'ท่องเที่ยว', kw:['ท่องเที่ยว','โฮมสเตย์','มัคคุเทศก์','ที่พัก'] },
+  { id:6, title:'แปลงใหญ่และเกษตรมาตรฐาน', kw:['แปลงใหญ่','เกษตรมาตรฐาน','gap','มาตรฐานเกษตร'] },
+  { id:7, title:'เครื่องดื่มชุมชนที่มีแอลกอฮอล์', kw:['สุราชุมชน','ไวน์','เครื่องดื่มแอลกอฮอล์','สาโท','สุรากลั่นชุมชน','คราฟต์เบียร์'] },
+  { id:8, title:'พืชยา', kw:['พืชยา','สมุนไพร','herbal'] },
+  { id:9, title:'เรือแข่ง', kw:['เรือแข่ง','แข่งเรือ','ประเพณีแข่งเรือ'] }
+];
+
+var policyDashView = 'all'; // 'all' | 'j1' | 'j3'
+
+function setPolicyView(v) {
+  policyDashView = v;
+  ['all','j1','j3'].forEach(function(k){
+    var btn = document.getElementById('pv-'+k);
+    if(btn){ btn.className = (k===v) ? 'btn btn-p' : 'btn btn-s'; btn.style.fontSize='12px'; btn.style.padding='6px 14px'; }
+  });
+  renderPolicyAnalysis();
+}
+
+// ============================================================
+// ข้อความ boilerplate ที่คัดลอกซ้ำๆ กันในหลายโครงการ (เช่น วัตถุประสงค์ข้อมาตรฐานที่ต้องใส่ทุกฟอร์ม
+// เพื่อให้สอดคล้องกับแผนแม่บทสิ่งแวดล้อม) ซึ่งมีคำที่ไปพ้องกับคีย์เวิร์ดนโยบายโดยไม่ได้เกี่ยวกับ
+// เนื้อหาจริงของโครงการนั้นๆ — ตัดออกก่อนนำไปค้นหาคำสำคัญ เพื่อลดการจับคู่ผิดพลาด (false positive)
+// ============================================================
+var BOILERPLATE_STRIP = [
+  'บูรณาการความร่วมมือทุกภาคส่วนในการจัดทำแผนการจัดการมลพิษที่มีผลกระทบต่อสิ่งแวดล้อมในพื้นที่จังหวัดน่าน ไม่ว่าจะเป็นปัญหาหมอกควัน ไฟป่า การใช้สารเคมีในภาคการเกษตร การจัดการขยะมูลฝอย มูลฝอยติดเชื้อ ของเสียอันตราย',
+  // ตัวเลือก "แนวทางการดำเนินงาน" สำเร็จรูปในแผนงานท่องเที่ยว (แผนงานที่ 3) — ถูกเลือกซ้ำได้ในหลายโครงการ
+  // ที่ไม่ได้เกี่ยวกับมรดกโลก/เมืองสร้างสรรค์โดยตรง ทำให้คำว่า "มรดกโลก" ไปจับคู่ผิดพลาดกับนโยบายข้อ 1
+  'ขับเคลื่อนน่านสู่การเป็นเครือข่ายเมืองสร้างสรรค์ และน่านสู่เมืองมรดกโลก'
+];
+
+function stripBoilerplate(text) {
+  var t = text;
+  BOILERPLATE_STRIP.forEach(function(b){
+    t = t.split(b.toLowerCase()).join(' ');
+  });
+  return t;
+}
+
+function buildProjectTextBlob(p, src) {
+  var parts;
+  if (src === 'j1') {
+    parts = [p.name, p.reason, p.obj, p.output, p.outcome, p.kpi, p.area, p.cluster, p.progMain, p.prog, p.approach, p.econ, p.issueKpi, p.actOverview];
+  } else {
+    parts = [p.name, p.rationale, p.objective, p.output, p.outcome, p.kpi, p.area, p.strategy, p.plan, p.target];
+  }
+  return stripBoilerplate(parts.filter(Boolean).join(' ').toLowerCase());
+}
+
+// น้ำหนักคำสำคัญแบบกำหนดเองเฉพาะจุด (override ค่าที่คำนวณอัตโนมัติจากความยาวคำ)
+// ใช้สำหรับคำที่ "เฉพาะเจาะจงมาก" จนควรมีน้ำหนักสูงกว่าปกติ แม้จะเป็นคำสั้น
+// เช่น "มรดกโลก" ที่ต้องแข่งกับคำทั่วไปด้านท่องเที่ยว (ข้อ 4) ที่มักถูกนับหลายคำในโครงการเดียว
+var KEYWORD_WEIGHT_OVERRIDES = {
+  'มรดกโลก': 20 // เพิ่มน้ำหนักพิเศษ ให้นโยบายข้อ 1 (มรดกโลก UNESCO) แข่งชนะข้อ 4 (ท่องเที่ยวฯ) ได้
+    // ในโครงการที่กล่าวถึงมรดกโลกชัดเจน แม้เนื้อหาจะพูดถึง "ท่องเที่ยว" ซ้ำหลายจุดก็ตาม
+};
+
+function scoreAgainst(textL, dataArr) {
+  var scores = dataArr.map(function(d){
+    var s = 0;
+    d.kw.forEach(function(k){
+      if (textL.indexOf(k.toLowerCase()) >= 0) {
+        var override = KEYWORD_WEIGHT_OVERRIDES[k.toLowerCase()];
+        if (override !== undefined) {
+          s += override;
+        } else {
+          // ถ่วงน้ำหนักตามความยาว/ความเจาะจงของคำสำคัญ — คำสั้นๆ ทั่วไป (เช่น "ถนน", "ไฟฟ้า")
+          // มักปรากฏในข้อความทั่วไปโดยไม่ได้สื่อถึงแก่นของโครงการ จึงควรมีน้ำหนักน้อยกว่า
+          // คำที่เฉพาะเจาะจงและยาวกว่า (เช่น "เกษตรอัจฉริยะ", "หมอกควัน")
+          s += Math.max(1, Math.round(k.length / 3));
+        }
+      }
+    });
+    return { id:d.id, title:d.title, score:s };
+  });
+  scores.sort(function(a,b){ return b.score - a.score; });
+  return scores;
+}
+
+function getPolicyAnalysisList() {
+  // "ภาพรวมทั้งหมด" ยังคงรวมทุกโครงการในแท็บ จ.1 ทุกแหล่งงบ (เหมือนเดิม) เพื่อไม่ให้ยอดรวมทั้งหมดเปลี่ยนไป
+  var j1ListAll = projects.map(function(p){ return { p:p, src:'j1' }; });
+  // ปุ่ม "งบพัฒนาจังหวัด" ต้องหมายถึงเฉพาะโครงการที่แหล่งงบ (bsrc) = '1' (งบพัฒนาจังหวัด) เท่านั้น
+  // เช่นเดียวกับนิยามที่ใช้ในหน้า "บัญชีโครงการ (งบพัฒนาจังหวัด)" — ไม่รวมงบกระทรวง/กรม (bsrc='2'),
+  // งบ อปท. (bsrc='3'), งบเอกชน/ชุมชน (bsrc='4') ที่อาจถูกบันทึกปนอยู่ในแท็บ จ.1 ด้วย
+  var j1ListProvOnly = projects.filter(function(p){ return p.bsrc === '1'; }).map(function(p){ return { p:p, src:'j1' }; });
+  var j3List = j3Projects.map(function(p){ return { p:p, src:'j3' }; });
+  var all = j1ListAll.concat(j3List);
+  if (policyDashView === 'j1') all = j1ListProvOnly;
+  if (policyDashView === 'j3') all = j3List;
+
+  var dbg = document.getElementById('policy-view-debug');
+  if (dbg) {
+    dbg.textContent = 'มุมมองปัจจุบัน: ' + policyDashView
+      + ' • ข้อมูลดิบทั้งหมด: จ.1 = ' + j1ListAll.length + ' รายการ (เฉพาะ bsrc=1 งบพัฒนาจังหวัด = ' + j1ListProvOnly.length + ' รายการ), จ.3 = ' + j3Projects.length + ' รายการ'
+      + ' • หลังกรองตาม view นี้ = ' + all.length + ' รายการ';
+  }
+  console.log('[getPolicyAnalysisList] view=', policyDashView, 'j1(all)=', j1ListAll.length, 'j1(bsrc=1)=', j1ListProvOnly.length, 'j3=', j3Projects.length, 'filtered=', all.length);
+
+  return all.map(function(o){
+    var textL = buildProjectTextBlob(o.p, o.src);
+    var polScoresAll = scoreAgainst(textL, POLICY_DATA); // ครบ 11 นโยบาย เรียงคะแนนมากไปน้อย
+    // นโยบายข้อ 10 "นครแห่งความสุขฯ / ขับเคลื่อน SDGs ทุกมิติ" เป็นนโยบายเชิงบูรณาการ ครอบคลุมทุกมิติ
+    // จึงไม่ใช้แข่งแบบ exclusive top-1 กับอีก 10 นโยบายเฉพาะด้าน (ไม่งั้นจะกลืนทุกโครงการ หรือไม่ก็แพ้ทุกครั้ง)
+    // แทนที่ด้วยการนับแบบ non-exclusive: ติดธง "บูรณาการ/SDGs" แยกต่างหาก
+    var sectorScores = polScoresAll.filter(function(s){ return s.id !== 10; }); // ยังเรียงลำดับเดิมอยู่ (สืบทอดจาก polScoresAll)
+    var topSector = sectorScores[0];
+    var floodMatch = isFloodRelated(textL);
+    // กติกาพิเศษ: ถ้าโครงการมีคำสำคัญด้านน้ำท่วม (floodMatch) และคะแนนสูงสุดตกที่นโยบายข้อ 5
+    // (พัฒนาแหล่งน้ำฯ) ให้ "บังคับย้าย" ไปเป็นนโยบายหลักข้อ 9 (รับมืออุทกภัยฯ) แทนทั้งหมด
+    // เพื่อไม่ให้โครงการแก้ปัญหาน้ำท่วมไปปนอยู่กับโครงการพัฒนาแหล่งน้ำทั่วไป (ฝาย/อ่างเก็บน้ำ/ประปา)
+    var floodForcedTo9 = false;
+    if (floodMatch && topSector && topSector.id === 5) {
+      var pol9Def = POLICY_DATA.filter(function(p){ return p.id === 9; })[0];
+      var pol9Score = sectorScores.filter(function(s){ return s.id === 9; })[0];
+      topSector = { id:9, title: pol9Def.title, score: Math.max(topSector.score, pol9Score ? pol9Score.score : 0) };
+      floodForcedTo9 = true;
+    }
+    var royalMatch = isRoyalRelated(textL, o.p.name);
+    // กติกาพิเศษ: ถ้าโครงการมีคำสำคัญด้านพระราชดำริ (royalMatch) ให้ "บังคับย้าย" ไปเป็นนโยบายหลัก
+    // ข้อ 11 (โครงการอันเนื่องมาจากพระราชดำริ) เสมอ ไม่ว่าคะแนนสูงสุดจะตกที่นโยบายข้อใด
+    // (เดิมบังคับย้ายเฉพาะกรณีคะแนนสูงสุดตกที่ข้อ 5 พัฒนาแหล่งน้ำฯ เท่านั้น — ขยายให้ครอบคลุมทุกกรณี
+    // รวมถึงแทนที่การบังคับย้ายไปข้อ 9 ด้านอุทกภัยด้วย ถ้าโครงการนั้นมีคำสำคัญด้านพระราชดำริด้วย)
+    var royalForcedTo11 = false;
+    if (royalMatch && topSector && topSector.id !== 11) {
+      var pol11Def = POLICY_DATA.filter(function(p){ return p.id === 11; })[0];
+      var pol11Score = sectorScores.filter(function(s){ return s.id === 11; })[0];
+      topSector = { id:11, title: pol11Def.title, score: Math.max(topSector.score, pol11Score ? pol11Score.score : 0) };
+      royalForcedTo11 = true;
+    }
+    var sectorHitCount = sectorScores.filter(function(s){ return s.score > 0; }).length;
+    var policy10 = polScoresAll.filter(function(s){ return s.id === 10; })[0];
+    var crossCutting = (policy10.score > 0) || (sectorHitCount >= 2);
+    var waterMatch = isWaterRelated(textL, o.p.name);
+    var namRiMatch = isNamRiRelated(textL);
+    var cluScores = scoreAgainst(textL, CLUSTER_DATA);
+    var budget = o.src === 'j1' ? (o.p.btotal || 0) : (o.p.budget || 0);
+    return {
+      name: o.p.name || '(ไม่ระบุชื่อ)',
+      src: o.src,
+      budget: budget,
+      policy: topSector.score > 0 ? topSector : null,
+      crossCutting: crossCutting,
+      sectorHitCount: sectorHitCount,
+      policy10Score: policy10.score,
+      floodMatch: floodMatch,
+      floodForcedTo9: floodForcedTo9,
+      royalMatch: royalMatch,
+      royalForcedTo11: royalForcedTo11,
+      namRiMatch: namRiMatch,
+      waterMatch: waterMatch,
+      cluster: cluScores[0].score > 0 ? cluScores[0] : null,
+      raw: o.p,
+      _debug: { textL: textL, polScoresAll: polScoresAll, cluScores: cluScores }
+    };
+  });
+}
+
+// ============================================================
+// ตรวจจับโครงการที่ชื่อซ้ำกัน (อาจเกิดจากคีย์ข้อมูลซ้ำ/กดบันทึกซ้ำใน Google Sheets)
+// จัดกลุ่มตามชื่อโครงการ (ตัดช่องว่างหัวท้าย + ไม่สนตัวพิมพ์เล็ก-ใหญ่)
+// ภายในแต่ละกลุ่ม จะตรวจแยกอีกชั้นว่ารายการไหน "ซ้ำแน่นอน" (ประเภท+งบประมาณ+ชื่อกิจกรรมหลัก ตรงกันเป๊ะ)
+// เพื่อประเมินงบที่อาจถูกนับซ้ำเกินจริงในตัวเลขสรุปทุกหน้า Dashboard
+// หมายเหตุ: เดิมเช็คแค่ "ชื่อโครงการ + งบประมาณ" ตรงกัน ซึ่งอาจ false-positive ได้ในกรณีที่เป็นคนละ
+// รายการจริง (เช่น ทำในหมู่บ้าน/จุดต่างกัน) แต่บังเอิญตั้งชื่อโครงการและตั้งงบเท่ากัน
+// โครงสร้างข้อมูลจริงของแบบฟอร์มนี้ใช้ "กิจกรรมหลักแบบ multi-entry" (act1_name…act10_name)
+// คอลัมน์ N ของ Google Sheets = act1_name = "กิจกรรมหลักที่ 1 — ชื่อกิจกรรม"
+// จึงใช้ "ลายเซ็นกิจกรรม" ที่รวมชื่อกิจกรรมหลักทุกลำดับ (act1_name…act10_name) มาเทียบด้วย
+// ถ้าลายเซ็นกิจกรรมต่างกัน (คนละกิจกรรม) จะไม่ถือว่าซ้ำแน่นอน แม้ชื่อโครงการ+งบประมาณจะตรงกัน
+// ============================================================
+function buildActivitySignature(raw) {
+  if (!raw) return '';
+  var names = [];
+  for (var i = 1; i <= 10; i++) {
+    var v = raw['act' + i + '_name'];
+    if (v && v.toString().trim()) names.push(v.toString().trim().toLowerCase().replace(/\s+/g, ' '));
+  }
+  return names.join(' | ');
+}
+
+function detectDuplicateGroups(list) {
+  var groups = {};
+  list.forEach(function(x){
+    var key = (x.name||'').trim().toLowerCase();
+    if(!key) return;
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(x);
+  });
+  var result = [];
+  Object.keys(groups).forEach(function(key){
+    var arr = groups[key];
+    if(arr.length < 2) return;
+    // ซ้ำแน่นอน = ประเภท (src) + งบประมาณ + ลายเซ็นกิจกรรมหลัก (act1_name…act10_name) ตรงกันเป๊ะภายในกลุ่มเดียวกัน
+    var subMap = {};
+    arr.forEach(function(x){
+      var actSig = buildActivitySignature(x.raw);
+      var subKey = x.src + '|' + (x.budget||0) + '|' + actSig;
+      if(!subMap[subKey]) subMap[subKey] = [];
+      subMap[subKey].push(x);
+    });
+    var exactExcess = 0;
+    var hasOutputDiff = false;
+    // ถ้าชื่อ+งบตรงกัน แต่ลายเซ็นกิจกรรมต่างกัน ให้ตั้งค่าธงไว้เพื่อแจ้งผู้ใช้ว่าอาจไม่ใช่รายการซ้ำจริง
+    var budgetMap = {};
+    arr.forEach(function(x){
+      var bk = x.src + '|' + (x.budget||0);
+      if(!budgetMap[bk]) budgetMap[bk] = [];
+      budgetMap[bk].push(buildActivitySignature(x.raw));
+    });
+    Object.keys(budgetMap).forEach(function(bk){
+      var sigs = budgetMap[bk];
+      var uniqueSigs = sigs.filter(function(v,i){ return sigs.indexOf(v) === i; });
+      if (uniqueSigs.length > 1) hasOutputDiff = true;
+    });
+    Object.keys(subMap).forEach(function(sk){
+      var subArr = subMap[sk];
+      if(subArr.length > 1) exactExcess += (subArr.length - 1) * (subArr[0].budget || 0);
+    });
+    // แสดงเฉพาะกลุ่มที่มีรายการ "ซ้ำแน่นอน" จริง (exactExcess > 0) เท่านั้น
+    // ถ้าชื่อโครงการซ้ำแต่ลายเซ็นกิจกรรมหลักต่างกันหมด (ยืนยันว่าคนละกิจกรรม/คนละรายการจริง)
+    // ให้ตัดออกจากตารางนี้ไปเลย ไม่ต้องแสดงเป็น "อาจซ้ำ" ให้สับสน
+    if (exactExcess > 0) {
+      result.push({ name: arr[0].name, items: arr, exactExcess: exactExcess, hasOutputDiff: hasOutputDiff });
+    }
+  });
+  result.sort(function(a,b){ return b.items.length - a.items.length; });
+  return result;
+}
+
+// ============================================================
+// แสดงรายการโครงการภายใต้ "ดูรายการ" ของตารางสรุปนโยบาย ในรูปแบบตาราง
+// เหมือนหน้า "บัญชีโครงการ" (renderList) แต่ไม่มีปุ่ม "แก้ไข"
+// รองรับทั้งโครงการ จ.1 (มีฟิลด์ครบ: ประเด็น/หน่วยงาน/งบ2571/ปี/ยุทธ./ภาคเหนือ/สถานะ + ปุ่ม Word/พิมพ์)
+// และโครงการ จ.3 (ฟิลด์บางส่วนไม่มี จะแสดง — แทน)
+// ============================================================
+function closeDebugModal() {
+  var m = document.getElementById('debug-modal-overlay');
+  if (m) m.remove();
+}
+
+function openDebugModal(titleHtml, bodyHtml) {
+  closeDebugModal();
+  var overlay = document.createElement('div');
+  overlay.id = 'debug-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.onclick = function(e){ if (e.target === overlay) closeDebugModal(); };
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:12px;max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,0.3)';
+  box.innerHTML = '<div style="padding:16px 20px;border-bottom:1px solid var(--bdr);font-weight:700;font-size:14px">' + titleHtml + '</div>'
+    + '<div style="padding:16px 20px;overflow-y:auto;font-size:12px;line-height:1.7">' + bodyHtml + '</div>'
+    + '<div style="padding:12px 20px;border-top:1px solid var(--bdr);text-align:right"><button class="btn btn-p" onclick="closeDebugModal()" style="font-size:12px;padding:6px 16px">ปิด</button></div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+function showProjectScoreDebug(cacheKey, idx) {
+  try {
+    var arr = window.__policyItemsCache ? window.__policyItemsCache[cacheKey] : null;
+    var it = arr ? arr[idx] : null;
+    if (!it || !it._debug) { alert('ไม่พบข้อมูลคะแนนสำหรับโครงการนี้'); return; }
+    var polHtml = it._debug.polScoresAll.map(function(s){
+      return '<div>' + s.id + '. ' + s.title + ' — <strong>' + s.score + '</strong></div>';
+    }).join('');
+    var cluHtml = it._debug.cluScores.map(function(s){
+      return '<div>' + s.title + ' — <strong>' + s.score + '</strong></div>';
+    }).join('');
+    var body = '<div style="font-weight:700;margin-bottom:6px">อันดับคะแนนนโยบาย (ทั้ง 11 ข้อ):</div>' + polHtml
+      + '<div style="font-weight:700;margin:14px 0 6px">อันดับคะแนน Cluster เศรษฐกิจ (9 คลัสเตอร์):</div>' + cluHtml
+      + '<div style="font-weight:700;margin:14px 0 6px">ข้อความที่ใช้ค้นหาคำสำคัญ:</div>'
+      + '<div style="white-space:pre-wrap;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--bdr);color:var(--t2)">'
+      + (it._debug.textL ? it._debug.textL : '<span style="color:var(--r)">— ว่างเปล่า —</span>') + '</div>';
+    openDebugModal('โครงการ: ' + it.name, body);
+  } catch (e) {
+    console.error('showProjectScoreDebug error:', e);
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+  }
+}
+
+function toggleUnmatchedDebug(btn, key) {
+  try {
+    var tr = btn.closest('tr');
+    var detailTr = tr ? tr.nextElementSibling : null;
+    if (!detailTr) { console.warn('toggleUnmatchedDebug: ไม่พบแถวรายละเอียด'); return; }
+    var isHidden = (detailTr.style.display === 'none' || getComputedStyle(detailTr).display === 'none');
+    if (isHidden) {
+      var x = window.__unmatchedDebugCache ? window.__unmatchedDebugCache[key] : null;
+      var td = detailTr.querySelector('td:last-child');
+      if (x && x._debug && td) {
+        var top5 = x._debug.polScoresAll.slice(0, 5).map(function(s){
+          return s.id + '. ' + s.title + ' — คะแนน ' + s.score;
+        }).join('<br>');
+        var topClu = x._debug.cluScores.slice(0, 3).map(function(s){
+          return s.title + ' — คะแนน ' + s.score;
+        }).join('<br>');
+        td.innerHTML = '<div style="font-size:11px;background:var(--bg);padding:10px;border-radius:8px">'
+          + '<div style="font-weight:700;margin-bottom:4px">อันดับคะแนนนโยบาย (5 อันดับแรก จาก 11 ข้อ):</div>'
+          + '<div style="margin-bottom:8px">' + top5 + '</div>'
+          + '<div style="font-weight:700;margin-bottom:4px">อันดับคะแนน Cluster เศรษฐกิจ:</div>'
+          + '<div style="margin-bottom:8px">' + topClu + '</div>'
+          + '<div style="font-weight:700;margin-bottom:4px">ข้อความที่ใช้ค้นหาคำสำคัญ (รวมทุกฟิลด์ที่บันทึกไว้):</div>'
+          + '<div style="color:var(--t2);white-space:pre-wrap;max-height:160px;overflow:auto;background:#fff;padding:6px;border-radius:6px;border:1px solid var(--bdr)">'
+          + (x._debug.textL ? x._debug.textL : '<span style="color:var(--r)">— ว่างเปล่า! ไม่มีข้อความให้ค้นหาคำสำคัญเลย แปลว่าฟิลด์ชื่อ/เหตุผล/วัตถุประสงค์ ฯลฯ ของโครงการนี้อาจไม่ถูกดึงมาจาก Sheet —</span>')
+          + '</div></div>';
+      }
+      detailTr.style.display = 'table-row';
+    } else {
+      detailTr.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('toggleUnmatchedDebug error:', e);
+  }
+}
+
+function togglePolicyDetailRow(btn) {
+  try {
+    var tr = btn.closest('tr');
+    var el = tr ? tr.nextElementSibling : null;
+    if (!el) { console.warn('togglePolicyDetailRow: ไม่พบแถวรายละเอียดถัดจากปุ่มนี้'); return; }
+    var isHidden = (el.style.display === 'none' || getComputedStyle(el).display === 'none');
+    el.style.display = isHidden ? 'table-row' : 'none';
+  } catch (e) {
+    console.error('togglePolicyDetailRow error:', e);
+  }
+}
+
+function renderPolicyItemsTable(items, cacheKey) {
+  if (!items.length) return '<div style="font-size:12px;color:var(--t3);margin-top:6px">— ไม่มีโครงการ —</div>';
+  window.__policyItemsCache = window.__policyItemsCache || {};
+  window.__policyItemsCache[cacheKey] = items;
+
+  var rows = items.map(function(it, i){
+    var p = it.raw || {};
+    var tag = it.src === 'j3' ? '<span class="badge bb" style="font-size:10px;margin-left:4px">จ.3</span>' : '<span class="badge bg" style="font-size:10px;margin-left:4px">จ.1</span>';
+    var floodTag = it.floodMatch ? '<span class="badge br" style="font-size:10px;margin-left:4px">🌊 น้ำท่วม</span>' : '';
+    var royalTag = it.royalMatch ? '<span class="badge" style="font-size:10px;margin-left:4px;background:#F3E8D0;color:#8A6D1D">🏵️ พระราชดำริ</span>' : '';
+    var namRiTag = it.namRiMatch ? '<span class="badge" style="font-size:10px;margin-left:4px;background:#E67E22;color:#FFFFFF">💧 น้ำรี</span>' : '';
+    var issueHtml, agency, budget71Html, year, nat, north, readyHtml, fileHtml;
+
+    if (it.src === 'j1') {
+      var im = ISSUE_MAP[p.issue] || { s: p.issue || '—', c: '#888' };
+      issueHtml = '<span class="badge" style="background:' + im.c + '22;color:' + im.c + ';font-size:11px">' + im.s + '</span>';
+      agency = p.agency || '—';
+      budget71Html = (p.b71 || 0) ? (p.b71).toLocaleString('th-TH') : '—';
+      year = p.ys || '—';
+      nat = p.nat ? ('A' + p.nat) : '—';
+      north = p.north || '—';
+      var rm = READY_MAP[p.ready] || { l: p.ready || '—', c: 'bgr' };
+      readyHtml = '<span class="badge ' + rm.c + '">' + rm.l + '</span>';
+      fileHtml = '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="downloadProjectWord(window.__policyItemsCache[\'' + cacheKey + '\'][' + i + '].raw)">📄 Word</button> '
+        + '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="printCurrentFormAsJ11FromRow(window.__policyItemsCache[\'' + cacheKey + '\'][' + i + '].raw)">🖨 พิมพ์</button> '
+        + '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="showProjectScoreDebug(\'' + cacheKey + '\',' + i + ')">🔍 คะแนน</button>';
+    } else {
+      issueHtml = p.issue ? ('<span style="font-size:11px;color:var(--t2)">' + p.issue + '</span>') : '—';
+      agency = p.agency || p.dept || p.ministry || '—';
+      budget71Html = '—';
+      year = p.duration || '—';
+      nat = '—';
+      north = '—';
+      readyHtml = p.readiness ? ('<span class="badge bgr" style="font-size:11px">' + p.readiness + '</span>') : '—';
+      fileHtml = '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="showProjectScoreDebug(\'' + cacheKey + '\',' + i + ')">🔍 คะแนน</button>';
+    }
+
+    return '<tr>'
+      + '<td style="color:var(--t3)">' + (i + 1) + '</td>'
+      + '<td style="font-size:12px"><strong>' + it.name + '</strong>' + tag + floodTag + royalTag + namRiTag + '</td>'
+      + '<td>' + issueHtml + '</td>'
+      + '<td style="font-size:11px;color:var(--t2)">' + agency + '</td>'
+      + '<td style="text-align:right;font-size:12px">' + (it.budget || 0).toLocaleString('th-TH') + '</td>'
+      + '<td style="text-align:right;font-size:12px">' + budget71Html + '</td>'
+      + '<td style="font-size:11px">' + year + '</td>'
+      + '<td style="font-size:11px">' + nat + '</td>'
+      + '<td style="font-size:11px">' + north + '</td>'
+      + '<td>' + readyHtml + '</td>'
+      + '<td>' + fileHtml + '</td>'
+      + '</tr>';
+  }).join('');
+
+  return '<div class="tbl-wrap"><table style="margin-top:6px">'
+    + '<thead><tr><th>#</th><th>ชื่อโครงการ</th><th>ประเด็น</th><th>หน่วยงาน</th><th style="text-align:right">งบรวม</th><th style="text-align:right">งบ 2571</th><th>ปี</th><th>ยุทธ.</th><th>ภาคเหนือ</th><th>สถานะ</th><th>ไฟล์</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>';
+}
+
+function toggleOverlapGroups() {
+  var el = document.getElementById('overlap-groups');
+  var btn = document.getElementById('overlap-toggle-btn');
+  if (!el || !btn) return;
+  var showing = el.style.display !== 'none';
+  el.style.display = showing ? 'none' : '';
+  btn.textContent = showing ? '👀 ดูรายละเอียด' : '🔽 ซ่อนรายละเอียด';
+}
+
+function toggleOverlapPolicyGroup(polId) {
+  var el = document.getElementById('ovl-pol-' + polId);
+  if (!el) return;
+  var showing = el.style.display !== 'none';
+  el.style.display = showing ? 'none' : '';
+  var header = el.previousElementSibling;
+  if (header) header.textContent = header.textContent.replace(showing ? '▾' : '▸', showing ? '▸' : '▾');
+}
+
+function renderPolicyAnalysis() {
+  var list = getPolicyAnalysisList();
+  var matchedPolicy = list.filter(function(x){ return x.policy; });
+  var unmatched = list.filter(function(x){ return !x.policy; });
+  var matchedCluster = list.filter(function(x){ return x.cluster; });
+  var totalBudget = list.reduce(function(a,x){ return a + (x.budget||0); }, 0);
+
+  // ตรวจจับโครงการชื่อซ้ำ (คำนวณจากรายการทั้งหมดที่กำลังดู ไม่ขึ้นกับนโยบายใดนโยบายหนึ่ง)
+  var dupGroups = detectDuplicateGroups(list);
+  var dupCard = document.getElementById('dup-card');
+  if (dupGroups.length) {
+    dupCard.style.display = '';
+    document.getElementById('dup-title').textContent = 'ตรวจพบโครงการที่อาจซ้ำกันในข้อมูล (' + dupGroups.length + ' ชื่อโครงการ)';
+    document.getElementById('dup-table-body').innerHTML = dupGroups.map(function(g, i){
+      var detailHtml = g.items.map(function(it){
+        var tag = it.src === 'j3' ? 'จ.3' : 'จ.1';
+        var actNames = [];
+        for (var k = 1; k <= 10; k++) {
+          var v = it.raw && it.raw['act' + k + '_name'];
+          if (v && v.toString().trim()) actNames.push('กิจกรรมที่ ' + k + ': ' + v.toString().trim());
+        }
+        var actHtml = actNames.length
+          ? '<div style="font-size:11px;color:var(--t3);margin-top:1px">' + actNames.join('<br>') + '</div>'
+          : '<div style="font-size:11px;color:var(--t3);margin-top:1px">— ไม่ระบุชื่อกิจกรรมหลัก —</div>';
+        return '<div style="margin-bottom:4px">' + tag + ': ' + (it.budget||0).toLocaleString('th-TH') + ' บาท' + actHtml + '</div>';
+      }).join('');
+      var excessTxt = g.exactExcess > 0
+        ? '<span style="color:var(--r);font-weight:700">' + g.exactExcess.toLocaleString('th-TH') + '</span>'
+        : '<span style="color:var(--t3)">— (งบต่างกัน อาจเป็นคนละรายการ)</span>';
+      var outputNote = (g.hasOutputDiff && g.exactExcess === 0)
+        ? '<div style="font-size:11px;color:var(--g);margin-top:4px">✓ ชื่อโครงการ/งบตรงกัน แต่ "ชื่อกิจกรรมหลัก (คอลัมน์ N เป็นต้นไป)" ต่างกัน — น่าจะเป็นคนละรายการจริง ไม่ใช่ข้อมูลซ้ำ</div>'
+        : (g.hasOutputDiff ? '<div style="font-size:11px;color:var(--y,#B8860B);margin-top:4px">⚠ พบทั้งรายการที่ชื่อกิจกรรมหลักตรงกัน (ซ้ำแน่นอน) และรายการที่ชื่อกิจกรรมต่างกัน (คนละรายการ) ปนกันอยู่ในกลุ่มนี้ — ควรตรวจสอบทีละรายการ</div>' : '');
+      return '<tr>'
+        + '<td>' + (i+1) + '</td>'
+        + '<td>' + g.name + '</td>'
+        + '<td style="text-align:center;font-weight:700">' + g.items.length + ' ครั้ง</td>'
+        + '<td style="font-size:12px">' + detailHtml + outputNote + '</td>'
+        + '<td style="text-align:right">' + excessTxt + '</td>'
+        + '</tr>';
+    }).join('');
+  } else {
+    dupCard.style.display = 'none';
+  }
+
+  // metrics
+  var metItems = [
+    { l:'โครงการทั้งหมดที่วิเคราะห์', v:list.length, s:'โครงการ', c:'' },
+    { l:'ระบุนโยบายได้', v:matchedPolicy.length, s:'โครงการ', c:'g' },
+    { l:'ยังไม่ระบุชัดเจน', v:unmatched.length, s:'โครงการ', c:'r' },
+    { l:'อยู่ใน Cluster เศรษฐกิจ', v:matchedCluster.length, s:'โครงการ', c:'b' },
+    { l:'งบประมาณรวมที่วิเคราะห์', v: totalBudget>0 ? (totalBudget/1e6).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1})+' ล้าน' : '—', s:'บาท', c:'a' }
+  ];
+  document.getElementById('policy-metrics').innerHTML = metItems.map(function(m){
+    return '<div class="met '+m.c+'"><div class="lbl">'+m.l+'</div><div class="val">'+m.v+'</div><div class="sub">'+m.s+'</div></div>';
+  }).join('');
+
+  // ตารางนโยบาย
+  var policyColors = ['#1D9E75','#3B82C4','#D9A441','#B85C5C','#7C6FC9','#4FAE9E','#C46B9E','#8A9A5B','#C4823B','#5B7FC4','#A85C9E'];
+  var policyRows = POLICY_DATA.map(function(pol, idx){
+    var items = pol.id === 10
+      ? list.filter(function(x){ return x.crossCutting; })
+      : list.filter(function(x){ return x.policy && x.policy.id === pol.id; });
+    var budget = items.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+    // นโยบายข้อ 9 (เสริมสร้างความพร้อมรับมืออุทกภัยฯ): แนบรายการโครงการที่เกี่ยวข้องกับการแก้ไขปัญหาน้ำท่วมแยกไว้ให้เห็นชัด
+    // (ดึงจากทุกโครงการที่มีคำสำคัญด้านน้ำท่วม ไม่จำกัดเฉพาะที่ถูกจัดเป็นนโยบายข้อ 9 เป็นหลัก
+    //  เพราะโครงการแก้ปัญหาน้ำท่วมบางส่วนอาจถูกจัดเข้านโยบายข้อ 5 (พัฒนาแหล่งน้ำฯ) เป็นหลักแทน)
+    // ตัดโครงการที่นโยบายหลักเป็นข้อ 9 อยู่แล้วออก (ซ้ำกับรายการหลักด้านบน)
+    // เหลือไว้เฉพาะโครงการที่มีคำน้ำท่วมแต่ถูกจัดนโยบายหลักเป็นข้ออื่น (แสดงแยกเพื่อการอ้างอิงเท่านั้น)
+    var floodItems = pol.id === 9 ? list.filter(function(x){ return x.floodMatch && (!x.policy || x.policy.id !== 9); }) : [];
+    var floodBudget = floodItems.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+    // นโยบายข้อ 11 (โครงการอันเนื่องมาจากพระราชดำริ): แนบรายการโครงการที่เกี่ยวข้องกับพระราชดำริแยกไว้ให้เห็นชัด
+    // เช่นเดียวกับข้อ 9 — ดึงจากทุกโครงการที่มีคำสำคัญด้านพระราชดำริ ตัดโครงการที่นโยบายหลักเป็นข้อ 11 อยู่แล้วออก
+    // (เพราะซ้ำกับรายการหลักด้านบน) เหลือไว้เฉพาะที่นโยบายหลักถูกจัดเป็นข้ออื่นแทน แสดงแยกเพื่อการอ้างอิงเท่านั้น
+    var royalItems = pol.id === 11 ? list.filter(function(x){ return x.royalMatch && (!x.policy || x.policy.id !== 11); }) : [];
+    var royalBudget = royalItems.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+    // นโยบายข้อ 5 (พัฒนาแหล่งน้ำและระบบบริหารจัดการน้ำอย่างยั่งยืน): แนบรายการโครงการที่เกี่ยวข้องกับแหล่งน้ำแยกไว้ให้เห็นชัด
+    // เช่นเดียวกับข้อ 9/11 — ดึงจากทุกโครงการที่มีคำสำคัญด้านแหล่งน้ำ ตัดโครงการที่นโยบายหลักเป็นข้อ 5 อยู่แล้วออก
+    // (เพราะซ้ำกับรายการหลักด้านบน) เหลือไว้เฉพาะที่นโยบายหลักถูกจัดเป็นข้ออื่นแทน แสดงแยกเพื่อการอ้างอิงเท่านั้น
+    var waterItems = pol.id === 5 ? list.filter(function(x){ return x.waterMatch && (!x.policy || x.policy.id !== 5); }) : [];
+    var waterBudget = waterItems.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+    return { id:pol.id, title:pol.title, count:items.length, budget:budget, items:items, color:policyColors[idx%policyColors.length], crossCut: pol.id===10, floodItems:floodItems, floodBudget:floodBudget, royalItems:royalItems, royalBudget:royalBudget, waterItems:waterItems, waterBudget:waterBudget };
+  });
+
+  var policyTotalCountExcl10 = policyRows.reduce(function(a,r){ return r.id===10 ? a : a+r.count; }, 0);
+  var policyTotalBudgetExcl10 = policyRows.reduce(function(a,r){ return r.id===10 ? a : a+r.budget; }, 0);
+  document.getElementById('policy-table-body').innerHTML = policyRows.map(function(r){
+    var itemsHtml;
+    try {
+      if (r.id === 11) {
+        // นโยบายข้อ 11: แบ่งรายการหลักออกเป็น 2 กลุ่มย่อย — โครงการที่เกี่ยวข้องกับน้ำรี และโครงการพระราชดำริอื่นๆ
+        var namRiMain = r.items.filter(function(x){ return x.namRiMatch; });
+        var otherRoyalMain = r.items.filter(function(x){ return !x.namRiMatch; });
+        itemsHtml = '<div style="display:inline-block;font-size:13px;font-weight:800;color:#FFFFFF;background:#E67E22;padding:5px 12px;border-radius:8px;margin:6px 0 4px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">💧 กลุ่มย่อย: โครงการที่เกี่ยวข้องกับน้ำรี (' + namRiMain.length + ' โครงการ)</div>'
+          + renderPolicyItemsTable(namRiMain, 'pol' + r.id + '-namri')
+          + '<div style="font-size:12px;font-weight:700;color:#8A6D1D;margin:14px 0 2px">🏵️ กลุ่มย่อย: โครงการพระราชดำริอื่นๆ (' + otherRoyalMain.length + ' โครงการ)</div>'
+          + renderPolicyItemsTable(otherRoyalMain, 'pol' + r.id + '-other');
+      } else {
+        itemsHtml = renderPolicyItemsTable(r.items, 'pol' + r.id);
+      }
+    } catch (e) {
+      console.error('renderPolicyItemsTable error for policy', r.id, e);
+      itemsHtml = '<div style="font-size:12px;color:var(--r);padding:6px;background:#FCEBEB;border-radius:6px">'
+        + '⚠️ เกิดข้อผิดพลาดตอนแสดงรายการโครงการของนโยบายข้อ ' + r.id + ': ' + (e && e.message ? e.message : e)
+        + '<br>(เปิด DevTools Console (F12) เพื่อดูรายละเอียดเพิ่มเติม)</div>';
+    }
+    var crossNote = r.crossCut ? '<div style="font-size:10px;color:var(--t3);margin-top:2px">นับแบบบูรณาการ/ไม่ผูกขาด — อาจซ้อนทับกับนโยบายข้ออื่น</div>' : '';
+    var floodBlock = '';
+    if (r.id === 9) {
+      floodBlock = '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--bdr)">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--r);margin-bottom:4px">🌊 โครงการที่เกี่ยวข้องกับการแก้ไขปัญหาน้ำท่วม ('+r.floodItems.length+' โครงการ · '+r.floodBudget.toLocaleString('th-TH')+' บาท)</div>'
+        + '<div style="font-size:10px;color:var(--t3);margin-bottom:6px">แสดงแยกเพื่อการอ้างอิง — ดึงจากทุกโครงการที่มีคำสำคัญด้านน้ำท่วม แต่ไม่นับซ้ำกับรายการหลักด้านบน (โครงการเหล่านี้ถูกจัดเป็นนโยบายหลักข้ออื่นแทน อาจซ้อนทับกับนโยบายหลักข้ออื่นนั้นๆ)</div>'
+        + (r.floodItems.length
+            ? '<ul style="margin:0;padding-left:18px;font-size:12px;color:var(--t2)">' + r.floodItems.map(function(it){
+                var tag = it.src==='j3' ? '<span class="badge bb" style="font-size:10px;margin-left:4px">จ.3</span>' : '<span class="badge bg" style="font-size:10px;margin-left:4px">จ.1</span>';
+                var polTag = it.policy ? '<span class="badge bgr" style="font-size:10px;margin-left:4px">นโยบายหลัก: '+it.policy.id+'</span>' : '';
+                return '<li>'+it.name+tag+polTag+'</li>';
+              }).join('') + '</ul>'
+            : '<div style="font-size:12px;color:var(--t3)">— ไม่มีโครงการที่ตรวจพบคำสำคัญด้านน้ำท่วม —</div>')
+        + '</div>';
+    }
+    var royalBlock = '';
+    if (r.id === 11) {
+      royalBlock = '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--bdr)">'
+        + '<div style="font-size:12px;font-weight:700;color:#8A6D1D;margin-bottom:4px">🏵️ โครงการที่เกี่ยวข้องกับโครงการอันเนื่องมาจากพระราชดำริ ('+r.royalItems.length+' โครงการ · '+r.royalBudget.toLocaleString('th-TH')+' บาท)</div>'
+        + '<div style="font-size:10px;color:var(--t3);margin-bottom:6px">แสดงแยกเพื่อการอ้างอิง — ดึงจากทุกโครงการที่มีคำสำคัญด้านพระราชดำริ แต่ไม่นับซ้ำกับรายการหลักด้านบน (โครงการเหล่านี้ถูกจัดเป็นนโยบายหลักข้ออื่นแทน อาจซ้อนทับกับนโยบายหลักข้ออื่นนั้นๆ)</div>'
+        + (r.royalItems.length
+            ? '<ul style="margin:0;padding-left:18px;font-size:12px;color:var(--t2)">' + r.royalItems.map(function(it){
+                var tag = it.src==='j3' ? '<span class="badge bb" style="font-size:10px;margin-left:4px">จ.3</span>' : '<span class="badge bg" style="font-size:10px;margin-left:4px">จ.1</span>';
+                var polTag = it.policy ? '<span class="badge bgr" style="font-size:10px;margin-left:4px">นโยบายหลัก: '+it.policy.id+'</span>' : '';
+                return '<li>'+it.name+tag+polTag+'</li>';
+              }).join('') + '</ul>'
+            : '<div style="font-size:12px;color:var(--t3)">— ไม่มีโครงการที่ตรวจพบคำสำคัญด้านพระราชดำริ —</div>')
+        + '</div>';
+    }
+    var waterBlock = '';
+    if (r.id === 5) {
+      waterBlock = '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--bdr)">'
+        + '<div style="font-size:12px;font-weight:700;color:#3B82C4;margin-bottom:4px">💧 โครงการที่เกี่ยวข้องกับแหล่งน้ำ ('+r.waterItems.length+' โครงการ · '+r.waterBudget.toLocaleString('th-TH')+' บาท)</div>'
+        + '<div style="font-size:10px;color:var(--t3);margin-bottom:6px">แสดงแยกเพื่อการอ้างอิง — ดึงจากทุกโครงการที่มีคำสำคัญด้านแหล่งน้ำ แต่ไม่นับซ้ำกับรายการหลักด้านบน (โครงการเหล่านี้ถูกจัดเป็นนโยบายหลักข้ออื่นแทน อาจซ้อนทับกับนโยบายหลักข้ออื่นนั้นๆ)</div>'
+        + (r.waterItems.length
+            ? '<ul style="margin:0;padding-left:18px;font-size:12px;color:var(--t2)">' + r.waterItems.map(function(it){
+                var tag = it.src==='j3' ? '<span class="badge bb" style="font-size:10px;margin-left:4px">จ.3</span>' : '<span class="badge bg" style="font-size:10px;margin-left:4px">จ.1</span>';
+                var polTag = it.policy ? '<span class="badge bgr" style="font-size:10px;margin-left:4px">นโยบายหลัก: '+it.policy.id+'</span>' : '';
+                return '<li>'+it.name+tag+polTag+'</li>';
+              }).join('') + '</ul>'
+            : '<div style="font-size:12px;color:var(--t3)">— ไม่มีโครงการที่ตรวจพบคำสำคัญด้านแหล่งน้ำ —</div>')
+        + '</div>';
+    }
+    var countPct = (r.id !== 10 && policyTotalCountExcl10 > 0) ? '<span style="font-size:11px;color:var(--t3);margin-left:4px">('+((r.count/policyTotalCountExcl10)*100).toFixed(1)+'%)</span>' : '';
+    var budgetPct = (r.id !== 10 && policyTotalBudgetExcl10 > 0) ? '<span style="font-size:11px;color:var(--t3);margin-left:4px">('+((r.budget/policyTotalBudgetExcl10)*100).toFixed(1)+'%)</span>' : '';
+    return '<tr>'
+      + '<td>'+r.id+'</td>'
+      + '<td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+r.color+';margin-right:6px"></span>'+r.title+crossNote+'</td>'
+      + '<td style="text-align:center">'+r.count+countPct+'</td>'
+      + '<td style="text-align:right">'+r.budget.toLocaleString('th-TH')+budgetPct+'</td>'
+      + '<td><button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="togglePolicyDetailRow(this)">ดูรายการ</button></td>'
+      + '</tr>'
+      + '<tr style="display:none" data-detail-row="pol'+r.id+'"><td style="background:#FFFFFF"></td><td colspan="4" style="background:#FFFFFF;border-radius:8px">'+itemsHtml+floodBlock+royalBlock+waterBlock+'</td></tr>';
+  }).join('');
+
+  // ============================================================
+  // ตรวจสอบความซ้ำซ้อนระหว่างนโยบาย (ไม่รวมข้อ 10 เพราะเป็นนโยบายบูรณาการที่ซ้ำกับข้ออื่นโดยธรรมชาติอยู่แล้ว)
+  // สำหรับโครงการที่ถูกจัดนโยบายหลัก (แบบผูกขาด) เป็นข้อใดข้อหนึ่งใน 1-9,11 — เช็คว่ามีคะแนน > 0
+  // ในนโยบายอื่น (ไม่รวมข้อ 10 และไม่รวมนโยบายหลักของตัวเอง) ด้วยหรือไม่ ถ้ามี ถือว่า "ซ้ำซ้อน/ก้ำกึ่ง"
+  // เรียงลำดับความก้ำกึ่งจาก margin (คะแนนนโยบายหลัก - คะแนนนโยบายรองสูงสุด) น้อยไปมาก
+  // ============================================================
+  var overlapByPolicy = {};
+  matchedPolicy.forEach(function(x){
+    if (x.policy.id === 10) return; // ไม่รวมข้อ 10
+    if (!x._debug || !x._debug.polScoresAll) return;
+    var others = x._debug.polScoresAll.filter(function(s){
+      return s.id !== 10 && s.id !== x.policy.id && s.score > 0;
+    });
+    if (others.length === 0) return;
+    var margin = x.policy.score - others[0].score;
+    if (!overlapByPolicy[x.policy.id]) overlapByPolicy[x.policy.id] = [];
+    overlapByPolicy[x.policy.id].push({ name:x.name, src:x.src, budget:x.budget, mainScore:x.policy.score, others:others, margin:margin });
+  });
+  var overlapTotal = 0;
+  Object.keys(overlapByPolicy).forEach(function(k){
+    overlapByPolicy[k].sort(function(a,b){ return a.margin - b.margin; });
+    overlapTotal += overlapByPolicy[k].length;
+  });
+  document.getElementById('overlap-summary').textContent =
+    'พบโครงการที่มีคะแนนนโยบายอื่นทับซ้อนกับนโยบายหลัก (ไม่รวมข้อ 10) ทั้งหมด ' + overlapTotal + ' โครงการ จาก ' + matchedPolicy.length + ' โครงการที่จัดนโยบายได้';
+  document.getElementById('overlap-groups').innerHTML = POLICY_DATA
+    .filter(function(pol){ return pol.id !== 10 && overlapByPolicy[pol.id] && overlapByPolicy[pol.id].length; })
+    .map(function(pol){
+      var entries = overlapByPolicy[pol.id];
+      var rows = entries.map(function(e){
+        var riskBadge = e.margin <= 3
+          ? '<span class="badge" style="font-size:10px;margin-left:4px;background:#FCEBEB;color:#B85C5C">⚠️ ก้ำกึ่งมาก (ห่าง '+e.margin+')</span>'
+          : '<span class="badge" style="font-size:10px;margin-left:4px;background:var(--bg);color:var(--t3)">ห่าง '+e.margin+' คะแนน</span>';
+        var srcTag = e.src === 'j3' ? '<span class="badge bb" style="font-size:10px;margin-left:4px">จ.3</span>' : '<span class="badge bg" style="font-size:10px;margin-left:4px">จ.1</span>';
+        var othersTxt = e.others.map(function(o){ return o.id + '. ' + o.title + ' (' + o.score + ')'; }).join(', ');
+        return '<li style="margin-bottom:6px">' + e.name + srcTag + riskBadge
+          + '<div style="font-size:10px;color:var(--t3);margin-top:2px">นโยบายหลัก: ' + pol.id + '. ' + pol.title + ' (' + e.mainScore + ') — ยังจับคำสำคัญได้ด้วย: ' + othersTxt + '</div>'
+          + '</li>';
+      }).join('');
+      return '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--bdr)">'
+        + '<div style="font-size:13px;font-weight:700;margin-bottom:6px;cursor:pointer" onclick="toggleOverlapPolicyGroup('+pol.id+')">▸ ' + pol.id + '. ' + pol.title + ' — ซ้ำซ้อน ' + entries.length + ' โครงการ</div>'
+        + '<ul id="ovl-pol-' + pol.id + '" style="display:none;margin:0;padding-left:18px;font-size:12px;color:var(--t2)">' + rows + '</ul>'
+        + '</div>';
+    }).join('') || '<div style="font-size:12px;color:var(--t3)">— ไม่พบโครงการที่ซ้ำซ้อนระหว่างนโยบาย (ไม่รวมข้อ 10) —</div>';
+
+  // Cluster ตาราง
+  var clusterColors = ['#1D9E75','#3B82C4','#D9A441','#B85C5C','#7C6FC9','#4FAE9E','#C46B9E','#8A9A5B','#C4823B'];
+  var clusterRows = CLUSTER_DATA.map(function(c, idx){
+    var items = list.filter(function(x){ return x.cluster && x.cluster.id === c.id; });
+    var budget = items.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+    return { id:c.id, title:c.title, count:items.length, budget:budget, color:clusterColors[idx%clusterColors.length] };
+  });
+  var noClusterItems = list.filter(function(x){ return !x.cluster; });
+  var clusterNoMatch = noClusterItems.length;
+  var clusterNoMatchBudget = noClusterItems.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+  document.getElementById('cluster-table-body').innerHTML = clusterRows.map(function(r){
+    return '<tr><td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+r.color+';margin-right:6px"></span>'+r.title+'</td><td style="text-align:center">'+r.count+'</td><td style="text-align:right">'+r.budget.toLocaleString('th-TH')+'</td></tr>';
+  }).join('') + '<tr><td style="color:var(--t3)">ไม่อยู่ใน Cluster ใด</td><td style="text-align:center;color:var(--t3)">'+clusterNoMatch+'</td><td style="text-align:right;color:var(--t3)">'+clusterNoMatchBudget.toLocaleString('th-TH')+'</td></tr>';
+
+  // โครงการที่ยังไม่สามารถระบุนโยบายได้
+  document.getElementById('unmatched-title').textContent = 'โครงการที่ยังไม่สามารถระบุนโยบายได้ชัดเจน (' + unmatched.length + ' โครงการ)';
+  document.getElementById('policy-unmatched-body').innerHTML = unmatched.length
+    ? unmatched.map(function(x, i){
+        var tag = x.src==='j3' ? 'จ.3' : 'จ.1';
+        window.__unmatchedDebugCache = window.__unmatchedDebugCache || {};
+        window.__unmatchedDebugCache['um'+i] = x;
+        return '<tr><td>'+(i+1)+'</td><td>'+x.name+'</td><td>'+tag+'</td><td style="text-align:right">'+(x.budget||0).toLocaleString('th-TH')+'</td>'
+          + '<td><button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="toggleUnmatchedDebug(this,\'um'+i+'\')">🔍 ตรวจคำสำคัญ</button></td></tr>'
+          + '<tr style="display:none" data-um-detail="um'+i+'"><td></td><td colspan="4"></td></tr>';
+      }).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--t2)">— ไม่มี ระบุนโยบายได้ครบทุกโครงการ —</td></tr>';
+  // โครงการที่ไม่เข้าเกณฑ์ "บูรณาการ/SDGs" ของนโยบายข้อ 10 (สาเหตุที่งบข้อ 10 < งบรวมทั้งหมด)
+  var nonCross = list.filter(function(x){ return !x.crossCutting; });
+  document.getElementById('noncross-title').textContent =
+    'โครงการที่ไม่เข้าเกณฑ์ "บูรณาการ/SDGs" (ไม่ถูกนับในแถวนโยบายข้อ 10) (' + nonCross.length + ' โครงการ)';
+  document.getElementById('policy-noncross-body').innerHTML = nonCross.length
+    ? nonCross.map(function(x, i){
+        var tag = x.src==='j3' ? 'จ.3' : 'จ.1';
+        var polTxt = x.policy ? (x.policy.id+'. '+x.policy.title) : '<span style="color:var(--t3)">— ไม่ระบุ —</span>';
+        return '<tr><td>'+(i+1)+'</td><td>'+x.name+'</td><td>'+tag+'</td><td style="font-size:12px">'+polTxt+'</td>'
+          + '<td style="text-align:center">'+x.sectorHitCount+' ข้อ</td>'
+          + '<td style="text-align:right">'+(x.budget||0).toLocaleString('th-TH')+'</td></tr>';
+      }).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--t2)">— ไม่มี ทุกโครงการเข้าเกณฑ์บูรณาการ/SDGs ครบถ้วน —</td></tr>';
+
+  // Chart 1: จำนวนโครงการตามนโยบาย
+  destroyChart('pc1');
+  charts['pc1'] = new Chart(document.getElementById('pc1'), {
+    type:'bar',
+    data:{
+      labels: policyRows.map(function(r){ return r.id+'. '+(r.title.length>18?r.title.slice(0,18)+'…':r.title); }),
+      datasets:[{ data: policyRows.map(function(r){ return r.count; }), backgroundColor: policyRows.map(function(r){ return r.color; }), borderRadius:5 }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } } }
+    }
+  });
+
+  // Chart 2: งบประมาณตามนโยบาย
+  destroyChart('pc2');
+  charts['pc2'] = new Chart(document.getElementById('pc2'), {
+    type:'bar',
+    data:{
+      labels: policyRows.map(function(r){ return r.id+'. '+(r.title.length>18?r.title.slice(0,18)+'…':r.title); }),
+      datasets:[{ data: policyRows.map(function(r){ return +(r.budget/1e6).toFixed(2); }), backgroundColor: policyRows.map(function(r){ return r.color; }), borderRadius:5 }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ beginAtZero:true, ticks:{ callback:function(v){ return v+'M'; } } } }
+    }
+  });
+
+  // Chart 3: doughnut ตาม Cluster
+  destroyChart('pc3');
+  var pcLabels = clusterRows.map(function(r){ return r.title; }).concat(['ไม่อยู่ใน Cluster']);
+  var pcData = clusterRows.map(function(r){ return r.count; }).concat([clusterNoMatch]);
+  var pcColors = clusterRows.map(function(r){ return r.color; }).concat(['#D8DCE1']);
+  charts['pc3'] = new Chart(document.getElementById('pc3'), {
+    type:'doughnut',
+    data:{ labels: pcLabels, datasets:[{ data: pcData, backgroundColor: pcColors, borderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:10 }, boxWidth:10 } } } }
+  });
+}
 
 // ============================================================
 // INIT
