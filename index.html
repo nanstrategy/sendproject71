@@ -4545,7 +4545,22 @@ var FLOOD_KW_WEAK = ['น้ำท่วม','ระบายน้ำ'];
 // ให้ถือว่าไม่ใช่โครงการแก้ปัญหาน้ำท่วม/อุทกภัย (เช่น น้ำท่วมขังเพราะถนนเป็นหลุมเป็นบ่อ)
 var ROAD_KW = ['ถนน','คอนกรีตเสริมเหล็ก','คสล.','ผิวจราจร','ผิวทาง','แอสฟัลท์','ลาดยาง'];
 
-function isFloodRelated(textL) {
+// คำบ่งชี้ว่า "ชื่อโครงการ" เองเป็นงานถนน/ทางหลวงเป็นแก่นหลัก (สัญญาณที่หนักแน่นกว่าการเจอคำในเนื้อหาทั่วไป
+// เพราะชื่อโครงการสะท้อนแก่นของงานจริงๆ) — ใช้เพื่อ "ยกเว้น" โครงการถนน/ทางหลวงฝั่ง จ.3 ออกจากกลุ่มน้ำท่วม
+// โดยเด็ดขาด แม้เนื้อหาจะมีคำ "หนักแน่น" ปนอยู่ด้วยก็ตาม (เช่น พูดถึงคลองระบายน้ำข้างถนนประกอบการก่อสร้างทาง
+// ซึ่งเป็นส่วนประกอบของงานถนน ไม่ใช่โครงการแก้ปัญหาน้ำท่วม/อุทกภัยโดยตรง)
+var ROAD_NAME_KW = ['ถนน','ทางหลวง','ก่อสร้างทาง','ลาดยาง','ผิวจราจร','ผิวทาง','สะพาน'];
+
+function isRoadProjectByName(name) {
+  if (!name) return false;
+  var nameL = name.toLowerCase();
+  return ROAD_NAME_KW.some(function(k){ return nameL.indexOf(k.toLowerCase()) >= 0; });
+}
+
+function isFloodRelated(textL, name, src) {
+  // จ.3: ถ้าชื่อโครงการเองบ่งชัดว่าเป็นงานถนน/ทางหลวง ให้ไม่นับเป็นโครงการแก้ปัญหาน้ำท่วมเด็ดขาด
+  // (ตัดสิทธิ์แม้เจอคำ "หนักแน่น" ในเนื้อหาก็ตาม ต่างจาก ROAD_KW ด้านล่างที่ตัดสิทธิ์เฉพาะกรณีคำ "อ่อน")
+  if (src === 'j3' && isRoadProjectByName(name)) return false;
   var hasStrong = FLOOD_KW_STRONG.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
   if (hasStrong) return true;
   var hasWeak = FLOOD_KW_WEAK.some(function(k){ return textL.indexOf(k.toLowerCase()) >= 0; });
@@ -4735,7 +4750,7 @@ function getPolicyAnalysisList() {
     // แทนที่ด้วยการนับแบบ non-exclusive: ติดธง "บูรณาการ/SDGs" แยกต่างหาก
     var sectorScores = polScoresAll.filter(function(s){ return s.id !== 10; }); // ยังเรียงลำดับเดิมอยู่ (สืบทอดจาก polScoresAll)
     var topSector = sectorScores[0];
-    var floodMatch = isFloodRelated(textL);
+    var floodMatch = isFloodRelated(textL, o.p.name, o.src);
     // กติกาพิเศษ: ถ้าโครงการมีคำสำคัญด้านน้ำท่วม (floodMatch) และคะแนนสูงสุดตกที่นโยบายข้อ 5
     // (พัฒนาแหล่งน้ำฯ) ให้ "บังคับย้าย" ไปเป็นนโยบายหลักข้อ 9 (รับมืออุทกภัยฯ) แทนทั้งหมด
     // เพื่อไม่ให้โครงการแก้ปัญหาน้ำท่วมไปปนอยู่กับโครงการพัฒนาแหล่งน้ำทั่วไป (ฝาย/อ่างเก็บน้ำ/ประปา)
