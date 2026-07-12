@@ -558,6 +558,10 @@ tr:hover td{background:#faf9f6}
       <span id="list-count" style="font-size:12px;color:var(--t2)"></span>
     </div>
   </div>
+  <div class="card" id="bsrc-diag-card" style="padding:12px;display:none;background:#FFF8EC;border:1px solid #F0B429">
+    <div id="bsrc-diag-summary" style="font-size:12px;font-weight:700;color:#8A6D1D;cursor:pointer" onclick="toggleBsrcDiag()"></div>
+    <div id="bsrc-diag-detail" style="display:none;margin-top:8px;font-size:12px;color:var(--t2)"></div>
+  </div>
   <div class="card" style="padding:0;overflow:hidden">
     <div class="tbl-wrap" id="list-tbl"></div>
   </div>
@@ -3064,8 +3068,12 @@ function renderDashboard() {
   var budget = j1provOnly.reduce(function(a,p){return a+(p.btotal||0);},0);
   var b71 = j1provOnly.reduce(function(a,p){return a+(p.b71||0);},0);
   var j3budget = j3pl.reduce(function(a,p){return a+(p.budget||0);},0);
-  var ready = pl.filter(function(p){return p.ready==='ready';}).length;
-  var notready = pl.filter(function(p){return p.ready==='notready';}).length;
+  // สำหรับมุมมอง j1: ใช้เฉพาะโครงการ bsrc='1' (งบพัฒนาจังหวัด) เป็นฐานเดียวกันทั้งจำนวนโครงการ งบประมาณ และสถานะความพร้อม
+  // เพื่อให้ตรงกับหน้า "บัญชีโครงการ (งบพัฒนาจังหวัด)" — ก่อนหน้านี้จำนวนโครงการ (pl.length) นับรวมทุกแหล่งงบ
+  // แต่งบประมาณ (budget) กรองเฉพาะ bsrc='1' ทำให้ตัวเลขสองตัวนี้ไม่สอดคล้องกันในการ์ดเดียวกัน
+  var plForCount = dashView==='j1' ? j1provOnly : pl;
+  var ready = plForCount.filter(function(p){return p.ready==='ready';}).length;
+  var notready = plForCount.filter(function(p){return p.ready==='notready';}).length;
 
   var metItems = dashView==='all' ? [
     {l:'โครงการ จ.1 (งบจังหวัด)',v:fmtInt(j1pl.length),s:'โครงการ',c:'g'},
@@ -3074,8 +3082,8 @@ function renderDashboard() {
     {l:'งบ จ.3 รวม',v:j3budget>0?fmtM(j3budget)+' ล้าน':'—',s:'บาท',c:'b'},
     {l:'งบ ปี 2571 (จ.1)',v:b71>0?fmtM(b71)+' ล้าน':'—',s:'บาท',c:'a'}
   ] : [
-    {l:'โครงการทั้งหมด',v:fmtInt(pl.length),s:'โครงการ',c:''},
-    {l:'งบรวม',v:fmtM((dashView==='j1'?j1provOnly:pl).reduce(function(a,p){return a+(p.btotal||p.budget||0);},0))+' ล้าน',s:'บาท',c:'g'},
+    {l:'โครงการทั้งหมด',v:fmtInt(plForCount.length),s:'โครงการ',c:''},
+    {l:'งบรวม',v:fmtM(plForCount.reduce(function(a,p){return a+(p.btotal||p.budget||0);},0))+' ล้าน',s:'บาท',c:'g'},
     {l:'งบ ปี 2571',v:b71>0?fmtM(b71)+' ล้าน':'—',s:'บาท',c:'b'},
     {l:'พร้อมดำเนินการ',v:fmtInt(ready),s:'โครงการ',c:'g'},
     {l:'ยังไม่พร้อม',v:fmtInt(notready),s:'โครงการ',c:'r'}
@@ -3178,6 +3186,12 @@ function renderDashboard() {
 // ============================================================
 // PROJECT LIST
 // ============================================================
+function toggleBsrcDiag() {
+  var el = document.getElementById('bsrc-diag-detail');
+  if (!el) return;
+  el.style.display = (el.style.display === 'none') ? '' : 'none';
+}
+
 function renderList() {
   var fi = document.getElementById('fil-i').value;
   var fr = document.getElementById('fil-r').value;
@@ -3185,9 +3199,32 @@ function renderList() {
   var list = provOnly.filter(p=>(!fi||p.issue===fi)&&(!fr||p.ready===fr));
   window.__listCache = list;
   var totalBudget = list.reduce(function(a,p){ return a+(p.btotal||0); }, 0);
+  var totalBudget71 = list.reduce(function(a,p){ return a+(p.b71||0); }, 0);
   var fmtM = function(n){ return (n/1e6).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1}); };
   document.getElementById('list-count').innerHTML = list.length+'/'+provOnly.length+' โครงการ (เฉพาะงบพัฒนาจังหวัด)'
-    + ' · งบรวม <strong style="color:var(--gd)">'+totalBudget.toLocaleString('th-TH')+' บาท</strong> ('+fmtM(totalBudget)+' ล้านบาท)';
+    + ' · งบรวม 5 ปี (2571–2575) <strong style="color:var(--gd)">'+totalBudget.toLocaleString('th-TH')+' บาท</strong> ('+fmtM(totalBudget)+' ล้านบาท)'
+    + ' · งบปี 2571 <strong style="color:var(--gd)">'+totalBudget71.toLocaleString('th-TH')+' บาท</strong> ('+fmtM(totalBudget71)+' ล้านบาท)';
+
+  // การวิเคราะห์ว่าทำไมจำนวนโครงการทั้งหมด (projects.length) ไม่เท่ากับ provOnly.length
+  // แสดงรายชื่อโครงการที่ bsrc ไม่ใช่ '1' (ไม่ว่าจะเป็นค่าอื่น หรือว่างเปล่า/ไม่ได้เลือก) เพื่อให้ตรวจสอบได้ว่า
+  // เป็นข้อมูลจริง (แหล่งงบอื่นจริงๆ) หรือเป็นช่องว่างที่ยังไม่ได้กรอกในชีต
+  var excluded = projects.filter(function(p){ return p.bsrc !== '1'; });
+  var diagCard = document.getElementById('bsrc-diag-card');
+  var bsrcLabel = { '2':'งบกระทรวง/กรม', '3':'งบ อปท.', '4':'งบเอกชน/ชุมชน' };
+  if (excluded.length && diagCard) {
+    diagCard.style.display = '';
+    var blankCount = excluded.filter(function(p){ return !p.bsrc; }).length;
+    document.getElementById('bsrc-diag-summary').innerHTML = '⚠️ พบ ' + excluded.length + ' โครงการในชีต จ.1 ที่ไม่ได้นับในหน้านี้ (แหล่งงบไม่ใช่ "งบพัฒนาจังหวัด")'
+      + (blankCount ? ' — ในจำนวนนี้ ' + blankCount + ' โครงการยังไม่ได้เลือกแหล่งงบเลย (อาจเป็นข้อมูลตกหล่น ไม่ใช่แหล่งงบอื่นจริง)' : '')
+      + ' · คลิกเพื่อดูรายชื่อ';
+    document.getElementById('bsrc-diag-detail').innerHTML = '<ul style="margin:0;padding-left:18px">' + excluded.map(function(p){
+      var reason = p.bsrc ? (bsrcLabel[p.bsrc] || ('bsrc="'+p.bsrc+'"')) : '<span style="color:var(--r)">ยังไม่ได้เลือกแหล่งงบ (ว่าง)</span>';
+      return '<li>' + (p.name || '(ไม่ระบุชื่อ)') + ' — ' + reason + '</li>';
+    }).join('') + '</ul>';
+  } else if (diagCard) {
+    diagCard.style.display = 'none';
+  }
+
   if(!list.length){
     document.getElementById('list-tbl').innerHTML='<div style="padding:2rem;text-align:center;color:var(--t2)">ไม่พบโครงการ</div>';
     return;
@@ -5049,6 +5086,8 @@ function renderPolicyAnalysis() {
   var unmatched = list.filter(function(x){ return !x.policy; });
   var matchedCluster = list.filter(function(x){ return x.cluster; });
   var totalBudget = list.reduce(function(a,x){ return a + (x.budget||0); }, 0);
+  // งบประมาณเฉพาะปี 2571 (b71) — มีเฉพาะฝั่ง จ.1 เท่านั้น (จ.3 ไม่มีข้อมูลแยกรายปี จึงนับเป็น 0)
+  var totalBudget71 = list.reduce(function(a,x){ return a + (x.src==='j1' && x.raw ? (x.raw.b71||0) : 0); }, 0);
 
   // ตรวจจับโครงการชื่อซ้ำ (คำนวณจากรายการทั้งหมดที่กำลังดู ไม่ขึ้นกับนโยบายใดนโยบายหนึ่ง)
   var dupGroups = detectDuplicateGroups(list);
@@ -5093,7 +5132,8 @@ function renderPolicyAnalysis() {
     { l:'ระบุนโยบายได้', v:matchedPolicy.length, s:'โครงการ', c:'g' },
     { l:'ยังไม่ระบุชัดเจน', v:unmatched.length, s:'โครงการ', c:'r' },
     { l:'อยู่ใน Cluster เศรษฐกิจ', v:matchedCluster.length, s:'โครงการ', c:'b' },
-    { l:'งบประมาณรวมที่วิเคราะห์', v: totalBudget>0 ? (totalBudget/1e6).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1})+' ล้าน' : '—', s:'บาท', c:'a' }
+    { l:'งบประมาณรวมที่วิเคราะห์ (5 ปี)', v: totalBudget>0 ? (totalBudget/1e6).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1})+' ล้าน' : '—', s:'บาท', c:'a' },
+    { l:'งบประมาณปี 2571', v: totalBudget71>0 ? (totalBudget71/1e6).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1})+' ล้าน' : '—', s:'บาท', c:'a' }
   ];
   document.getElementById('policy-metrics').innerHTML = metItems.map(function(m){
     return '<div class="met '+m.c+'"><div class="lbl">'+m.l+'</div><div class="val">'+m.v+'</div><div class="sub">'+m.s+'</div></div>';
@@ -5298,11 +5338,18 @@ function renderPolicyAnalysis() {
     },
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
+      layout:{ padding:{ right:36 } },
+      plugins:{
+        legend:{ display:false },
+        datalabels:{
+          display:true, anchor:'end', align:'right', offset:4,
+          color:'#3d3b36', font:{ size:11, weight:'bold' },
+          formatter:function(v){ return v>0 ? v.toLocaleString('th-TH') : ''; }
+        }
+      },
       scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } } }
     }
   });
-
   // Chart 2: งบประมาณตามนโยบาย
   destroyChart('pc2');
   charts['pc2'] = new Chart(document.getElementById('pc2'), {
@@ -5313,7 +5360,15 @@ function renderPolicyAnalysis() {
     },
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
+      layout:{ padding:{ right:48 } },
+      plugins:{
+        legend:{ display:false },
+        datalabels:{
+          display:true, anchor:'end', align:'right', offset:4,
+          color:'#3d3b36', font:{ size:11, weight:'bold' },
+          formatter:function(v){ return v>0 ? v.toLocaleString('th-TH',{maximumFractionDigits:1})+'M' : ''; }
+        }
+      },
       scales:{ x:{ beginAtZero:true, ticks:{ callback:function(v){ return v+'M'; } } } }
     }
   });
