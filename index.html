@@ -2347,8 +2347,8 @@ async function buildJ11Document(row) {
   rows.push(new D.TableRow({
     tableHeader: true,
     children: [
-      cell(P('หัวข้อ', { run: { bold: true } }), { width: 25, shaded: true }),
-      cell(P('รายละเอียด', { run: { bold: true } }), { width: 75, shaded: true })
+      cell(P('หัวข้อ', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER } }), { width: 25, shaded: true }),
+      cell(P('รายละเอียด', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER } }), { width: 75, shaded: true })
     ]
   }));
   rows.push(headRow('1. ชื่อโครงการสำคัญ', [P(row.name)]));
@@ -2475,7 +2475,7 @@ function buildJ11PrintHTML(row) {
     '.meta .sub{font-weight:normal;font-style:italic;font-size:13.5pt;color:#333;margin:0 0 6px}' +
     'table.frm{width:100%;border-collapse:collapse;margin-top:10px}' +
     'table.frm th,table.frm td{border:1px solid #000;padding:7px 10px;vertical-align:top;text-align:left}' +
-    'table.frm th{font-weight:bold;border-bottom:2px solid #000}' +
+    'table.frm th{font-weight:bold;border-bottom:2px solid #000;text-align:center}' +
     'table.frm td.lbl{width:32%;font-weight:bold}' +
     'table.frm td.val{width:68%;font-weight:normal}' +
     '@media print{.noprint{display:none}}' +
@@ -4279,7 +4279,7 @@ function j3RenderProjectsTable() {
       + '<td style="font-size:11px">' + (p.agency||'—') + '</td>'
       + '<td style="text-align:right;font-weight:600;color:var(--gd)">' + p.budget.toLocaleString('th-TH') + '</td>'
       + '<td style="font-size:11px;color:var(--t2)">' + (p.updatedAt ? p.updatedAt : '—') + '</td>'
-      + '<td>' + (p._row ? '<button class="btn btn-s" style="padding:5px 8px;font-size:11px" onclick="editProjectJ3(' + p.id + ')">✏️</button> ' : '') + '<button class="btn btn-danger" onclick="j3DeleteProject(' + p.id + ')">🗑</button></td>'
+      + '<td style="white-space:nowrap">' + (p._row ? '<button class="btn btn-s" style="padding:5px 8px;font-size:11px" onclick="editProjectJ3(' + p.id + ')">✏️</button> ' : '') + '<button class="btn btn-s" style="padding:5px 8px;font-size:11px" onclick="printProjectJ3(' + p.id + ')">🖨</button> <button class="btn btn-s" style="padding:5px 8px;font-size:11px" onclick="downloadProjectJ3(' + p.id + ')">📄</button> <button class="btn btn-danger" onclick="j3DeleteProject(' + p.id + ')">🗑</button></td>'
       + '</tr>';
   });
   tbody.innerHTML = html;
@@ -4343,6 +4343,244 @@ function j3RenderBriefs() {
   });
   html += '</div>';
   container.innerHTML = html;
+}
+
+// ============================================================
+// PRINT-READY HTML EXPORT (แบบ จ.3 — โครงการแบบย่อ ๑ ชุด : ๑ โครงการ)
+// ============================================================
+// คืนรายการกิจกรรมหลักในรูปแบบมาตรฐาน {name, budget, agency} ไม่ว่าจะมาจาก array (ข้อมูล local)
+// หรือ string ที่ดึงมาจาก Google Sheet (รูปแบบ "1. ชื่อ [งบ บาท] (หน่วยงาน) | 2. ชื่อ...")
+function j3ActivitiesForPrint(p) {
+  if (Array.isArray(p.activities) && p.activities.length) {
+    return p.activities.map(function(a) {
+      return { name: a.name || '', budget: a.budget || 0, agency: a.agency || '' };
+    });
+  }
+  if (typeof p.activities === 'string' && p.activities.trim()) {
+    return p.activities.split(' | ').map(function(item) {
+      var clean = item.replace(/^\d+\.\s*/, '');
+      var budget = 0, agency = '';
+      var bm = clean.match(/\[งบประมาณ\s*([\d,]+)\s*บาท\]/);
+      if (bm) budget = Number(bm[1].replace(/,/g, '')) || 0;
+      var am = clean.match(/\(([^()]+)\)\s*$/);
+      if (am) agency = am[1];
+      var name = clean.replace(/\s*\[งบประมาณ[^\]]*\]/, '').replace(/\s*\([^()]+\)\s*$/, '').trim();
+      return { name: name, budget: budget, agency: agency };
+    });
+  }
+  return [];
+}
+
+function buildJ3PrintHTML(p) {
+  var acts = j3ActivitiesForPrint(p);
+  if (!acts.length) acts = [{ name: '', budget: 0, agency: '' }];
+
+  function tr(label, content) {
+    return '<tr><td class="lbl">' + label + '</td><td class="val">' + content + '</td></tr>';
+  }
+
+  var actRowsHtml = acts.map(function (a, i) {
+    return '<div style="margin-bottom:' + (i < acts.length - 1 ? '8px' : '0') + '">'
+      + '<b>11.' + (i + 1) + ' กิจกรรมที่ ' + (i + 1) + '</b><br>'
+      + 'ชื่อกิจกรรม: ' + j11Esc(a.name || '—') + '<br>'
+      + 'งบประมาณ: ' + j11FmtMoney(a.budget) + '<br>'
+      + 'หน่วยงานรับผิดชอบ: ' + j11Esc(a.agency || '—')
+      + '</div>';
+  }).join('');
+
+  return '' +
+    '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>แบบ จ.3 — ' + j11Esc(p.name || '') + '</title>' +
+    '<style>' +
+    '@page{size:A4;margin:2cm 1.8cm}' +
+    'body{font-family:"TH Sarabun New","Sarabun",sans-serif;font-size:16pt;line-height:1.5;color:#111;margin:0;padding:0}' +
+    '.hd{margin-bottom:2px}' +
+    '.hd p{margin:0;font-weight:bold}' +
+    '.hd-r{text-align:right}' +
+    '.hd-c{text-align:center}' +
+    '.meta{margin-top:8px}' +
+    '.meta p{margin:2px 0;font-weight:normal}' +
+    'table.frm{width:100%;border-collapse:collapse;margin-top:10px}' +
+    'table.frm th,table.frm td{border:1px solid #000;padding:7px 10px;vertical-align:top;text-align:left}' +
+    'table.frm th{font-weight:bold;border-bottom:2px solid #000;text-align:center}' +
+    'table.frm td.lbl{width:32%;font-weight:bold}' +
+    'table.frm td.val{width:68%;font-weight:normal}' +
+    '@media print{.noprint{display:none}}' +
+    '</style></head><body>' +
+    '<div class="noprint" style="text-align:center;padding:14px;background:#eef6f1;border-bottom:2px solid #1D9E75">' +
+    '<button onclick="window.print()" style="font-size:14pt;padding:8px 22px;font-family:inherit;cursor:pointer;background:#1D9E75;color:#fff;border:none;border-radius:6px">🖨 พิมพ์เอกสารนี้</button>' +
+    '<span style="margin-left:10px;color:#555">(หรือกด Ctrl+P / Cmd+P)</span>' +
+    '<div style="margin-top:10px;font-size:13px;color:#555">⚠ หากมีข้อความมุมกระดาษ (วันที่ / ชื่อไฟล์ / URL / หมายเลขหน้า) ในหน้าต่างพิมพ์ ให้กด <b>"เพิ่มเติม" (More settings)</b> แล้วปิดตัวเลือก <b>"หัวกระดาษและท้ายกระดาษ" (Headers and footers)</b> ก่อนกดพิมพ์ — เป็นค่าที่เบราว์เซอร์เพิ่มเอง ไม่สามารถปิดจากหน้าเว็บได้โดยตรง</div>' +
+    '</div>' +
+    '<div style="padding:0 4px">' +
+    '<div class="hd hd-r">' +
+    '<p style="font-size:20pt">แบบ จ.3</p>' +
+    '<p>(โครงการแบบย่อ ๑ ชุด : ๑ โครงการ)</p>' +
+    '</div>' +
+    '<table class="frm">' +
+    '<thead><tr><th style="width:32%">หัวข้อ</th><th style="width:68%">รายละเอียด</th></tr></thead>' +
+    '<tbody>' +
+    tr('1. ลำดับความสำคัญ', j11Esc(p.priority)) +
+    tr('2. ชื่อโครงการ', j11Esc(p.name)) +
+    tr('3. ประเด็นการพัฒนาของจังหวัด', j11EscNl(p.issue)) +
+    tr('4. แนวทางการพัฒนา', j11EscNl(p.strategy)) +
+    tr('5. แผนงาน', j11EscNl(p.plan)) +
+    tr('6. หลักการและเหตุผล', j11EscNl(p.rationale)) +
+    tr('7. วัตถุประสงค์ของโครงการ', j11EscNl(p.objective)) +
+    tr('8. ตัวชี้วัดและค่าเป้าหมาย', j11EscNl(p.kpi)) +
+    tr('9. พื้นที่เป้าหมาย', j11EscNl(p.area)) +
+    tr('10. กลุ่มเป้าหมาย', j11EscNl(p.target)) +
+    tr('11. กิจกรรมหลัก', actRowsHtml) +
+    tr('12. หน่วยงานดำเนินการ', j11Esc(p.agency || '—')) +
+    tr('13. ลักษณะของโครงการ', j11Esc(p.type || '—')) +
+    tr('14. ระยะเวลาในการดำเนินโครงการ', j11Esc(p.duration || '—')) +
+    tr('15. วิธีการดำเนินโครงการ', j11Esc(p.method || '—')) +
+    tr('16. งบประมาณ', '<b>' + j11FmtMoney(p.budget) + '</b>' + (p.item ? '<br>รายการ (ตามรูปแบบ สงป.): ' + j11Esc(p.item) : '')) +
+    tr('17. ผลผลิต (Output)', j11EscNl(p.output)) +
+    tr('18. ผลลัพธ์จากการดำเนินโครงการ (Outcome)', j11EscNl(p.outcome)) +
+    tr('19. ความพร้อมในการดำเนินโครงการ', j11Esc(p.readiness || '—')) +
+    tr('20. หน่วยงานรับผิดชอบหลังสิ้นสุดโครงการ (เฉพาะกรณีงบลงทุน)', j11EscNl(p.maintenance)) +
+    '</tbody>' +
+    '</table>' +
+    '</div>' +
+    '</body></html>';
+}
+
+function j3OpenPrintWindow(p) {
+  if (!p || !p.name || !String(p.name).trim()) { alert('⚠ ไม่พบชื่อโครงการนี้'); return; }
+  var html = buildJ3PrintHTML(p);
+  var w = window.open('', '_blank');
+  if (!w) { alert('⚠ เบราว์เซอร์บล็อกการเปิดหน้าต่างใหม่ กรุณาอนุญาต pop-up แล้วลองอีกครั้ง'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+function printProjectJ3(id) {
+  var p = j3Projects.find(function(x) { return x.id === id; });
+  if (!p) { alert('⚠ ไม่พบโครงการนี้'); return; }
+  j3OpenPrintWindow(p);
+}
+
+// สร้างเอกสาร Word (docx) ตามแบบ จ.3 จากข้อมูลโครงการ 1 โครงการ — ใช้ฟิลด์ชุดเดียวกับที่ใช้พิมพ์
+async function buildJ3Document(p) {
+  var D = window.docx;
+  var acts = j3ActivitiesForPrint(p);
+  if (!acts.length) acts = [{ name: '', budget: 0, agency: '' }];
+
+  function P(text, opts) {
+    opts = opts || {};
+    return new D.Paragraph(Object.assign({
+      children: [new D.TextRun(Object.assign({ text: text || '—', font: 'TH Sarabun New', size: 28 }, opts.run || {}))]
+    }, opts.para || {}));
+  }
+  function PLV(label, value, paraOpts) {
+    return new D.Paragraph(Object.assign({
+      children: [
+        new D.TextRun({ text: label + ' ', font: 'TH Sarabun New', size: 28, bold: true }),
+        new D.TextRun({ text: value || '—', font: 'TH Sarabun New', size: 28, bold: false })
+      ]
+    }, paraOpts || {}));
+  }
+  function cell(children, opts) {
+    opts = opts || {};
+    return new D.TableCell(Object.assign({
+      width: { size: opts.width || 50, type: D.WidthType.PERCENTAGE },
+      shading: opts.shaded ? { type: D.ShadingType.CLEAR, fill: 'EFEFEF' } : undefined,
+      children: Array.isArray(children) ? children : [children],
+      verticalAlign: D.VerticalAlign.TOP
+    }, opts.cellOpts || {}));
+  }
+  function headRow(label, detailParas) {
+    return new D.TableRow({
+      children: [
+        cell(P(label, { run: { bold: true } }), { width: 25, shaded: true }),
+        cell(detailParas, { width: 75 })
+      ]
+    });
+  }
+
+  var headerParas = [
+    P('แบบ จ.3', { run: { bold: true, size: 32 }, para: { alignment: D.AlignmentType.RIGHT } }),
+    P('(โครงการแบบย่อ ๑ ชุด : ๑ โครงการ)', { run: { bold: true }, para: { alignment: D.AlignmentType.RIGHT, spacing: { after: 200 } } })
+  ];
+
+  var rows = [];
+  rows.push(new D.TableRow({
+    tableHeader: true,
+    children: [
+      cell(P('หัวข้อ', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER } }), { width: 25, shaded: true }),
+      cell(P('รายละเอียด', { run: { bold: true }, para: { alignment: D.AlignmentType.CENTER } }), { width: 75, shaded: true })
+    ]
+  }));
+  rows.push(headRow('1. ลำดับความสำคัญ', [P(String(p.priority))]));
+  rows.push(headRow('2. ชื่อโครงการ', [P(p.name)]));
+  rows.push(headRow('3. ประเด็นการพัฒนาของจังหวัด', [P(p.issue)]));
+  rows.push(headRow('4. แนวทางการพัฒนา', [P(p.strategy)]));
+  rows.push(headRow('5. แผนงาน', [P(p.plan)]));
+  rows.push(headRow('6. หลักการและเหตุผล', [P(p.rationale)]));
+  rows.push(headRow('7. วัตถุประสงค์ของโครงการ', [P(p.objective)]));
+  rows.push(headRow('8. ตัวชี้วัดและค่าเป้าหมาย', [P(p.kpi)]));
+  rows.push(headRow('9. พื้นที่เป้าหมาย', [P(p.area)]));
+  rows.push(headRow('10. กลุ่มเป้าหมาย', [P(p.target)]));
+
+  var actParas = [];
+  acts.forEach(function(a, i) {
+    actParas.push(P('11.' + (i + 1) + ' กิจกรรมที่ ' + (i + 1) + ': ' + (a.name || '—'), { run: { bold: true } }));
+    actParas.push(P('งบประมาณ: ' + j11FmtMoney(a.budget)));
+    actParas.push(P('หน่วยงานรับผิดชอบ: ' + (a.agency || '—'), { para: { spacing: { after: 150 } } }));
+  });
+  rows.push(headRow('11. กิจกรรมหลัก', actParas));
+
+  rows.push(headRow('12. หน่วยงานดำเนินการ', [P(p.agency)]));
+  rows.push(headRow('13. ลักษณะของโครงการ', [P(p.type)]));
+  rows.push(headRow('14. ระยะเวลาในการดำเนินโครงการ', [P(p.duration)]));
+  rows.push(headRow('15. วิธีการดำเนินโครงการ', [P(p.method)]));
+  rows.push(headRow('16. งบประมาณ', [
+    P('งบประมาณรวม: ' + j11FmtMoney(p.budget)),
+    P(p.item ? 'รายการ (ตามรูปแบบ สงป.): ' + p.item : '—')
+  ]));
+  rows.push(headRow('17. ผลผลิต (Output)', [P(p.output)]));
+  rows.push(headRow('18. ผลลัพธ์จากการดำเนินโครงการ (Outcome)', [P(p.outcome)]));
+  rows.push(headRow('19. ความพร้อมในการดำเนินโครงการ', [P(p.readiness)]));
+  rows.push(headRow('20. หน่วยงานรับผิดชอบหลังสิ้นสุดโครงการ (เฉพาะกรณีงบลงทุน)', [P(p.maintenance)]));
+
+  var table = new D.Table({
+    width: { size: 100, type: D.WidthType.PERCENTAGE },
+    rows: rows
+  });
+
+  var doc = new D.Document({
+    sections: [{
+      properties: { page: { size: { width: 11906, height: 16838 } } }, // A4
+      children: headerParas.concat([table])
+    }]
+  });
+  return doc;
+}
+
+async function j3DownloadDoc(p) {
+  if (!window.docx) { alert('⚠ ไม่สามารถโหลดไลบรารีสร้างไฟล์ Word ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'); return; }
+  if (!p.name || !String(p.name).trim()) { alert('⚠ ไม่พบชื่อโครงการนี้'); return; }
+  try {
+    var doc = await buildJ3Document(p);
+    var blob = await window.docx.Packer.toBlob(doc);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = ('จ.3_' + p.name).replace(/[\\/:*?"<>|]/g, '_') + '.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  } catch (e) {
+    alert('⚠ เกิดข้อผิดพลาดในการสร้างไฟล์ Word: ' + e.message);
+  }
+}
+
+function downloadProjectJ3(id) {
+  var p = j3Projects.find(function(x) { return x.id === id; });
+  if (!p) { alert('⚠ ไม่พบโครงการนี้'); return; }
+  j3DownloadDoc(p);
 }
 
 function j3ExportSummary() {
@@ -5039,7 +5277,9 @@ function renderPolicyItemsTable(items, cacheKey) {
       nat = '—';
       north = '—';
       readyHtml = p.readiness ? ('<span class="badge bgr" style="font-size:11px">' + p.readiness + '</span>') : '—';
-      fileHtml = '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="showProjectScoreDebug(\'' + cacheKey + '\',' + i + ')">🔍 คะแนน</button>';
+      fileHtml = '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="j3DownloadDoc(window.__policyItemsCache[\'' + cacheKey + '\'][' + i + '].raw)">📄 Word</button> '
+        + '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="j3OpenPrintWindow(window.__policyItemsCache[\'' + cacheKey + '\'][' + i + '].raw)">🖨 พิมพ์</button> '
+        + '<button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="showProjectScoreDebug(\'' + cacheKey + '\',' + i + ')">🔍 คะแนน</button>';
     }
 
     return '<tr>'
