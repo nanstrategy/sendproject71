@@ -1043,10 +1043,17 @@ tr:hover td{background:#faf9f6}
           <option value="อื่น ๆ">อื่น ๆ</option>
         </select>
       </div>
-      <div>
-        <label>19. งบประมาณรวม (บาท) *</label>
-        <input id="j3-budget" type="number" placeholder="0">
-      </div>
+      <div><label>19. งบประมาณรวม (บาท)</label><input id="j3-budget" type="number" min="0" placeholder="0" readonly style="background:var(--bg);font-weight:700"></div>
+    </div>
+
+    <div class="r4">
+      <div><label>งบ ปี 2571 (บาท)</label><input id="j3-b71" type="number" min="0" placeholder="0" oninput="calcJ3BudgetTotal()"></div>
+      <div><label>งบ ปี 2572 (บาท)</label><input id="j3-b72" type="number" min="0" placeholder="0" oninput="calcJ3BudgetTotal()"></div>
+      <div><label>งบ ปี 2573 (บาท)</label><input id="j3-b73" type="number" min="0" placeholder="0" oninput="calcJ3BudgetTotal()"></div>
+      <div><label>งบ ปี 2574 (บาท)</label><input id="j3-b74" type="number" min="0" placeholder="0" oninput="calcJ3BudgetTotal()"></div>
+    </div>
+    <div class="r4">
+      <div><label>งบ ปี 2575 (บาท)</label><input id="j3-b75" type="number" min="0" placeholder="0" oninput="calcJ3BudgetTotal()"></div>
     </div>
 
     <div class="r2">
@@ -1777,7 +1784,7 @@ var HEADERS_J3 = [
   'area','target','item','activities',
   'type','duration','method','budget',
   'output','outcome','readiness','maintenance',
-  'updatedAt'
+  'updatedAt','b71','b72','b73','b74','b75'
 ];
 
 function initSheet(sheet, sheetTarget) {
@@ -2785,6 +2792,12 @@ function n(id) { var el = document.getElementById(id); return el ? parseFloat(el
 function calcBudgetTotal() {
   var total = n('f-b71') + n('f-b72') + n('f-b73') + n('f-b74') + n('f-b75');
   var el = document.getElementById('f-btotal');
+  if (el) el.value = total;
+}
+
+function calcJ3BudgetTotal() {
+  var total = n('j3-b71') + n('j3-b72') + n('j3-b73') + n('j3-b74') + n('j3-b75');
+  var el = document.getElementById('j3-budget');
   if (el) el.value = total;
 }
 
@@ -3971,6 +3984,11 @@ function j3AddProject() {
     duration: document.getElementById('j3-duration').value.trim(),
     method: document.getElementById('j3-method').value,
     budget: parseFloat(document.getElementById('j3-budget').value) || 0,
+    b71: parseFloat(document.getElementById('j3-b71').value) || 0,
+    b72: parseFloat(document.getElementById('j3-b72').value) || 0,
+    b73: parseFloat(document.getElementById('j3-b73').value) || 0,
+    b74: parseFloat(document.getElementById('j3-b74').value) || 0,
+    b75: parseFloat(document.getElementById('j3-b75').value) || 0,
     output: document.getElementById('j3-output').value.trim(),
     outcome: document.getElementById('j3-outcome').value.trim(),
     readiness: document.getElementById('j3-readiness').value,
@@ -4057,6 +4075,11 @@ function editProjectJ3(id) {
   setVal('j3-duration', proj.duration);
   setVal('j3-method', proj.method);
   setVal('j3-budget', proj.budget);
+  setVal('j3-b71', proj.b71);
+  setVal('j3-b72', proj.b72);
+  setVal('j3-b73', proj.b73);
+  setVal('j3-b74', proj.b74);
+  setVal('j3-b75', proj.b75);
   setVal('j3-output', proj.output);
   setVal('j3-outcome', proj.outcome);
   setVal('j3-readiness', proj.readiness);
@@ -4120,6 +4143,11 @@ function j3SaveToSheet(proj, action, rowNum) {
     duration: proj.duration,
     method: proj.method,
     budget: proj.budget,
+    b71: proj.b71,
+    b72: proj.b72,
+    b73: proj.b73,
+    b74: proj.b74,
+    b75: proj.b75,
     output: proj.output,
     outcome: proj.outcome,
     readiness: proj.readiness,
@@ -4184,7 +4212,8 @@ function j3DeleteProject(id) {
 function j3ClearForm() {
   ['j3-priority','j3-name','j3-strategy','j3-plan','j3-ministry','j3-dept',
    'j3-agency','j3-rationale','j3-objective','j3-kpi','j3-area','j3-target',
-   'j3-item','j3-duration','j3-budget','j3-output','j3-outcome','j3-maintenance',
+   'j3-item','j3-duration','j3-budget','j3-b71','j3-b72','j3-b73','j3-b74','j3-b75',
+   'j3-output','j3-outcome','j3-maintenance',
    'j3-act-name','j3-act-budget','j3-act-agency'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.value = '';
@@ -4921,7 +4950,7 @@ var CLUSTER_DATA = [
   { id:4, title:'เกษตรแปรรูป', kw:['เกษตรแปรรูป','แปรรูปสินค้าเกษตร','agro processing','แปรรูปผลผลิต'] },
   { id:5, title:'ท่องเที่ยว', kw:['ท่องเที่ยว','โฮมสเตย์','มัคคุเทศก์','ที่พัก'] },
   { id:6, title:'แปลงใหญ่และเกษตรมาตรฐาน', kw:['แปลงใหญ่','เกษตรมาตรฐาน','gap','มาตรฐานเกษตร'] },
-  { id:7, title:'เครื่องดื่มชุมชนที่มีแอลกอฮอล์', kw:['สุราชุมชน','ไวน์','เครื่องดื่มแอลกอฮอล์','สาโท','สุรากลั่นชุมชน','คราฟต์เบียร์'] },
+  { id:7, title:'เครื่องดื่มชุมชนที่มีแอลกอฮอล์', kw:['สุราชุมชน','ไวน์','เครื่องดื่มแอลกอฮอล์','สาโท','สุรากลั่นชุมชน','คราฟต์เบียร์','เครื่องดื่มสร้างสรรค์'] },
   { id:8, title:'พืชยา', kw:['พืชยา','สมุนไพร','herbal'] },
   { id:9, title:'เรือแข่ง', kw:['เรือแข่ง','แข่งเรือ','ประเพณีแข่งเรือ'] }
 ];
@@ -5415,9 +5444,19 @@ function renderPolicyAnalysis() {
         // นโยบายข้อ 11: แบ่งรายการหลักออกเป็น 2 กลุ่มย่อย — โครงการที่เกี่ยวข้องกับน้ำรี และโครงการพระราชดำริอื่นๆ
         var namRiMain = r.items.filter(function(x){ return x.namRiMatch; });
         var otherRoyalMain = r.items.filter(function(x){ return !x.namRiMatch; });
-        itemsHtml = '<div style="display:inline-block;font-size:13px;font-weight:800;color:#FFFFFF;background:#E67E22;padding:5px 12px;border-radius:8px;margin:6px 0 4px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">💧 กลุ่มย่อย: โครงการที่เกี่ยวข้องกับน้ำรี (' + namRiMain.length + ' โครงการ)</div>'
+        var namRiMainBudget = namRiMain.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+        // งบประมาณเฉพาะปี พ.ศ. 2571: ทั้งโครงการ จ.1 และ จ.3 มีฟิลด์ b71 แยกรายปีแล้ว ใช้ค่านี้โดยตรง
+        // (โครงการ จ.3 ที่บันทึกไว้ก่อนหน้านี้ ยังไม่มีฟิลด์ b71 จะถือว่าเป็น 0 จนกว่าจะแก้ไขและกรอกข้อมูลรายปีเพิ่มเติม)
+        var namRiMainBudget71 = namRiMain.reduce(function(a,x){
+          return a + ((x.raw && x.raw.b71) || 0);
+        }, 0);
+        var otherRoyalMainBudget = otherRoyalMain.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+        var otherRoyalMainBudget71 = otherRoyalMain.reduce(function(a,x){
+          return a + ((x.raw && x.raw.b71) || 0);
+        }, 0);
+        itemsHtml = '<div style="display:inline-block;font-size:13px;font-weight:800;color:#FFFFFF;background:#E67E22;padding:5px 12px;border-radius:8px;margin:6px 0 4px;box-shadow:0 1px 3px rgba(0,0,0,0.15)">💧 กลุ่มย่อย: โครงการที่เกี่ยวข้องกับน้ำรี (' + namRiMain.length + ' โครงการ · ' + namRiMainBudget.toLocaleString('th-TH') + ' บาท) · งบประมาณที่เกี่ยวข้องกับน้ำรี ปี 2571 ' + namRiMainBudget71.toLocaleString('th-TH') + ' บาท</div>'
           + renderPolicyItemsTable(namRiMain, 'pol' + r.id + '-namri')
-          + '<div style="font-size:12px;font-weight:700;color:#8A6D1D;margin:14px 0 2px">🏵️ กลุ่มย่อย: โครงการพระราชดำริอื่นๆ (' + otherRoyalMain.length + ' โครงการ)</div>'
+          + '<div style="display:inline-block;font-size:12px;font-weight:700;color:#8A6D1D;background:#FDF3D8;padding:5px 12px;border-radius:8px;margin:14px 0 2px;border:1px solid #E9CE7A">🏵️ กลุ่มย่อย: โครงการพระราชดำริอื่นๆ (' + otherRoyalMain.length + ' โครงการ · ' + otherRoyalMainBudget.toLocaleString('th-TH') + ' บาท) · งบประมาณปี 2571 ' + otherRoyalMainBudget71.toLocaleString('th-TH') + ' บาท</div>'
           + renderPolicyItemsTable(otherRoyalMain, 'pol' + r.id + '-other');
       } else {
         itemsHtml = renderPolicyItemsTable(r.items, 'pol' + r.id);
