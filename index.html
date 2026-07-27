@@ -771,7 +771,7 @@ tr:hover td{background:#faf9f6}
       <div class="ctitle"><span class="ico" style="background:#FCEBEB">🧵</span>ตารางสรุปตาม Cluster เศรษฐกิจ</div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Cluster</th><th style="text-align:center">จำนวนโครงการ</th><th style="text-align:right">งบประมาณ (บาท)</th></tr></thead>
+          <thead><tr><th>Cluster</th><th style="text-align:center">จำนวนโครงการ</th><th style="text-align:right">งบประมาณ (บาท)</th><th style="text-align:right">ร้อยละ</th></tr></thead>
           <tbody id="cluster-table-body"></tbody>
         </table>
       </div>
@@ -5578,9 +5578,11 @@ function renderPolicyAnalysis() {
   var noClusterItems = list.filter(function(x){ return !x.cluster; });
   var clusterNoMatch = noClusterItems.length;
   var clusterNoMatchBudget = noClusterItems.reduce(function(a,x){ return a+(x.budget||0); }, 0);
+  var clusterGrandTotal = clusterRows.reduce(function(a,r){ return a+r.budget; }, 0) + clusterNoMatchBudget;
+  var pctStr = function(v){ return clusterGrandTotal > 0 ? (v/clusterGrandTotal*100).toFixed(2)+'%' : '0.00%'; };
   document.getElementById('cluster-table-body').innerHTML = clusterRows.map(function(r){
-    return '<tr><td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+r.color+';margin-right:6px"></span>'+r.title+'</td><td style="text-align:center">'+r.count+'</td><td style="text-align:right">'+r.budget.toLocaleString('th-TH')+'</td></tr>';
-  }).join('') + '<tr><td style="color:var(--t3)">ไม่อยู่ใน Cluster ใด</td><td style="text-align:center;color:var(--t3)">'+clusterNoMatch+'</td><td style="text-align:right;color:var(--t3)">'+clusterNoMatchBudget.toLocaleString('th-TH')+'</td></tr>';
+    return '<tr><td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+r.color+';margin-right:6px"></span>'+r.title+'</td><td style="text-align:center">'+r.count+'</td><td style="text-align:right">'+r.budget.toLocaleString('th-TH')+'</td><td style="text-align:right">'+pctStr(r.budget)+'</td></tr>';
+  }).join('') + '<tr><td style="color:var(--t3)">ไม่อยู่ใน Cluster ใด</td><td style="text-align:center;color:var(--t3)">'+clusterNoMatch+'</td><td style="text-align:right;color:var(--t3)">'+clusterNoMatchBudget.toLocaleString('th-TH')+'</td><td style="text-align:right;color:var(--t3)">'+pctStr(clusterNoMatchBudget)+'</td></tr>';
 
   // โครงการที่ยังไม่สามารถระบุนโยบายได้
   document.getElementById('unmatched-title').textContent = 'โครงการที่ยังไม่สามารถระบุนโยบายได้ชัดเจน (' + unmatched.length + ' โครงการ)';
