@@ -140,6 +140,7 @@ tr:hover td{background:#faf9f6}
   <button class="ntab ntab-blue" onclick="go('dash',this)">📊 Dashboard</button>
   <button class="ntab ntab-blue" onclick="go('sdg',this)">🌐 SDG Mapping</button>
   <button class="ntab ntab-blue" onclick="go('policy',this)">🧭 วิเคราะห์ตามนโยบายจังหวัด</button>
+  <button class="ntab ntab-blue" onclick="go('docs',this)">📎 ตรวจสอบเอกสารโครงการ</button>
   <button class="ntab" onclick="go('lf',this)">🔗 Logical Framework</button>
   <button class="ntab" onclick="go('align',this)">✅ ความสอดคล้อง</button>
   <button class="ntab" onclick="go('gantt',this)">📅 Gantt</button>
@@ -1239,6 +1240,58 @@ tr:hover td{background:#faf9f6}
   </div>
 </div>
 
+<!-- ===================== ตรวจสอบเอกสารโครงการ (Google Drive) ===================== -->
+<div id="pg-docs" class="pg">
+  <div class="pghdr">
+    <h2>📎 ตรวจสอบเอกสารโครงการ (Google Drive)</h2>
+    <p>จับคู่โครงการกับโฟลเดอร์เอกสารใน Google Drive อัตโนมัติ แล้วตรวจสอบความครบถ้วนของเอกสารประกอบตามเกณฑ์ จ.1</p>
+  </div>
+
+  <div class="card">
+    <div class="ctitle"><span class="ico" style="background:var(--bl)">📁</span>ตั้งค่าโฟลเดอร์ราก (Root Folder)</div>
+    <div class="r2">
+      <div>
+        <label>Root Folder ID ใน Google Drive</label>
+        <input id="docs-root-id" placeholder="เช่น 13OChiP7j__E-JtkYtf21PJVL7wOtocwN">
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button class="btn btn-p" onclick="docsSaveRoot()">💾 บันทึก</button>
+        <button class="btn btn-s" onclick="docsScanFolders()">🔄 สแกนโฟลเดอร์ทั้งหมด</button>
+      </div>
+    </div>
+    <div id="docs-scan-status" style="font-size:12px;color:var(--t2);margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle"><span class="ico" style="background:var(--gl)">🔗</span>จับคู่โครงการ ↔ โฟลเดอร์</div>
+    <div class="brow" style="margin-top:0">
+      <button class="btn btn-p" onclick="docsAutoMatch()">🤖 จับคู่อัตโนมัติ (โครงการที่ยังไม่จับคู่/ไม่ยืนยัน)</button>
+      <select id="docs-view-filter" onchange="renderDocsTable()">
+        <option value="all">แสดงทั้งหมด</option>
+        <option value="unmatched">เฉพาะที่ยังไม่จับคู่</option>
+        <option value="auto">เฉพาะจับคู่อัตโนมัติ (รอยืนยัน)</option>
+        <option value="confirmed">เฉพาะยืนยันแล้ว</option>
+      </select>
+    </div>
+    <div id="docs-match-status" style="font-size:12px;color:var(--t2);margin-top:8px"></div>
+  </div>
+
+  <div class="g5" id="docs-summary-cards"></div>
+
+  <div class="card">
+    <div class="ctitle"><span class="ico" style="background:var(--al)">📋</span>รายการโครงการและสถานะเอกสาร</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>โครงการ</th><th>หน่วยงาน</th><th>สถานะจับคู่</th><th>โฟลเดอร์</th>
+          <th>ความครบถ้วนเอกสาร</th><th>การจัดการ</th>
+        </tr></thead>
+        <tbody id="docs-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== SDG MAPPING ===================== -->
 <div id="pg-sdg" class="pg">
   <div class="pghdr">
@@ -1671,9 +1724,14 @@ var READY_MAP = {ready:{l:'พร้อม',c:'bg'},partial:{l:'บางส่�
 var GAS_CODE = `// ===== Google Apps Script สำหรับระบบแผนพัฒนาจังหวัดน่าน =====
 // Sheet: https://docs.google.com/spreadsheets/d/1x73TIgDGg736RPAUsx4JGYSjtclCRNQr72SdYS2_5Kw/edit?gid=0#gid=0
 // วาง Code นี้ใน Extensions > Apps Script แล้ว Deploy เป็น Web App (Anyone)
+// อัปเดตนี้เพิ่มฟีเจอร์: จับคู่โครงการกับโฟลเดอร์เอกสารใน Google Drive + ตรวจสอบความครบถ้วนของเอกสาร
 
 var SHEET_NAME = 'ชีต1'; // เปลี่ยนถ้า Tab ชื่ออื่น
 var SHEET_NAME_J3 = 'จ3'; // Tab สำหรับบันทึกโครงการ จ.3 (gid=1463799777)
+
+// ===== Root Folder เริ่มต้น (ถ้าไม่ส่ง rootId มาจากฝั่ง client) =====
+var DEFAULT_DOCS_ROOT_ID = '13OChiP7j__E-JtkYtf21PJVL7wOtocwN';
+
 var HEADERS = [
   'timestamp','name','agency','related','issue','approach','issueKpi','progMain','prog',
   'reason','obj','kpi','area',
@@ -1692,23 +1750,27 @@ var HEADERS = [
   'bsrc','btotal','b71','b72','b73','b74','b75',
   'ready','ys','ye','nat','master','econ','north','cluster',
   'recorder','recorderPos','recorderOrg','recorderPhone','recordDate',
-  'actOverview'
+  'actOverview',
+  'driveFolderId','matchStatus'   // <-- ใหม่: สำหรับแท็บ "ตรวจสอบเอกสารโครงการ"
+];
+
+var HEADERS_J3 = [
+  'timestamp','priority','name','ministry','dept','agency',
+  'issue','strategy','plan','rationale','objective','kpi',
+  'area','target','item','activities',
+  'type','duration','method','budget',
+  'output','outcome','readiness','maintenance',
+  'updatedAt','b71','b72','b73','b74','b75'
 ];
 
 function doGet(e) {
-  // CORS header สำหรับ no-cors mode
   var output;
   var action = e.parameter.action || 'read';
   var sheetTarget = e.parameter.sheetTarget || '';
 
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet;
-    if (sheetTarget === 'j3') {
-      sheet = ss.getSheetByName(SHEET_NAME_J3) || ss.insertSheet(SHEET_NAME_J3);
-    } else {
-      sheet = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
-    }
+    var sheet = getSheet(ss, sheetTarget);
 
     if (action === 'init') {
       output = initSheet(sheet, sheetTarget);
@@ -1716,8 +1778,12 @@ function doGet(e) {
       var data = JSON.parse(e.parameter.data || '{}');
       output = writeRow(sheet, data, sheetTarget);
     } else if (action === 'update') {
-      var data = JSON.parse(e.parameter.data || '{}');
-      output = updateRow(sheet, e.parameter.row, data, sheetTarget);
+      var data2 = JSON.parse(e.parameter.data || '{}');
+      output = updateRow(sheet, e.parameter.row, data2, sheetTarget);
+    } else if (action === 'listFolders') {
+      output = listProjectFolders(e.parameter.rootId || DEFAULT_DOCS_ROOT_ID);
+    } else if (action === 'listFiles') {
+      output = listFolderFiles(e.parameter.folderId);
     } else {
       output = readData(sheet, sheetTarget);
     }
@@ -1734,14 +1800,12 @@ function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
     var action, dataRaw, sheetTarget, rowNum;
-    // hidden form ส่งมาเป็น form-urlencoded -> อยู่ใน e.parameter
     if (e.parameter && e.parameter.action) {
       action = e.parameter.action;
       dataRaw = e.parameter.data || '{}';
       sheetTarget = e.parameter.sheetTarget || '';
       rowNum = e.parameter.row || '';
     } else if (e.postData && e.postData.contents) {
-      // เผื่อกรณีส่งมาเป็น JSON body ตรงๆ
       var parsed = JSON.parse(e.postData.contents);
       action = parsed.action;
       dataRaw = JSON.stringify(parsed.row || parsed.data || {});
@@ -1751,20 +1815,20 @@ function doPost(e) {
       throw new Error('ไม่พบข้อมูลที่ส่งมา');
     }
 
-    var sheet;
-    if (sheetTarget === 'j3') {
-      sheet = ss.getSheetByName(SHEET_NAME_J3) || ss.insertSheet(SHEET_NAME_J3);
-    } else {
-      sheet = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
-    }
-
+    var sheet = getSheet(ss, sheetTarget);
     var output;
+
     if (action === 'write') {
       var row = JSON.parse(dataRaw);
       output = writeRow(sheet, row, sheetTarget);
     } else if (action === 'update') {
       var row2 = JSON.parse(dataRaw);
       output = updateRow(sheet, rowNum, row2, sheetTarget);
+    } else if (action === 'autoMatchWrite') {
+      var results = JSON.parse(e.parameter.data || '[]');
+      output = autoMatchWrite(sheet, results);
+    } else if (action === 'confirmMatch') {
+      output = confirmMatch(sheet, e.parameter.row, e.parameter.folderId || '', e.parameter.status || 'confirmed');
     } else {
       output = {ok: false, error: 'Unknown action: ' + action};
     }
@@ -1778,14 +1842,12 @@ function doPost(e) {
   }
 }
 
-var HEADERS_J3 = [
-  'timestamp','priority','name','ministry','dept','agency',
-  'issue','strategy','plan','rationale','objective','kpi',
-  'area','target','item','activities',
-  'type','duration','method','budget',
-  'output','outcome','readiness','maintenance',
-  'updatedAt','b71','b72','b73','b74','b75'
-];
+function getSheet(ss, sheetTarget) {
+  if (sheetTarget === 'j3') {
+    return ss.getSheetByName(SHEET_NAME_J3) || ss.insertSheet(SHEET_NAME_J3);
+  }
+  return ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
+}
 
 function initSheet(sheet, sheetTarget) {
   var headers = (sheetTarget === 'j3') ? HEADERS_J3 : HEADERS;
@@ -1797,13 +1859,14 @@ function initSheet(sheet, sheetTarget) {
 }
 
 // อัปเดต header แม้มีข้อมูลอยู่แล้ว (เรียกตรงๆ จาก Apps Script Editor)
+// ใช้เพื่อเพิ่มคอลัมน์ driveFolderId / matchStatus เข้าไปในชีตที่มีข้อมูลอยู่แล้วโดยไม่ลบข้อมูลเดิม
 function updateHeaders() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet1 = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
   applyHeaders(sheet1, HEADERS, '');
   var sheetJ3 = ss.getSheetByName(SHEET_NAME_J3);
   if (sheetJ3) applyHeaders(sheetJ3, HEADERS_J3, 'j3');
-  Logger.log('✅ อัปเดต Header เรียบร้อยแล้ว');
+  Logger.log('✅ อัปเดต Header เรียบร้อยแล้ว (รวมคอลัมน์ driveFolderId / matchStatus)');
 }
 
 function applyHeaders(sheet, headers, sheetTarget) {
@@ -1826,14 +1889,13 @@ function readData(sheet, sheetTarget) {
     .map(function(row, i) {
       var obj = {};
       headers.forEach(function(h,i){ obj[h] = row[i]; });
-      obj._row = i + 2; // เลขแถวจริงใน Sheet (ใช้อ้างอิงตอนแก้ไข)
+      obj._row = i + 2;
       return obj;
     })
     .filter(function(r){ return r.name; });
   return {ok: true, data: data, total: data.length};
 }
 
-// แก้ไขข้อมูลแถวที่มีอยู่แล้ว (ไม่แก้ timestamp เดิม เพื่อรักษาเวลาที่บันทึกครั้งแรก)
 function updateRow(sheet, rowNum, data, sheetTarget) {
   var headers = (sheetTarget === 'j3') ? HEADERS_J3 : HEADERS;
   rowNum = parseInt(rowNum);
@@ -1844,8 +1906,8 @@ function updateRow(sheet, rowNum, data, sheetTarget) {
   var existing = sheet.getRange(rowNum, 1, 1, headers.length).getValues()[0];
   var nowStr = new Date().toLocaleString('th-TH', {timeZone:'Asia/Bangkok'});
   var newRow = headers.map(function(h, i) {
-    if (h === 'timestamp') return existing[i]; // เก็บเวลาบันทึกครั้งแรกไว้เสมอ
-    if (h === 'updatedAt') return nowStr; // ประทับเวลาแก้ไขล่าสุดทุกครั้งที่มีการอัปเดต
+    if (h === 'timestamp') return existing[i];
+    if (h === 'updatedAt') return nowStr;
     return data[h] !== undefined ? data[h] : existing[i];
   });
   sheet.getRange(rowNum, 1, 1, newRow.length).setValues([newRow]);
@@ -1860,7 +1922,6 @@ function writeRow(sheet, row, sheetTarget) {
     initSheet(sheet, sheetTarget);
     lastRow = 1;
   }
-  // ตรวจสอบ header ถ้าไม่มีให้สร้าง
   var firstCell = sheet.getRange(1,1).getValue();
   if (!firstCell) {
     initSheet(sheet, sheetTarget);
@@ -1870,14 +1931,94 @@ function writeRow(sheet, row, sheetTarget) {
   newRow[0] = new Date().toLocaleString('th-TH', {timeZone:'Asia/Bangkok'});
   var targetRow = (sheet.getLastRow() || 1) + 1;
   sheet.getRange(targetRow, 1, 1, newRow.length).setValues([newRow]);
-  // สลับสีแถว
   if (targetRow % 2 === 0) {
     var bgColor = (sheetTarget === 'j3') ? '#E3F2FD' : '#F0FAF5';
     sheet.getRange(targetRow, 1, 1, headers.length).setBackground(bgColor);
   }
   SpreadsheetApp.flush();
   return {ok: true, row: targetRow};
-}`;
+}
+
+// ============================================================
+// ตรวจสอบเอกสารโครงการ (Google Drive)
+// ============================================================
+
+// วนหาโฟลเดอร์ "ปลายทาง" ที่มีไฟล์อยู่ภายในโดยตรง (ถือว่าเป็นโฟลเดอร์โครงการ)
+// ไล่ลึกจาก root ไปตามลำดับหน่วยงาน -> โครงการ (จำกัดความลึกกันเผลอวนลูปไม่รู้จบ)
+function listProjectFolders(rootId) {
+  var root = DriveApp.getFolderById(rootId);
+  var results = [];
+  walkFolders(root, root.getName(), 0, results, 6);
+  return {ok: true, folders: results, total: results.length};
+}
+
+function walkFolders(folder, pathLabel, depth, results, maxDepth) {
+  if (depth > maxDepth) return;
+  var hasFile = folder.getFiles().hasNext();
+  var subfolders = folder.getFolders();
+  var hasSub = false;
+  var subList = [];
+  while (subfolders.hasNext()) {
+    hasSub = true;
+    subList.push(subfolders.next());
+  }
+  // ถือว่าเป็น "โฟลเดอร์โครงการ" ถ้ามีไฟล์อยู่ในตัวเองโดยตรง
+  if (hasFile) {
+    results.push({ id: folder.getId(), name: folder.getName(), path: pathLabel });
+  }
+  // เดินลึกต่อไปในโฟลเดอร์ย่อยเสมอ เผื่อมีทั้งไฟล์และโฟลเดอร์ย่อยปนกัน
+  subList.forEach(function(sf) {
+    walkFolders(sf, pathLabel + ' / ' + sf.getName(), depth + 1, results, maxDepth);
+  });
+}
+
+function listFolderFiles(folderId) {
+  if (!folderId) return {ok: false, error: 'ไม่ได้ระบุ folderId'};
+  var folder = DriveApp.getFolderById(folderId);
+  var it = folder.getFiles();
+  var files = [];
+  while (it.hasNext()) {
+    var f = it.next();
+    files.push({ id: f.getId(), name: f.getName(), mimeType: f.getMimeType(), url: f.getUrl() });
+  }
+  return {ok: true, files: files, total: files.length};
+}
+
+// เขียนผลลัพธ์การจับคู่อัตโนมัติ (จาก client) กลับเข้าคอลัมน์ driveFolderId / matchStatus
+// results = [{row, driveFolderId, matchStatus}, ...]
+function autoMatchWrite(sheet, results) {
+  var headers = HEADERS;
+  var colFolder = headers.indexOf('driveFolderId') + 1;
+  var colStatus = headers.indexOf('matchStatus') + 1;
+  var lastRow = sheet.getLastRow();
+  var written = 0;
+  results.forEach(function(r) {
+    var rowNum = parseInt(r.row);
+    if (!rowNum || rowNum < 2 || rowNum > lastRow) return;
+    sheet.getRange(rowNum, colFolder).setValue(r.driveFolderId || '');
+    sheet.getRange(rowNum, colStatus).setValue(r.matchStatus || '');
+    written++;
+  });
+  SpreadsheetApp.flush();
+  return {ok: true, written: written};
+}
+
+// ยืนยัน/แก้ไข การจับคู่โฟลเดอร์ของโครงการ 1 แถว ด้วยมือ
+function confirmMatch(sheet, rowNum, folderId, status) {
+  var headers = HEADERS;
+  rowNum = parseInt(rowNum);
+  var lastRow = sheet.getLastRow();
+  if (!rowNum || rowNum < 2 || rowNum > lastRow) {
+    return {ok: false, error: 'ไม่พบแถวที่ระบุ (row: ' + rowNum + ')'};
+  }
+  var colFolder = headers.indexOf('driveFolderId') + 1;
+  var colStatus = headers.indexOf('matchStatus') + 1;
+  sheet.getRange(rowNum, colFolder).setValue(folderId || '');
+  sheet.getRange(rowNum, colStatus).setValue(status || 'confirmed');
+  SpreadsheetApp.flush();
+  return {ok: true, row: rowNum};
+}
+`;
 
 // ============================================================
 // NAVIGATION
@@ -1901,6 +2042,7 @@ function go(name, btn) {
   if (name === 'sdg') renderSdgPage();
   if (name === 'align') populateAlignNameList();
   if (name === 'policy') renderPolicyAnalysis();
+  if (name === 'docs') renderDocsPage();
   if (name === 'timeline') renderTimeline();
   if (name === 'setup') initSetupPage();
 }
@@ -2053,6 +2195,8 @@ function normalizeRow(r) {
     recorder: r.recorder || '', recorderPos: r.recorderPos || '',
     recorderOrg: r.recorderOrg || '', recorderPhone: r.recorderPhone || '',
     recordDate: r.recordDate || '',
+    driveFolderId: r.driveFolderId || '',
+    matchStatus: r.matchStatus || '',
     _row: r._row || null
   };
   // รองรับทั้งโครงสร้างใหม่ (act1_name…) และเก่า (activity text)
@@ -5664,6 +5808,261 @@ function renderPolicyAnalysis() {
     type:'doughnut',
     data:{ labels: pcLabels, datasets:[{ data: pcData, backgroundColor: pcColors, borderWidth:2 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:10 }, boxWidth:10 } } } }
+  });
+}
+
+// ============================================================
+// ตรวจสอบเอกสารโครงการ (Google Drive) — จับคู่โฟลเดอร์ + เช็คลิสต์
+// ============================================================
+var DOCS_ROOT_KEY = 'nan_docs_root_id';
+var DOCS_FOLDERS_KEY = 'nan_docs_folders_cache';
+var DEFAULT_DOCS_ROOT = '13OChiP7j__E-JtkYtf21PJVL7wOtocwN';
+var docsFolderCache = JSON.parse(localStorage.getItem(DOCS_FOLDERS_KEY) || '[]');
+var docsFilesCache = {}; // folderId -> files[]
+
+// เอกสารพื้นฐานที่ต้องมีทุกโครงการ (ข้อ 1-4)
+var DOC_BASE_ITEMS = [
+  { id:'1', label:'แบบฟอร์มโครงการแบบย่อ (จ.1-1)', kw:['จ.1-1','จ1-1','project brief'] },
+  { id:'2', label:'แบบฟอร์มข้อมูลพื้นฐานโครงการของจังหวัด', kw:['ข้อมูลพื้นฐานโครงการ'] },
+  { id:'3', label:'แบบฟอร์มรายละเอียดจำแนกงบประมาณรายจ่าย', kw:['จำแนกงบ','งบรายจ่าย'] },
+  { id:'4', label:'แผนที่สรุปตำแหน่งที่ตั้งหลักของกิจกรรม', kw:['แผนที่'] }
+];
+// เอกสารเงื่อนไข แยกตามประเภทงบ (docType)
+var DOC_COND_ITEMS = {
+  land: [
+    { id:'5.1', label:'แบบรูปรายการ/ประมาณการราคา ปร.4–ปร.5', kw:['ปร.4','ปร.5','ปร4','ปร5','ประมาณการ'] },
+    { id:'5.2', label:'แผนที่/ภาพพื้นที่ดำเนินโครงการ พร้อมพิกัด', kw:['พิกัด','ภาพพื้นที่'] },
+    { id:'5.3', label:'เอกสารแสดงความพร้อมของพื้นที่/การอนุญาตใช้พื้นที่', kw:['อนุญาต','ยินยอม','ความพร้อมของพื้นที่'] },
+    { id:'5.4', label:'เอกสารประเมินผลกระทบสิ่งแวดล้อม (ถ้าต้อง)', kw:['สิ่งแวดล้อม','eia','iee'], optional:true },
+    { id:'5.5', label:'แผน/แนวทางบริหารจัดการหลังโครงการแล้วเสร็จ', kw:['แผนบริหารจัดการ','แผนการบริหารจัดการ'] },
+    { id:'5.6', label:'เอกสารอื่นที่เกี่ยวข้อง (เช่น ใบอนุญาตขุดเจาะบ่อบาดาล)', kw:['บ่อบาดาล'], optional:true }
+  ],
+  equipment: [
+    { id:'6.1', label:'เอกสารราคาครุภัณฑ์มาตรฐาน', kw:['ราคามาตรฐาน'], optional:true },
+    { id:'6.2', label:'ใบเสนอราคา 3 ราย + SPEC (นอกบัญชีมาตรฐาน)', kw:['ใบเสนอราคา','spec','สเปค'], optional:true },
+    { id:'6.3', label:'MOU รับโอนสินทรัพย์', kw:['mou','บันทึกความตกลง'] }
+  ],
+  operating: [
+    { id:'7.1', label:'ร่างขอบเขตการดำเนินงาน (TOR) + ราคาประกอบ', kw:['tor','ขอบเขตการดำเนินงาน'], optional:true },
+    { id:'7.2', label:'ใบเสนอราคาอย่างน้อย 3 ราย', kw:['ใบเสนอราคา'], optional:true }
+  ]
+};
+var DOC_TYPE_KEYWORDS = {
+  equipment: ['จัดซื้อครุภัณฑ์','ครุภัณฑ์','จัดหาเครื่องมือ','เครื่องจักร'],
+  land: ['ก่อสร้าง','ปรับปรุง','ซ่อมแซม','ขยายเขต','ที่ดิน','อาคาร','ถนน','สะพาน','ประปา','เขื่อน','ฝาย','อ่างเก็บน้ำ','ระบบระบายน้ำ'],
+  operating: ['จ้างเหมา','อบรม','สัมมนา','ฝึกอบรม','ประชาสัมพันธ์','ศึกษาดูงาน','จัดกิจกรรม','รณรงค์']
+};
+var LOCAL_AGENCY_KEYWORDS = ['อบต.','เทศบาล','อบจ.','องค์การบริหารส่วนตำบล','องค์การบริหารส่วนจังหวัด'];
+
+function inferDocType(p) {
+  var text = ((p.name||'') + ' ' + (p.output||'') + ' ' + (p.actOverview||'') + ' ' +
+    [1,2,3,4,5,6,7,8,9,10].map(function(i){ return p['act'+i+'_name']||''; }).join(' ')).toLowerCase();
+  var order = ['equipment','land','operating'];
+  for (var i=0;i<order.length;i++) {
+    var kws = DOC_TYPE_KEYWORDS[order[i]];
+    for (var j=0;j<kws.length;j++) {
+      if (text.indexOf(kws[j]) >= 0) return order[i];
+    }
+  }
+  return null; // ไม่สามารถระบุอัตโนมัติได้ — ต้องตรวจสอบมือ
+}
+
+function docsRequiredItems(p) {
+  var items = DOC_BASE_ITEMS.slice();
+  var docType = inferDocType(p);
+  if (docType && DOC_COND_ITEMS[docType]) items = items.concat(DOC_COND_ITEMS[docType]);
+  var isLocalOrg = LOCAL_AGENCY_KEYWORDS.some(function(k){ return (p.agency||'').indexOf(k) >= 0; });
+  if (isLocalOrg) items = items.concat([{ id:'9', label:'เอกสารสถานะการคลัง/มติสภาท้องถิ่น (กรณี อปท. เป็นหน่วยดำเนินการ)', kw:['มติสภา','สถานะทางการคลัง'] }]);
+  return { items: items, docType: docType };
+}
+
+function docsRootId() {
+  return document.getElementById('docs-root-id').value.trim() ||
+    localStorage.getItem(DOCS_ROOT_KEY) || DEFAULT_DOCS_ROOT;
+}
+
+function docsSaveRoot() {
+  var id = document.getElementById('docs-root-id').value.trim();
+  if (!id) { alert('กรุณากรอก Root Folder ID'); return; }
+  localStorage.setItem(DOCS_ROOT_KEY, id);
+  document.getElementById('docs-scan-status').textContent = '✅ บันทึก Root Folder ID แล้ว: ' + id;
+}
+
+async function docsScanFolders() {
+  var st = document.getElementById('docs-scan-status');
+  st.innerHTML = '<span class="spin">⟳</span> กำลังสแกนโฟลเดอร์ทั้งหมดใน Drive (อาจใช้เวลาสักครู่)...';
+  try {
+    var url = API_URL + '?action=listFolders&rootId=' + encodeURIComponent(docsRootId());
+    var res = await fetch(url, { method:'GET', mode:'cors' });
+    var json = await res.json();
+    if (!json.ok) throw new Error(json.error||'error');
+    docsFolderCache = json.folders || [];
+    localStorage.setItem(DOCS_FOLDERS_KEY, JSON.stringify(docsFolderCache));
+    st.textContent = '✅ พบโฟลเดอร์โครงการ ' + docsFolderCache.length + ' โฟลเดอร์ · อัปเดต ' + new Date().toLocaleTimeString('th-TH');
+  } catch(err) {
+    st.textContent = '❌ สแกนไม่สำเร็จ: ' + err.message;
+  }
+}
+
+async function docsAutoMatch() {
+  var st = document.getElementById('docs-match-status');
+  if (!docsFolderCache.length) { st.textContent = '⚠ กรุณากด "สแกนโฟลเดอร์ทั้งหมด" ก่อน'; return; }
+  st.innerHTML = '<span class="spin">⟳</span> กำลังจับคู่โครงการกับโฟลเดอร์...';
+  var targets = getDocsProjectList().filter(function(p){ return p.matchStatus !== 'confirmed'; });
+  var results = [];
+  targets.forEach(function(p) {
+    var best = null, bestScore = 0;
+    docsFolderCache.forEach(function(f) {
+      var s = docsSimilarity(p.name + ' ' + p.agency, f.name + ' ' + (f.path||''));
+      if (s > bestScore) { bestScore = s; best = f; }
+    });
+    if (best && bestScore >= 0.28) {
+      results.push({ row:p._row, driveFolderId:best.id, matchStatus:'auto', score:bestScore });
+    } else {
+      results.push({ row:p._row, driveFolderId:'', matchStatus:'unmatched', score:bestScore });
+    }
+  });
+  try {
+    var body = 'action=autoMatchWrite&data=' + encodeURIComponent(JSON.stringify(results));
+    var res = await fetch(API_URL, { method:'POST', mode:'cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body });
+    var json = await res.json();
+    if (!json.ok) throw new Error(json.error||'error');
+    var autoN = results.filter(function(r){ return r.matchStatus==='auto'; }).length;
+    st.textContent = '✅ จับคู่อัตโนมัติสำเร็จ ' + autoN + ' / ' + results.length + ' โครงการ (ที่เหลือยังไม่พบโฟลเดอร์ที่ตรงพอ — กรุณาระบุมือ) · กำลังโหลดข้อมูลใหม่...';
+    await syncFromSheet();
+    renderDocsTable();
+  } catch(err) {
+    st.textContent = '❌ บันทึกผลจับคู่ไม่สำเร็จ: ' + err.message;
+  }
+}
+
+// ความคล้ายของสตริงแบบ bigram Dice coefficient — ทนทานกับภาษาไทยที่ไม่มีช่องว่างระหว่างคำ
+function docsSimilarity(a, b) {
+  var na = docsNormalize(a), nb = docsNormalize(b);
+  if (!na || !nb) return 0;
+  var ga = docsBigrams(na), gb = docsBigrams(nb);
+  if (!ga.length || !gb.length) return 0;
+  var setB = {}; gb.forEach(function(g){ setB[g] = (setB[g]||0)+1; });
+  var hit = 0;
+  ga.forEach(function(g){ if (setB[g] > 0) { hit++; setB[g]--; } });
+  return (2*hit) / (ga.length + gb.length);
+}
+function docsNormalize(s) {
+  return (s||'').toLowerCase().replace(/[\s\-\_\.\(\)\/,]+/g,'');
+}
+function docsBigrams(s) {
+  var out = [];
+  for (var i=0;i<s.length-1;i++) out.push(s.substr(i,2));
+  return out;
+}
+
+async function docsListFiles(folderId) {
+  if (docsFilesCache[folderId]) return docsFilesCache[folderId];
+  var url = API_URL + '?action=listFiles&folderId=' + encodeURIComponent(folderId);
+  var res = await fetch(url, { method:'GET', mode:'cors' });
+  var json = await res.json();
+  if (!json.ok) throw new Error(json.error||'error');
+  docsFilesCache[folderId] = json.files || [];
+  return docsFilesCache[folderId];
+}
+
+async function docsConfirmMatch(row, folderId, status) {
+  var body = 'action=confirmMatch&row=' + encodeURIComponent(row) +
+    '&folderId=' + encodeURIComponent(folderId||'') + '&status=' + encodeURIComponent(status);
+  var res = await fetch(API_URL, { method:'POST', mode:'cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body });
+  var json = await res.json();
+  if (!json.ok) throw new Error(json.error||'error');
+  await syncFromSheet();
+  renderDocsTable();
+}
+
+function docsManualLink(row) {
+  var id = prompt('วางลิงก์หรือ Folder ID ของโครงการนี้:');
+  if (id === null) return;
+  var m = id.match(/[-\w]{25,}/);
+  var folderId = m ? m[0] : id.trim();
+  if (!folderId) return;
+  docsConfirmMatch(row, folderId, 'confirmed');
+}
+
+function getDocsProjectList() {
+  // เฉพาะโครงการ จ.1 งบพัฒนาจังหวัด (bsrc='1') — ชุดเดียวกับที่ต้องส่งเอกสารตามเกณฑ์นี้
+  return projects.filter(function(p){ return p.bsrc === '1'; });
+}
+
+async function renderDocsPage() {
+  document.getElementById('docs-root-id').value = localStorage.getItem(DOCS_ROOT_KEY) || DEFAULT_DOCS_ROOT;
+  renderDocsTable();
+}
+
+function renderDocsTable() {
+  var filter = (document.getElementById('docs-view-filter')||{}).value || 'all';
+  var list = getDocsProjectList();
+  if (filter === 'unmatched') list = list.filter(function(p){ return !p.matchStatus || p.matchStatus==='unmatched'; });
+  if (filter === 'auto') list = list.filter(function(p){ return p.matchStatus==='auto'; });
+  if (filter === 'confirmed') list = list.filter(function(p){ return p.matchStatus==='confirmed'; });
+
+  var all = getDocsProjectList();
+  var nConfirmed = all.filter(function(p){ return p.matchStatus==='confirmed'; }).length;
+  var nAuto = all.filter(function(p){ return p.matchStatus==='auto'; }).length;
+  var nUnmatched = all.length - nConfirmed - nAuto;
+  document.getElementById('docs-summary-cards').innerHTML =
+    '<div class="met"><div class="lbl">โครงการทั้งหมด (งบพัฒนาจังหวัด)</div><div class="val">'+all.length+'</div></div>' +
+    '<div class="met g"><div class="lbl">ยืนยันโฟลเดอร์แล้ว</div><div class="val">'+nConfirmed+'</div></div>' +
+    '<div class="met a"><div class="lbl">จับคู่อัตโนมัติ (รอยืนยัน)</div><div class="val">'+nAuto+'</div></div>' +
+    '<div class="met r"><div class="lbl">ยังไม่พบโฟลเดอร์</div><div class="val">'+nUnmatched+'</div></div>';
+
+  document.getElementById('docs-table-body').innerHTML = list.map(function(p, i) {
+    var statusChip = p.matchStatus === 'confirmed' ? '<span class="badge bg">✅ ยืนยันแล้ว</span>'
+      : p.matchStatus === 'auto' ? '<span class="badge ba">🤖 อัตโนมัติ (รอยืนยัน)</span>'
+      : '<span class="badge br">❌ ยังไม่จับคู่</span>';
+    var folderCell = p.driveFolderId
+      ? '<a href="https://drive.google.com/drive/folders/'+p.driveFolderId+'" target="_blank" style="color:var(--b)">เปิดโฟลเดอร์ ↗</a>'
+      : '<span style="color:var(--t3)">—</span>';
+    var rowId = 'docs-row-' + p._row;
+    return '<tr id="'+rowId+'">' +
+      '<td>'+(i+1)+'</td>' +
+      '<td style="max-width:260px">'+escapeHtml(p.name)+'</td>' +
+      '<td>'+escapeHtml(p.agency)+'</td>' +
+      '<td>'+statusChip+'</td>' +
+      '<td>'+folderCell+'</td>' +
+      '<td id="'+rowId+'-check" style="font-size:11px;color:var(--t3)">'+(p.driveFolderId ? '<button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="docsRunCheck('+p._row+',\''+p.driveFolderId+'\')">🔍 ตรวจสอบเอกสาร</button>' : '—')+'</td>' +
+      '<td style="white-space:nowrap">' +
+        (p.matchStatus === 'auto' ? '<button class="btn btn-p" style="font-size:11px;padding:4px 8px;margin-right:4px" onclick="docsConfirmMatch('+p._row+',\''+p.driveFolderId+'\',\'confirmed\')">✔ ยืนยัน</button>' : '') +
+        '<button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="docsManualLink('+p._row+')">✏ ระบุโฟลเดอร์เอง</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--t2)">— ไม่มีโครงการในมุมมองนี้ —</td></tr>';
+}
+
+async function docsRunCheck(row, folderId) {
+  var cell = document.getElementById('docs-row-'+row+'-check');
+  cell.innerHTML = '<span class="spin">⟳</span>';
+  try {
+    var files = await docsListFiles(folderId);
+    var names = files.map(function(f){ return (f.name||'').toLowerCase(); });
+    var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
+    var req = docsRequiredItems(p);
+    var found = 0, missingRequired = [];
+    req.items.forEach(function(it) {
+      var hit = names.some(function(n){ return it.kw.some(function(k){ return n.indexOf(k) >= 0; }); });
+      if (hit) found++; else if (!it.optional) missingRequired.push(it.label);
+    });
+    var pct = Math.round(found / req.items.length * 100);
+    var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
+    var color = missingRequired.length === 0 ? 'var(--gd)' : 'var(--r)';
+    var detail = missingRequired.length
+      ? '<div style="color:var(--r);margin-top:3px">ขาด: ' + missingRequired.slice(0,3).join(', ') + (missingRequired.length>3?' และอีก '+(missingRequired.length-3):'') + '</div>'
+      : '<div style="color:var(--gd);margin-top:3px">เอกสารครบตามเกณฑ์ที่จำเป็น</div>';
+    cell.innerHTML = '<div style="color:'+color+';font-weight:700">'+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+'</div>' + detail;
+  } catch(err) {
+    cell.innerHTML = '<span style="color:var(--r)">ตรวจสอบไม่สำเร็จ: '+err.message+'</span>';
+  }
+}
+
+function escapeHtml(s) {
+  return (s||'').toString().replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
 }
 
