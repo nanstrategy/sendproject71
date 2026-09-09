@@ -1784,6 +1784,8 @@ function doGet(e) {
       output = listProjectFolders(e.parameter.rootId || DEFAULT_DOCS_ROOT_ID);
     } else if (action === 'listFiles') {
       output = listFolderFiles(e.parameter.folderId);
+    } else if (action === 'ocrText') {
+      output = ocrExtractFolderText(e.parameter.folderId);
     } else {
       output = readData(sheet, sheetTarget);
     }
@@ -1974,6 +1976,7 @@ function walkFolders(folder, pathLabel, depth, results, maxDepth) {
 
 function listFolderFiles(folderId) {
   if (!folderId) return {ok: false, error: 'ไม่ได้ระบุ folderId'};
+  assertIsFolder(folderId);
   var folder = DriveApp.getFolderById(folderId);
   var it = folder.getFiles();
   var files = [];
@@ -1982,6 +1985,93 @@ function listFolderFiles(folderId) {
     files.push({ id: f.getId(), name: f.getName(), mimeType: f.getMimeType(), url: f.getUrl() });
   }
   return {ok: true, files: files, total: files.length};
+}
+
+// ตรวจว่า id ที่รับมาเป็น "โฟลเดอร์" จริง ไม่ใช่ไฟล์ — DriveApp.getFolderById() เฉยๆ ไม่ throw error
+// แม้ id จะเป็นไฟล์ (แค่คืนโฟลเดอร์ที่ไม่มีไฟล์ข้างในแทน) จึงต้องเช็ค mimeType ตรงๆ ผ่าน Advanced Drive Service
+// ต้องเปิดใช้ Advanced Google Service "Drive API" ก่อน (ดูคอมเมนต์ด้านล่าง)
+function assertIsFolder(id) {
+  var meta;
+  try {
+    meta = Drive.Files.get(id);
+  } catch (e) {
+    throw new Error('ไม่พบรายการนี้ใน Drive (ID: ' + id + ') — ตรวจสอบว่าพิมพ์/วางลิงก์ครบถูกต้อง: ' + e.message);
+  }
+  if (meta.mimeType !== 'application/vnd.google-apps.folder') {
+    throw new Error('ลิงก์ที่วางเป็น "' + meta.title + '" ซึ่งเป็นไฟล์ ไม่ใช่โฟลเดอร์ — กรุณาเปิดโฟลเดอร์ที่เก็บไฟล์นี้อยู่ แล้วคัดลอกลิงก์โฟลเดอร์แทน');
+  }
+}
+
+// ============================================================
+// OCR อ่านเนื้อหาไฟล์ในโฟลเดอร์ (สำหรับกรณีเอกสารหลายชุดถูกสแกนรวมเป็นไฟล์เดียว)
+// ต้องเปิดใช้ Advanced Google Service "Drive API" (v3) ในโปรเจกต์นี้ก่อน:
+// Apps Script Editor > Services (+) > เลือก "Drive API" > Add
+// ============================================================
+var OCR_MAX_FILES = 5;        // จำกัดจำนวนไฟล์ที่ทำ OCR ต่อการเรียก 1 ครั้ง กันเกินเวลา/โควตา
+var OCR_MAX_CHARS_PER_FILE = 30000; // จำกัดความยาวข้อความต่อไฟล์ กันผลลัพธ์ใหญ่เกินไป
+
+function ocrExtractFolderText(folderId) {
+  if (!folderId) return { ok: false, error: 'ไม่ได้ระบุ folderId' };
+  try {
+    assertIsFolder(folderId);
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+  var folder = DriveApp.getFolderById(folderId);
+  var it = folder.getFiles();
+  var combined = '';
+  var processed = 0;
+  var skipped = [];
+  while (it.hasNext() && processed < OCR_MAX_FILES) {
+    var f = it.next();
+    var mime = f.getMimeType();
+    var text = '';
+    try {
+      if (mime === MimeType.GOOGLE_DOCS) {
+        text = DocumentApp.openById(f.getId()).getBody().getText();
+      } else if (mime === MimeType.PLAIN_TEXT) {
+        text = f.getBlob().getDataAsString();
+      } else if (mime === 'application/pdf' || mime.indexOf('image/') === 0) {
+        text = ocrFileToText(f);
+      } else if (mime === MimeType.MICROSOFT_WORD || mime === 'application/msword') {
+        text = ocrFileToText(f); // ไฟล์ Word ไม่ต้อง OCR จริงๆ แต่ใช้ฟังก์ชันเดิมได้ เพราะ Drive แปลงเป็น Google Docs ให้อัตโนมัติ อ่านข้อความได้ตรงๆ
+      } else {
+        skipped.push(f.getName() + ' (ไฟล์ประเภทนี้ยังไม่รองรับ)');
+      }
+    } catch (fileErr) {
+      skipped.push(f.getName() + ' (OCR ไม่สำเร็จ: ' + fileErr.message + ')');
+    }
+    if (text) {
+      if (text.length > OCR_MAX_CHARS_PER_FILE) text = text.substring(0, OCR_MAX_CHARS_PER_FILE);
+      combined += '\\n\\n===== ' + f.getName() + ' =====\\n' + text;
+      processed++;
+    }
+  }
+  var hasMore = it.hasNext();
+  return { ok: true, text: combined, filesProcessed: processed, skipped: skipped, hasMoreFiles: hasMore };
+}
+
+function ocrFileToText(file) {
+  var blob = file.getBlob();
+  var resource = { name: 'OCR_TEMP_' + file.getId(), mimeType: MimeType.GOOGLE_DOCS };
+  var tempFile = Drive.Files.create(resource, blob, { ocrLanguage: 'th' });
+  var text = '';
+  try {
+    text = DocumentApp.openById(tempFile.id).getBody().getText();
+  } finally {
+    try { Drive.Files.remove(tempFile.id); } catch (delErr) {}
+  }
+  return text;
+}
+
+// รันฟังก์ชันนี้ตรงๆ จาก Apps Script Editor (เลือกจาก dropdown แล้วกด ▶ เรียกใช้)
+// เพื่อกระตุ้นให้ระบบขอสิทธิ์ทั้งหมดที่ OCR ต้องใช้ (สร้าง/ลบไฟล์ Drive + เปิดอ่าน Google Docs)
+function testOcrAuth() {
+  var blob = Utilities.newBlob('ทดสอบสิทธิ์ OCR', 'text/plain', 'ocr_auth_test.txt');
+  var tempFile = Drive.Files.create({ name: 'ocr_auth_test_ลบได้เลย', mimeType: MimeType.GOOGLE_DOCS }, blob, { ocrLanguage: 'th' });
+  var text = DocumentApp.openById(tempFile.id).getBody().getText();
+  Drive.Files.remove(tempFile.id);
+  Logger.log('✅ สิทธิ์ทั้งหมดสำหรับ OCR ใช้งานได้ปกติแล้ว (อ่านได้: ' + text.length + ' ตัวอักษร)');
 }
 
 // เขียนผลลัพธ์การจับคู่อัตโนมัติ (จาก client) กลับเข้าคอลัมน์ driveFolderId / matchStatus
@@ -5976,13 +6066,28 @@ async function docsConfirmMatch(row, folderId, status) {
   renderDocsTable();
 }
 
-function docsManualLink(row) {
+async function docsManualLink(row) {
   var id = prompt('วางลิงก์หรือ Folder ID ของโครงการนี้:');
   if (id === null) return;
   var m = id.match(/[-\w]{25,}/);
   var folderId = m ? m[0] : id.trim();
   if (!folderId) return;
-  docsConfirmMatch(row, folderId, 'confirmed');
+  var cell = document.getElementById('docs-row-'+row);
+  try {
+    if (cell) cell.style.opacity = '0.5';
+    // ตรวจสอบว่าเปิดโฟลเดอร์นี้ได้จริงก่อน จะได้ไม่บันทึก ID ที่พิมพ์/วางไม่ครบลงชีต
+    try {
+      await docsListFiles(folderId);
+    } catch (verifyErr) {
+      alert('❌ ไม่พบโฟลเดอร์นี้ใน Google Drive (ยังไม่บันทึก)\n\nID ที่ตรวจสอบ: ' + folderId + '\nข้อความจากเซิร์ฟเวอร์: ' + verifyErr.message + '\n\nลองเปิดโฟลเดอร์ใน Drive แล้วคัดลอกลิงก์มาวางใหม่ให้ครบทั้งบรรทัด (เช็คว่าไม่มีตัวอักษรตกหล่นท้ายลิงก์)');
+      return;
+    }
+    await docsConfirmMatch(row, folderId, 'confirmed');
+  } catch (err) {
+    alert('❌ บันทึกไม่สำเร็จ: ' + err.message + '\n\nสาเหตุที่พบบ่อย: โค้ด Apps Script ที่ deploy อยู่จริงยังเป็นเวอร์ชันเก่า (ยังไม่มี action "confirmMatch" หรือคอลัมน์ driveFolderId/matchStatus) — ไปที่แท็บ ⚙️ ตั้งค่า แล้วคัดลอกโค้ดล่าสุดไปวางใน Apps Script Editor อีกครั้ง จากนั้น Deploy เวอร์ชันใหม่');
+  } finally {
+    if (cell) cell.style.opacity = '';
+  }
 }
 
 function getDocsProjectList() {
@@ -6026,7 +6131,10 @@ function renderDocsTable() {
       '<td>'+escapeHtml(p.agency)+'</td>' +
       '<td>'+statusChip+'</td>' +
       '<td>'+folderCell+'</td>' +
-      '<td id="'+rowId+'-check" style="font-size:11px;color:var(--t3)">'+(p.driveFolderId ? '<button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="docsRunCheck('+p._row+',\''+p.driveFolderId+'\')">🔍 ตรวจสอบเอกสาร</button>' : '—')+'</td>' +
+      '<td id="'+rowId+'-check" style="font-size:11px;color:var(--t3)">'+(p.driveFolderId ?
+        '<button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="docsRunCheck('+p._row+',\''+p.driveFolderId+'\')">🔍 ตรวจสอบเอกสาร</button> ' +
+        '<button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="docsRunCheckOCR('+p._row+',\''+p.driveFolderId+'\')" title="อ่านเนื้อหาในไฟล์ด้วย OCR — ใช้เมื่อเอกสารหลายชุดถูกสแกนรวมเป็นไฟล์เดียว, อาจช้า">🔬 ตรวจเนื้อหา (OCR)</button>'
+        : '—')+'</td>' +
       '<td style="white-space:nowrap">' +
         (p.matchStatus === 'auto' ? '<button class="btn btn-p" style="font-size:11px;padding:4px 8px;margin-right:4px" onclick="docsConfirmMatch('+p._row+',\''+p.driveFolderId+'\',\'confirmed\')">✔ ยืนยัน</button>' : '') +
         '<button class="btn btn-s" style="font-size:11px;padding:4px 8px" onclick="docsManualLink('+p._row+')">✏ ระบุโฟลเดอร์เอง</button>' +
@@ -6057,6 +6165,39 @@ async function docsRunCheck(row, folderId) {
     cell.innerHTML = '<div style="color:'+color+';font-weight:700">'+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+'</div>' + detail;
   } catch(err) {
     cell.innerHTML = '<span style="color:var(--r)">ตรวจสอบไม่สำเร็จ: '+err.message+'</span>';
+  }
+}
+
+// ตรวจสอบเอกสารโดยอ่านเนื้อหาไฟล์จริงด้วย OCR (ใช้เมื่อเอกสารหลายชุดถูกสแกนรวมเป็นไฟล์เดียว)
+// ช้ากว่า docsRunCheck มาก (อาจหลายสิบวินาที–หลายนาที ต่อโฟลเดอร์) และแม่นยำขึ้นอยู่กับคุณภาพการสแกน/ลายมือ
+async function docsRunCheckOCR(row, folderId) {
+  var cell = document.getElementById('docs-row-'+row+'-check');
+  cell.innerHTML = '<span class="spin">⟳</span> กำลังอ่านเนื้อหาไฟล์ด้วย OCR (อาจใช้เวลานานถึงหลายนาที ไม่ต้องปิดหน้านี้)...';
+  try {
+    var url = API_URL + '?action=ocrText&folderId=' + encodeURIComponent(folderId);
+    var res = await fetch(url, { method:'GET', mode:'cors' });
+    var json = await res.json();
+    if (!json.ok) throw new Error(json.error||'error');
+    var text = docsNormalize(json.text || ''); // ตัดช่องว่าง/จุด/ขีด ก่อนเทียบ กัน OCR แทรกช่องว่างผิดที่ (เช่น "จ. 1-1" vs "จ.1-1")
+    var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
+    var req = docsRequiredItems(p);
+    var found = 0, missingRequired = [];
+    req.items.forEach(function(it) {
+      var hit = it.kw.some(function(k){ return text.indexOf(docsNormalize(k)) >= 0; });
+      if (hit) found++; else if (!it.optional) missingRequired.push(it.label);
+    });
+    var pct = Math.round(found / req.items.length * 100);
+    var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
+    var color = missingRequired.length === 0 ? 'var(--gd)' : 'var(--r)';
+    var detail = missingRequired.length
+      ? '<div style="color:var(--r);margin-top:3px">ขาด: ' + missingRequired.slice(0,3).join(', ') + (missingRequired.length>3?' และอีก '+(missingRequired.length-3):'') + '</div>'
+      : '<div style="color:var(--gd);margin-top:3px">เอกสารครบตามเกณฑ์ที่จำเป็น</div>';
+    var note = '';
+    if (json.skipped && json.skipped.length) note += '<div style="color:#B8860B;margin-top:3px">ข้าม: ' + json.skipped.slice(0,2).join(', ') + '</div>';
+    if (json.hasMoreFiles) note += '<div style="color:var(--t3);margin-top:3px">⚠ โฟลเดอร์มีไฟล์มากกว่าที่ตรวจ (ตรวจแล้ว ' + json.filesProcessed + ' ไฟล์แรก) — ผลอาจไม่ครบ</div>';
+    cell.innerHTML = '<div style="color:'+color+';font-weight:700">🔬 '+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+' · อ่านแล้ว '+json.filesProcessed+' ไฟล์</div>' + detail + note;
+  } catch(err) {
+    cell.innerHTML = '<span style="color:var(--r)">ตรวจ OCR ไม่สำเร็จ: '+err.message+'</span>';
   }
 }
 
