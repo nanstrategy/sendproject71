@@ -5941,12 +5941,18 @@ var DOC_COND_ITEMS = {
     { id:'5.4', label:'เอกสารประเมินผลกระทบสิ่งแวดล้อม (ถ้าต้อง)', kw:['สิ่งแวดล้อม','eia','iee'], optional:true },
     { id:'5.5', label:'แผน/แนวทางบริหารจัดการหลังโครงการแล้วเสร็จ', kw:['แผนบริหารจัดการ','แผนการบริหารจัดการ','บริหารจัดการหรือการดูแลบำรุงรักษา','บำรุงรักษาเมื่อโครงการแล้วเสร็จ','ความยั่งยืนของโครงการ','แนวทางบริหารจัดการ'] },
     { id:'5.6', label:'เอกสารอื่นที่เกี่ยวข้อง (เช่น ใบอนุญาตขุดเจาะบ่อบาดาล)', kw:['บ่อบาดาล'], optional:true },
-    { id:'5.7', label:'MOU รับโอนสินทรัพย์ / บันทึกความตกลงโอนสินทรัพย์', kw:['mou','บันทึกความตกลง','โอนสินทรัพย์','รับโอนสินทรัพย์'] }
+    { id:'5.7', label:'MOU รับโอนสินทรัพย์ / บันทึกความตกลงโอนสินทรัพย์', fuzzy:true, kw:[
+        'mou','บันทึกความตกลงการขอตั้งงบประมาณ','การขอตั้งงบประมาณและการรับโอนสินทรัพย์',
+        'รับโอนสินทรัพย์ที่เกิดขึ้นจากการดำเนินโครงการ','ผู้มีอำนาจรับโอนสินทรัพย์','ผู้โอนสินทรัพย์'
+      ] }
   ],
   equipment: [
     { id:'6.1', label:'เอกสารราคาครุภัณฑ์มาตรฐาน', kw:['ราคามาตรฐาน'], optional:true },
     { id:'6.2', label:'ใบเสนอราคา 3 ราย + SPEC (นอกบัญชีมาตรฐาน)', kw:['ใบเสนอราคา','spec','สเปค'], optional:true },
-    { id:'6.3', label:'MOU รับโอนสินทรัพย์ / บันทึกความตกลงโอนสินทรัพย์', kw:['mou','บันทึกความตกลง','โอนสินทรัพย์','รับโอนสินทรัพย์'] }
+    { id:'6.3', label:'MOU รับโอนสินทรัพย์ / บันทึกความตกลงโอนสินทรัพย์', fuzzy:true, kw:[
+        'mou','บันทึกความตกลงการขอตั้งงบประมาณ','การขอตั้งงบประมาณและการรับโอนสินทรัพย์',
+        'รับโอนสินทรัพย์ที่เกิดขึ้นจากการดำเนินโครงการ','ผู้มีอำนาจรับโอนสินทรัพย์','ผู้โอนสินทรัพย์'
+      ] }
   ],
   operating: [
     { id:'7.1', label:'ร่างขอบเขตการดำเนินงาน (TOR) + ราคาประกอบ', kw:['tor','ขอบเขตการดำเนินงาน'], optional:true },
@@ -6065,14 +6071,25 @@ function docsNormalize(s) {
 function docsStripDiacritics(s) {
   return (s||'').replace(/[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g, '');
 }
+// ตรวจว่าคำค้น k (normalize แล้ว) อยู่ในข้อความ haystackNorm (normalize แล้ว) หรือไม่
+// คำค้นภาษาอังกฤษสั้นๆ (≤4 ตัวอักษร เช่น mou, gps, tor, eia) ต้องมีขอบเขตคำ (word boundary)
+// กันจับคำผิดจากคำอังกฤษอื่นที่บังเอิญมีตัวอักษรต่อเนื่องเหมือนกัน เช่น "mou" ไปตรงกับ "amount"
+function docsKwMatch(haystackNorm, k) {
+  if (!k) return false;
+  if (k.length <= 4 && /^[a-z0-9]+$/.test(k)) {
+    var re = new RegExp('(^|[^a-z0-9])' + k + '($|[^a-z0-9])');
+    return re.test(haystackNorm);
+  }
+  return haystackNorm.indexOf(k) >= 0;
+}
 // ตรวจว่าข้อความ (ชื่อไฟล์ หรือเนื้อหา OCR) ตรงกับคำค้นของ item หรือไม่
 // ถ้า item.fuzzy = true จะลองเทียบแบบตัดสระ/วรรณยุกต์เป็นทางเลือกสำรองด้วย
 function docsKwHit(text, item) {
   var norm = docsNormalize(text);
-  var hit = item.kw.some(function(k){ return norm.indexOf(docsNormalize(k)) >= 0; });
+  var hit = item.kw.some(function(k){ return docsKwMatch(norm, docsNormalize(k)); });
   if (!hit && item.fuzzy) {
     var fuzzyText = docsStripDiacritics(norm);
-    hit = item.kw.some(function(k){ return fuzzyText.indexOf(docsStripDiacritics(docsNormalize(k))) >= 0; });
+    hit = item.kw.some(function(k){ return docsKwMatch(fuzzyText, docsStripDiacritics(docsNormalize(k))); });
   }
   return hit;
 }
@@ -6187,20 +6204,26 @@ async function docsRunCheck(row, folderId) {
     var names = files.map(function(f){ return (f.name||'').toLowerCase(); });
     var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
     var req = docsRequiredItems(p);
-    var found = 0, missingRequired = [], needsEyeCheck = [];
+    var found = 0, missingRequired = [], missingOptional = [], needsEyeCheck = [];
     req.items.forEach(function(it) {
       var hit = names.some(function(n){ return docsKwHit(n, it); });
-      if (hit) found++; else if (!it.optional) {
+      if (hit) { found++; return; }
+      if (!it.optional) {
         missingRequired.push(it.label);
-        if (it.ocrNote) needsEyeCheck.push(it.label);
+      } else {
+        missingOptional.push(it.label);
       }
+      if (it.ocrNote) needsEyeCheck.push(it.label);
     });
     var pct = Math.round(found / req.items.length * 100);
     var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
     var color = missingRequired.length === 0 ? 'var(--gd)' : 'var(--r)';
     var detail = missingRequired.length
-      ? '<div style="color:var(--r);margin-top:3px">ขาด: ' + missingRequired.slice(0,3).join(', ') + (missingRequired.length>3?' และอีก '+(missingRequired.length-3):'') + '</div>'
+      ? '<div style="color:var(--r);margin-top:3px">ขาด (' + missingRequired.length + '): ' + missingRequired.join(', ') + '</div>'
       : '<div style="color:var(--gd);margin-top:3px">เอกสารครบตามเกณฑ์ที่จำเป็น</div>';
+    if (missingOptional.length) {
+      detail += '<div style="color:var(--t2);margin-top:3px">ไม่บังคับแต่ยังไม่พบ (' + missingOptional.length + '): ' + missingOptional.join(', ') + '</div>';
+    }
     if (needsEyeCheck.length) {
       detail += '<div style="margin-top:5px;padding:6px 8px;border:1px solid #B8860B;border-left:4px solid #B8860B;background:rgba(184,134,11,0.10);border-radius:4px">' +
         '<b>👁️ ต้องเปิดไฟล์ตรวจด้วยตา:</b> ' + needsEyeCheck.join(', ') +
@@ -6239,23 +6262,29 @@ async function docsRunCheckOCR(row, folderId) {
     var textFuzzy = docsStripDiacritics(text); // ตัดสระ/วรรณยุกต์เพิ่ม เผื่อ OCR อ่านผิดเพี้ยน (เช่น "แผ่นที่" แทน "แผนที่")
     var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
     var req = docsRequiredItems(p);
-    var found = 0, missingRequired = [], ocrCaveats = [];
+    var found = 0, missingRequired = [], missingOptional = [], ocrCaveats = [];
     req.items.forEach(function(it) {
-      var hit = it.kw.some(function(k){ return text.indexOf(docsNormalize(k)) >= 0; });
+      var hit = it.kw.some(function(k){ return docsKwMatch(text, docsNormalize(k)); });
       if (!hit && it.fuzzy) {
-        hit = it.kw.some(function(k){ return textFuzzy.indexOf(docsStripDiacritics(docsNormalize(k))) >= 0; });
+        hit = it.kw.some(function(k){ return docsKwMatch(textFuzzy, docsStripDiacritics(docsNormalize(k))); });
       }
-      if (hit) found++; else if (!it.optional) {
+      if (hit) { found++; return; }
+      if (!it.optional) {
         missingRequired.push(it.label);
-        if (it.ocrNote) ocrCaveats.push(it.label + ': ' + it.ocrNote);
+      } else {
+        missingOptional.push(it.label);
       }
+      if (it.ocrNote) ocrCaveats.push(it.label + ': ' + it.ocrNote);
     });
     var pct = Math.round(found / req.items.length * 100);
     var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
     var color = missingRequired.length === 0 ? 'var(--gd)' : 'var(--r)';
     var detail = missingRequired.length
-      ? '<div style="color:var(--r);margin-top:3px">ขาด: ' + missingRequired.slice(0,3).join(', ') + (missingRequired.length>3?' และอีก '+(missingRequired.length-3):'') + '</div>'
+      ? '<div style="color:var(--r);margin-top:3px">ขาด (' + missingRequired.length + '): ' + missingRequired.join(', ') + '</div>'
       : '<div style="color:var(--gd);margin-top:3px">เอกสารครบตามเกณฑ์ที่จำเป็น</div>';
+    if (missingOptional.length) {
+      detail += '<div style="color:var(--t2);margin-top:3px">ไม่บังคับแต่ยังไม่พบ (' + missingOptional.length + '): ' + missingOptional.join(', ') + '</div>';
+    }
     if (ocrCaveats.length) {
       detail += '<div style="margin-top:5px;padding:6px 8px;border:1px solid #B8860B;border-left:4px solid #B8860B;background:rgba(184,134,11,0.10);border-radius:4px">' +
         '<div><b>👁️ ต้องเปิดไฟล์ตรวจด้วยตา (OCR อาจอ่านไม่ได้):</b></div>' +
