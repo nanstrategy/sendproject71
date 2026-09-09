@@ -5915,16 +5915,25 @@ var DOC_BASE_ITEMS = [
   { id:'1', label:'แบบฟอร์มโครงการแบบย่อ (จ.1-1)', kw:['จ.1-1','จ1-1','project brief'] },
   { id:'2', label:'แบบฟอร์มข้อมูลพื้นฐานโครงการของจังหวัด', kw:['ข้อมูลพื้นฐานโครงการ'] },
   { id:'3', label:'แบบฟอร์มรายละเอียดจำแนกงบประมาณรายจ่าย', kw:['จำแนกงบ','งบรายจ่าย'] },
-  { id:'4', label:'แผนที่สรุปตำแหน่งที่ตั้งหลักของกิจกรรม', kw:['แผนที่'] }
+  { id:'4', label:'แผนที่สรุปตำแหน่งที่ตั้งหลักของกิจกรรม', fuzzy:true, kw:[
+      'แผนที่','แผ่นที่','แผนทื่','แผนทีที่','แผนทีตั้ง','มาตราส่วน','scale',
+      'ผังบริเวณ','แผนผังที่ตั้ง','ที่ตั้งโครงการ','เส้นทางเข้าถึง','พิกัด','gps',
+      'google map','กูเกิลแมพ','กูเกิ้ลแมพ','ภาพถ่ายดาวเทียม','ภาพถ่ายทางอากาศ',
+      'site plan','location map','จุดเริ่มต้นโครงการ','จุดสิ้นสุดโครงการ','ระยะทางโครงการ'
+    ], ocrNote:'หน้านี้มักเป็นภาพแผนที่/แผนผังที่สแกนมา OCR อาจอ่านข้อความไม่ออกหรืออ่านผิดเพี้ยน (เช่น "แผ่นที่" แทน "แผนที่") หากระบบแจ้งว่าขาด ให้เปิดไฟล์ตรวจด้วยตาก่อนสรุปว่าไม่มี' }
 ];
 // เอกสารเงื่อนไข แยกตามประเภทงบ (docType)
 var DOC_COND_ITEMS = {
   land: [
     { id:'5.1', label:'แบบรูปรายการ/ประมาณการราคา ปร.4–ปร.5', kw:['ปร.4','ปร.5','ปร4','ปร5','ประมาณการ','แบบรูปรายการ','บก.01','ราคากลาง','สรุปราคากลาง','แบบสรุปราคากลาง'] },
-    { id:'5.2', label:'แผนที่/ภาพพื้นที่ดำเนินโครงการ พร้อมพิกัด', kw:['พิกัด','ภาพพื้นที่','ภาพถ่ายพื้นที่','รูปพื้นที่','ที่ตั้งโครงการ','gps'] },
+    { id:'5.2', label:'แผนที่/ภาพพื้นที่ดำเนินโครงการ พร้อมพิกัด', fuzzy:true, kw:[
+        'พิกัด','ภาพพื้นที่','ภาพถ่ายพื้นที่','รูปพื้นที่','ที่ตั้งโครงการ','gps',
+        'แผนที่','แผ่นที่','แผนทื่','google map','กูเกิลแมพ','กูเกิ้ลแมพ',
+        'ภาพถ่ายดาวเทียม','ภาพถ่ายทางอากาศ','ผังบริเวณ','แผนผังที่ตั้ง','coordinates'
+      ], ocrNote:'หน้านี้มักเป็นภาพแผนที่/ภาพถ่ายพื้นที่ที่สแกนมา OCR อาจอ่านข้อความไม่ออกหรืออ่านผิดเพี้ยน หากระบบแจ้งว่าขาด ให้เปิดไฟล์ตรวจด้วยตาก่อนสรุปว่าไม่มี' },
     { id:'5.3', label:'เอกสารแสดงความพร้อมของพื้นที่/การอนุญาตใช้พื้นที่', kw:['อนุญาต','ยินยอม','ความพร้อมของพื้นที่'] },
     { id:'5.4', label:'เอกสารประเมินผลกระทบสิ่งแวดล้อม (ถ้าต้อง)', kw:['สิ่งแวดล้อม','eia','iee'], optional:true },
-    { id:'5.5', label:'แผน/แนวทางบริหารจัดการหลังโครงการแล้วเสร็จ', kw:['แผนบริหารจัดการ','แผนการบริหารจัดการ'] },
+    { id:'5.5', label:'แผน/แนวทางบริหารจัดการหลังโครงการแล้วเสร็จ', kw:['แผนบริหารจัดการ','แผนการบริหารจัดการ','บริหารจัดการหรือการดูแลบำรุงรักษา','บำรุงรักษาเมื่อโครงการแล้วเสร็จ','ความยั่งยืนของโครงการ','แนวทางบริหารจัดการ'] },
     { id:'5.6', label:'เอกสารอื่นที่เกี่ยวข้อง (เช่น ใบอนุญาตขุดเจาะบ่อบาดาล)', kw:['บ่อบาดาล'], optional:true }
   ],
   equipment: [
@@ -6043,6 +6052,23 @@ function docsNormalize(s) {
     .replace(/[๐-๙]/g, function(d){ return String(thaiDigits.indexOf(d)); }) // เลขไทย -> เลขอารบิก (เอกสารสแกน/OCR มักอ่านเป็นเลขไทย)
     .replace(/[\s\-\_\.\(\)\/,]+/g,'');
 }
+// ตัดสระบน/ล่างและวรรณยุกต์ออก เพื่อจับคำที่สะกด/OCR อ่านใกล้เคียงกัน
+// เช่น "แผนที่" / "แผ่นที่" / "แผนทื่" ล้วนเหลือแค่ "แผนท" หลังตัด จึงจับคู่กันได้
+// แม้สะกดผิดหรือ OCR อ่านสระ/วรรณยุกต์คลาดเคลื่อน
+function docsStripDiacritics(s) {
+  return (s||'').replace(/[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g, '');
+}
+// ตรวจว่าข้อความ (ชื่อไฟล์ หรือเนื้อหา OCR) ตรงกับคำค้นของ item หรือไม่
+// ถ้า item.fuzzy = true จะลองเทียบแบบตัดสระ/วรรณยุกต์เป็นทางเลือกสำรองด้วย
+function docsKwHit(text, item) {
+  var norm = docsNormalize(text);
+  var hit = item.kw.some(function(k){ return norm.indexOf(docsNormalize(k)) >= 0; });
+  if (!hit && item.fuzzy) {
+    var fuzzyText = docsStripDiacritics(norm);
+    hit = item.kw.some(function(k){ return fuzzyText.indexOf(docsStripDiacritics(docsNormalize(k))) >= 0; });
+  }
+  return hit;
+}
 function docsBigrams(s) {
   var out = [];
   for (var i=0;i<s.length-1;i++) out.push(s.substr(i,2));
@@ -6154,10 +6180,13 @@ async function docsRunCheck(row, folderId) {
     var names = files.map(function(f){ return (f.name||'').toLowerCase(); });
     var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
     var req = docsRequiredItems(p);
-    var found = 0, missingRequired = [];
+    var found = 0, missingRequired = [], needsEyeCheck = [];
     req.items.forEach(function(it) {
-      var hit = names.some(function(n){ return it.kw.some(function(k){ return n.indexOf(k) >= 0; }); });
-      if (hit) found++; else if (!it.optional) missingRequired.push(it.label);
+      var hit = names.some(function(n){ return docsKwHit(n, it); });
+      if (hit) found++; else if (!it.optional) {
+        missingRequired.push(it.label);
+        if (it.ocrNote) needsEyeCheck.push(it.label);
+      }
     });
     var pct = Math.round(found / req.items.length * 100);
     var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
@@ -6165,6 +6194,12 @@ async function docsRunCheck(row, folderId) {
     var detail = missingRequired.length
       ? '<div style="color:var(--r);margin-top:3px">ขาด: ' + missingRequired.slice(0,3).join(', ') + (missingRequired.length>3?' และอีก '+(missingRequired.length-3):'') + '</div>'
       : '<div style="color:var(--gd);margin-top:3px">เอกสารครบตามเกณฑ์ที่จำเป็น</div>';
+    if (needsEyeCheck.length) {
+      detail += '<div style="margin-top:5px;padding:6px 8px;border:1px solid #B8860B;border-left:4px solid #B8860B;background:rgba(184,134,11,0.10);border-radius:4px">' +
+        '<b>👁️ ต้องเปิดไฟล์ตรวจด้วยตา:</b> ' + needsEyeCheck.join(', ') +
+        '<div style="font-size:11px;margin-top:2px;color:var(--t2)">รายการนี้มักเป็นภาพ/แผนที่สแกน ชื่อไฟล์อาจไม่มีคำที่ระบบค้นหา — "ขาด" ด้านบนอาจไม่จริง กรุณาเปิดโฟลเดอร์ดูก่อนสรุป</div>' +
+      '</div>';
+    }
     cell.innerHTML = '<div style="color:'+color+';font-weight:700">'+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+'</div>' + detail;
   } catch(err) {
     cell.innerHTML = '<span style="color:var(--r)">ตรวจสอบไม่สำเร็จ: '+err.message+'</span>';
@@ -6194,12 +6229,19 @@ async function docsRunCheckOCR(row, folderId) {
     if (!json.ok) throw new Error(json.error||'error');
     docsOCRRawTextCache[row] = json.text || '';
     var text = docsNormalize(json.text || ''); // ตัดช่องว่าง/จุด/ขีด ก่อนเทียบ กัน OCR แทรกช่องว่างผิดที่ (เช่น "จ. 1-1" vs "จ.1-1")
+    var textFuzzy = docsStripDiacritics(text); // ตัดสระ/วรรณยุกต์เพิ่ม เผื่อ OCR อ่านผิดเพี้ยน (เช่น "แผ่นที่" แทน "แผนที่")
     var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
     var req = docsRequiredItems(p);
-    var found = 0, missingRequired = [];
+    var found = 0, missingRequired = [], ocrCaveats = [];
     req.items.forEach(function(it) {
       var hit = it.kw.some(function(k){ return text.indexOf(docsNormalize(k)) >= 0; });
-      if (hit) found++; else if (!it.optional) missingRequired.push(it.label);
+      if (!hit && it.fuzzy) {
+        hit = it.kw.some(function(k){ return textFuzzy.indexOf(docsStripDiacritics(docsNormalize(k))) >= 0; });
+      }
+      if (hit) found++; else if (!it.optional) {
+        missingRequired.push(it.label);
+        if (it.ocrNote) ocrCaveats.push(it.label + ': ' + it.ocrNote);
+      }
     });
     var pct = Math.round(found / req.items.length * 100);
     var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
@@ -6207,6 +6249,12 @@ async function docsRunCheckOCR(row, folderId) {
     var detail = missingRequired.length
       ? '<div style="color:var(--r);margin-top:3px">ขาด: ' + missingRequired.slice(0,3).join(', ') + (missingRequired.length>3?' และอีก '+(missingRequired.length-3):'') + '</div>'
       : '<div style="color:var(--gd);margin-top:3px">เอกสารครบตามเกณฑ์ที่จำเป็น</div>';
+    if (ocrCaveats.length) {
+      detail += '<div style="margin-top:5px;padding:6px 8px;border:1px solid #B8860B;border-left:4px solid #B8860B;background:rgba(184,134,11,0.10);border-radius:4px">' +
+        '<div><b>👁️ ต้องเปิดไฟล์ตรวจด้วยตา (OCR อาจอ่านไม่ได้):</b></div>' +
+        '<div style="font-size:11px;margin-top:2px;color:var(--t2)">' + ocrCaveats.join('<br>') + '</div>' +
+      '</div>';
+    }
     var note = '';
     if (json.skipped && json.skipped.length) note += '<div style="color:#B8860B;margin-top:3px">ข้าม: ' + json.skipped.slice(0,2).join(', ') + '</div>';
     if (json.hasMoreFiles) note += '<div style="color:var(--t3);margin-top:3px">⚠ โฟลเดอร์มีไฟล์มากกว่าที่ตรวจ (ตรวจแล้ว ' + json.filesProcessed + ' ไฟล์แรก) — ผลอาจไม่ครบ</div>';
