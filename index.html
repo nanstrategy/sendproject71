@@ -5920,8 +5920,8 @@ var DOC_BASE_ITEMS = [
 // เอกสารเงื่อนไข แยกตามประเภทงบ (docType)
 var DOC_COND_ITEMS = {
   land: [
-    { id:'5.1', label:'แบบรูปรายการ/ประมาณการราคา ปร.4–ปร.5', kw:['ปร.4','ปร.5','ปร4','ปร5','ประมาณการ'] },
-    { id:'5.2', label:'แผนที่/ภาพพื้นที่ดำเนินโครงการ พร้อมพิกัด', kw:['พิกัด','ภาพพื้นที่'] },
+    { id:'5.1', label:'แบบรูปรายการ/ประมาณการราคา ปร.4–ปร.5', kw:['ปร.4','ปร.5','ปร4','ปร5','ประมาณการ','แบบรูปรายการ','บก.01','ราคากลาง','สรุปราคากลาง','แบบสรุปราคากลาง'] },
+    { id:'5.2', label:'แผนที่/ภาพพื้นที่ดำเนินโครงการ พร้อมพิกัด', kw:['พิกัด','ภาพพื้นที่','ภาพถ่ายพื้นที่','รูปพื้นที่','ที่ตั้งโครงการ','gps'] },
     { id:'5.3', label:'เอกสารแสดงความพร้อมของพื้นที่/การอนุญาตใช้พื้นที่', kw:['อนุญาต','ยินยอม','ความพร้อมของพื้นที่'] },
     { id:'5.4', label:'เอกสารประเมินผลกระทบสิ่งแวดล้อม (ถ้าต้อง)', kw:['สิ่งแวดล้อม','eia','iee'], optional:true },
     { id:'5.5', label:'แผน/แนวทางบริหารจัดการหลังโครงการแล้วเสร็จ', kw:['แผนบริหารจัดการ','แผนการบริหารจัดการ'] },
@@ -6038,7 +6038,10 @@ function docsSimilarity(a, b) {
   return (2*hit) / (ga.length + gb.length);
 }
 function docsNormalize(s) {
-  return (s||'').toLowerCase().replace(/[\s\-\_\.\(\)\/,]+/g,'');
+  var thaiDigits = '๐๑๒๓๔๕๖๗๘๙';
+  return (s||'').toLowerCase()
+    .replace(/[๐-๙]/g, function(d){ return String(thaiDigits.indexOf(d)); }) // เลขไทย -> เลขอารบิก (เอกสารสแกน/OCR มักอ่านเป็นเลขไทย)
+    .replace(/[\s\-\_\.\(\)\/,]+/g,'');
 }
 function docsBigrams(s) {
   var out = [];
@@ -6170,6 +6173,17 @@ async function docsRunCheck(row, folderId) {
 
 // ตรวจสอบเอกสารโดยอ่านเนื้อหาไฟล์จริงด้วย OCR (ใช้เมื่อเอกสารหลายชุดถูกสแกนรวมเป็นไฟล์เดียว)
 // ช้ากว่า docsRunCheck มาก (อาจหลายสิบวินาที–หลายนาที ต่อโฟลเดอร์) และแม่นยำขึ้นอยู่กับคุณภาพการสแกน/ลายมือ
+var docsOCRRawTextCache = {}; // row -> raw OCR text จากรอบตรวจล่าสุด (ไว้เปิดดูดิบเพื่อ debug)
+
+function docsShowRawOCR(row) {
+  var raw = docsOCRRawTextCache[row];
+  if (!raw) { alert('ยังไม่มีข้อความ OCR ที่บันทึกไว้สำหรับแถวนี้ — กด "ตรวจเนื้อหา (OCR)" ก่อน'); return; }
+  openDebugModal(
+    '📄 ข้อความดิบที่ OCR อ่านได้ (ใช้ Ctrl+F / Cmd+F ค้นหาคำที่ต้องการ)',
+    '<pre style="white-space:pre-wrap;word-break:break-word;font-family:inherit;margin:0">' + escapeHtml(raw) + '</pre>'
+  );
+}
+
 async function docsRunCheckOCR(row, folderId) {
   var cell = document.getElementById('docs-row-'+row+'-check');
   cell.innerHTML = '<span class="spin">⟳</span> กำลังอ่านเนื้อหาไฟล์ด้วย OCR (อาจใช้เวลานานถึงหลายนาที ไม่ต้องปิดหน้านี้)...';
@@ -6178,6 +6192,7 @@ async function docsRunCheckOCR(row, folderId) {
     var res = await fetch(url, { method:'GET', mode:'cors' });
     var json = await res.json();
     if (!json.ok) throw new Error(json.error||'error');
+    docsOCRRawTextCache[row] = json.text || '';
     var text = docsNormalize(json.text || ''); // ตัดช่องว่าง/จุด/ขีด ก่อนเทียบ กัน OCR แทรกช่องว่างผิดที่ (เช่น "จ. 1-1" vs "จ.1-1")
     var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
     var req = docsRequiredItems(p);
@@ -6195,7 +6210,8 @@ async function docsRunCheckOCR(row, folderId) {
     var note = '';
     if (json.skipped && json.skipped.length) note += '<div style="color:#B8860B;margin-top:3px">ข้าม: ' + json.skipped.slice(0,2).join(', ') + '</div>';
     if (json.hasMoreFiles) note += '<div style="color:var(--t3);margin-top:3px">⚠ โฟลเดอร์มีไฟล์มากกว่าที่ตรวจ (ตรวจแล้ว ' + json.filesProcessed + ' ไฟล์แรก) — ผลอาจไม่ครบ</div>';
-    cell.innerHTML = '<div style="color:'+color+';font-weight:700">🔬 '+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+' · อ่านแล้ว '+json.filesProcessed+' ไฟล์</div>' + detail + note;
+    cell.innerHTML = '<div style="color:'+color+';font-weight:700">🔬 '+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+' · อ่านแล้ว '+json.filesProcessed+' ไฟล์</div>' + detail + note +
+      '<div style="margin-top:3px"><a href="javascript:void(0)" onclick="docsShowRawOCR('+row+')" style="color:var(--b);font-size:11px">🔍 ดูข้อความดิบที่ OCR อ่านได้</a></div>';
   } catch(err) {
     cell.innerHTML = '<span style="color:var(--r)">ตรวจ OCR ไม่สำเร็จ: '+err.message+'</span>';
   }
