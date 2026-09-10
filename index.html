@@ -5925,8 +5925,11 @@ var DOC_BASE_ITEMS = [
       'checklist','เช็คลิสต์','เช็ก ลิสต์','บัญชีรายการเอกสาร','แบบตรวจสอบเอกสาร','รายการเอกสารประกอบ','แบบตรวจสอบรายการเอกสาร'
     ] },
   { id:'readiness', label:'แบบยืนยันความพร้อมของโครงการ', fuzzy:true, kw:[
-      'ยืนยันความพร้อมของโครงการ','ความพร้อมของโครงการ','แบบยืนยันความพร้อม','พร้อมดำเนินการ','รับรองความพร้อม'
+      'แบบยืนยันความพร้อม','ยืนยันความพร้อมของโครงการ','ยืนยันวาโครงการมีความพรอม','ยืนยันว่าโครงการมีความพร้อม'
     ] }
+    // หมายเหตุ: ตัด 'ความพร้อมของโครงการ' และ 'พร้อมดำเนินการ' ออก (2026-09) เพราะกว้างเกินไป
+    // ไปชนกับหัวข้อ "(๑๐) ความพร้อมของโครงการ" ใน "แบบฟอร์มข้อมูลพื้นฐานโครงการ" (item id '2')
+    // ทำให้ระบบรายงานผิดว่าพบไฟล์ทั้งที่ไม่มีแบบยืนยันความพร้อมตัวจริงอยู่ในโฟลเดอร์
 ];
 // เอกสารเงื่อนไข แยกตามประเภทงบ (docType)
 var DOC_COND_ITEMS = {
@@ -5961,14 +5964,30 @@ var DOC_COND_ITEMS = {
 };
 var DOC_TYPE_KEYWORDS = {
   equipment: ['จัดซื้อครุภัณฑ์','ครุภัณฑ์','จัดหาเครื่องมือ','เครื่องจักร'],
-  land: ['ก่อสร้าง','ปรับปรุง','ซ่อมแซม','ขยายเขต','ที่ดิน','อาคาร','ถนน','สะพาน','ประปา','เขื่อน','ฝาย','อ่างเก็บน้ำ','ระบบระบายน้ำ'],
+  land: ['ก่อสร้าง','ปรับปรุง','ซ่อมแซม','ขยายเขต','ที่ดิน','อาคาร','ถนน','สะพาน','ประปา','เขื่อน','ฝาย','อ่างเก็บน้ำ','ระบบระบายน้ำ','บ่อบาดาล','น้ำบาดาล','เจาะบ่อ','ขุดเจาะ'],
   operating: ['จ้างเหมา','อบรม','สัมมนา','ฝึกอบรม','ประชาสัมพันธ์','ศึกษาดูงาน','จัดกิจกรรม','รณรงค์']
 };
 var LOCAL_AGENCY_KEYWORDS = ['อบต.','เทศบาล','อบจ.','องค์การบริหารส่วนตำบล','องค์การบริหารส่วนจังหวัด'];
 
-function inferDocType(p) {
-  var text = ((p.name||'') + ' ' + (p.output||'') + ' ' + (p.actOverview||'') + ' ' +
+// รวมข้อความทุกฟิลด์ของโครงการที่น่าจะบ่งบอกลักษณะงาน ไว้ใช้ค้นหา keyword (ใช้ร่วมกันทั้ง inferDocType และ special-case trigger)
+function docsProjectText(p) {
+  return ((p.name||'') + ' ' + (p.output||'') + ' ' + (p.actOverview||'') + ' ' +
     [1,2,3,4,5,6,7,8,9,10].map(function(i){ return p['act'+i+'_name']||''; }).join(' ')).toLowerCase();
+}
+
+// รายการที่ "ปกติไม่บังคับ" แต่จะกลายเป็น "บังคับ" เฉพาะโครงการที่เข้าเงื่อนไขพิเศษ
+// (ตรวจจากข้อความชื่อ/รายละเอียดโครงการ) — เพิ่มเงื่อนไขใหม่ในอนาคตได้โดยเพิ่ม entry ในนี้
+// โดยไม่ต้องแก้ logic อื่น
+var SPECIAL_ITEM_TRIGGERS = [
+  {
+    itemId: '5.6', // 'เอกสารอื่นที่เกี่ยวข้อง (เช่น ใบอนุญาตขุดเจาะบ่อบาดาล)'
+    kw: ['บ่อบาดาล','น้ำบาดาล','เจาะบ่อ','ขุดเจาะน้ำบาดาล','ขุดบ่อ'],
+    requiredLabel: 'ใบอนุญาตขุดเจาะบ่อบาดาล (บังคับ — ตรวจพบว่าโครงการนี้เกี่ยวข้องกับบ่อบาดาล/น้ำบาดาล)'
+  }
+];
+
+function inferDocType(p) {
+  var text = docsProjectText(p);
   var order = ['equipment','land','operating'];
   for (var i=0;i<order.length;i++) {
     var kws = DOC_TYPE_KEYWORDS[order[i]];
@@ -5982,9 +6001,23 @@ function inferDocType(p) {
 function docsRequiredItems(p) {
   var items = DOC_BASE_ITEMS.slice();
   var docType = inferDocType(p);
-  if (docType && DOC_COND_ITEMS[docType]) items = items.concat(DOC_COND_ITEMS[docType]);
+  if (docType && DOC_COND_ITEMS[docType]) items = items.concat(DOC_COND_ITEMS[docType].map(function(it){
+    return { id: it.id, label: it.label, kw: it.kw, fuzzy: it.fuzzy, optional: it.optional, ocrNote: it.ocrNote };
+  }));
   var isLocalOrg = LOCAL_AGENCY_KEYWORDS.some(function(k){ return (p.agency||'').indexOf(k) >= 0; });
   if (isLocalOrg) items = items.concat([{ id:'9', label:'เอกสารสถานะการคลัง/มติสภาท้องถิ่น (กรณี อปท. เป็นหน่วยดำเนินการ)', kw:['มติสภา','สถานะทางการคลัง'] }]);
+  // ยกระดับรายการที่ตรงเงื่อนไขพิเศษจาก "ไม่บังคับ" เป็น "บังคับ" เฉพาะโครงการที่เข้าข่ายจริง
+  // (โครงการอื่นที่ไม่เกี่ยวข้องยังคงเห็นรายการนี้เป็นไม่บังคับเหมือนเดิม ไม่กระทบภาพรวม)
+  var text = docsProjectText(p);
+  SPECIAL_ITEM_TRIGGERS.forEach(function(trig) {
+    var triggered = trig.kw.some(function(k){ return text.indexOf(k) >= 0; });
+    if (!triggered) return;
+    items = items.map(function(it) {
+      if (it.id !== trig.itemId) return it;
+      var clone = { id: it.id, label: trig.requiredLabel || it.label, kw: it.kw, fuzzy: it.fuzzy, optional: false, ocrNote: it.ocrNote };
+      return clone;
+    });
+  });
   return { items: items, docType: docType };
 }
 
@@ -6205,9 +6238,15 @@ async function docsRunCheck(row, folderId) {
     var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
     var req = docsRequiredItems(p);
     var found = 0, missingRequired = [], missingOptional = [], needsEyeCheck = [];
+    var totalRequired = req.items.filter(function(it){ return !it.optional; }).length;
+    var foundRequired = 0, foundOptional = 0;
     req.items.forEach(function(it) {
       var hit = names.some(function(n){ return docsKwHit(n, it); });
-      if (hit) { found++; return; }
+      if (hit) {
+        found++;
+        if (it.optional) foundOptional++; else foundRequired++;
+        return;
+      }
       if (!it.optional) {
         missingRequired.push(it.label);
       } else {
@@ -6215,7 +6254,9 @@ async function docsRunCheck(row, folderId) {
       }
       if (it.ocrNote) needsEyeCheck.push(it.label);
     });
-    var pct = Math.round(found / req.items.length * 100);
+    // % คิดจากรายการ "บังคับ" เท่านั้น — รายการไม่บังคับที่ยังไม่พบ ไม่ควรทำให้เปอร์เซ็นต์ค้างไม่ถึง 100%
+    // ทั้งที่เอกสารบังคับครบทุกอย่างแล้ว
+    var pct = totalRequired ? Math.round(foundRequired / totalRequired * 100) : 100;
     var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
     var color = missingRequired.length === 0 ? 'var(--gd)' : 'var(--r)';
     var detail = missingRequired.length
@@ -6230,7 +6271,7 @@ async function docsRunCheck(row, folderId) {
         '<div style="font-size:11px;margin-top:2px;color:var(--t2)">รายการนี้มักเป็นภาพ/แผนที่สแกน ชื่อไฟล์อาจไม่มีคำที่ระบบค้นหา — "ขาด" ด้านบนอาจไม่จริง กรุณาเปิดโฟลเดอร์ดูก่อนสรุป</div>' +
       '</div>';
     }
-    cell.innerHTML = '<div style="color:'+color+';font-weight:700">'+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+'</div>' + detail;
+    cell.innerHTML = '<div style="color:'+color+';font-weight:700">'+foundRequired+'/'+totalRequired+' รายการบังคับ ('+pct+'%) · '+typeLabel+'</div>' + detail;
   } catch(err) {
     cell.innerHTML = '<span style="color:var(--r)">ตรวจสอบไม่สำเร็จ: '+err.message+'</span>';
   }
@@ -6239,6 +6280,28 @@ async function docsRunCheck(row, folderId) {
 // ตรวจสอบเอกสารโดยอ่านเนื้อหาไฟล์จริงด้วย OCR (ใช้เมื่อเอกสารหลายชุดถูกสแกนรวมเป็นไฟล์เดียว)
 // ช้ากว่า docsRunCheck มาก (อาจหลายสิบวินาที–หลายนาที ต่อโฟลเดอร์) และแม่นยำขึ้นอยู่กับคุณภาพการสแกน/ลายมือ
 var docsOCRRawTextCache = {}; // row -> raw OCR text จากรอบตรวจล่าสุด (ไว้เปิดดูดิบเพื่อ debug)
+
+// แยกข้อความ OCR ดิบของทั้งโฟลเดอร์ ออกเป็นก้อนต่อไฟล์ ตามตัวคั่นที่ backend ใส่มาให้
+// (รูปแบบ "===== ชื่อไฟล์ =====" นำหน้าเนื้อหาแต่ละไฟล์) เพื่อให้จับ keyword แยกรายไฟล์ได้
+// ป้องกัน false positive แบบ: keyword ของ item A ไปโผล่อยู่ในไฟล์ของ item B โดยบังเอิญ
+// แล้วระบบรวมข้อความทั้งโฟลเดอร์เป็นก้อนเดียวจนตีความผิดว่า item A มีไฟล์อยู่จริง
+function docsSplitOCRByFile(raw) {
+  raw = raw || '';
+  var re = /=====\s*(.+?)\s*=====/g;
+  var marks = [];
+  var m;
+  while ((m = re.exec(raw)) !== null) {
+    marks.push({ name: m[1], markStart: m.index, contentStart: re.lastIndex });
+  }
+  if (!marks.length) return [{ file: null, text: raw }]; // ไม่มีตัวคั่น (backend รุ่นเก่า) → ตกกลับไปแบบก้อนเดียวเหมือนเดิม
+  var parts = [];
+  for (var i = 0; i < marks.length; i++) {
+    var start = marks[i].contentStart;
+    var end = (i + 1 < marks.length) ? marks[i+1].markStart : raw.length;
+    parts.push({ file: marks[i].name, text: raw.substring(start, end) });
+  }
+  return parts;
+}
 
 function docsShowRawOCR(row) {
   var raw = docsOCRRawTextCache[row];
@@ -6249,26 +6312,101 @@ function docsShowRawOCR(row) {
   );
 }
 
+// row -> { itemLabel: matchedFileName } จากรอบตรวจ OCR ล่าสุด (per-file matching)
+var docsOCRMatchCache = {};
+
+function docsShowFileMatches(row) {
+  var map = docsOCRMatchCache[row];
+  if (!map) { alert('ยังไม่มีข้อมูลการจับคู่สำหรับแถวนี้ — กด "ตรวจเนื้อหา (OCR)" ก่อน'); return; }
+  var rows = Object.keys(map).map(function(label){
+    return '<tr><td style="padding:4px 8px;border-bottom:1px solid var(--bd)">' + escapeHtml(label) + '</td>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid var(--bd);color:var(--t2)">' + escapeHtml(map[label] || '(ไม่ทราบชื่อไฟล์)') + '</td></tr>';
+  }).join('');
+  openDebugModal(
+    '📎 รายการที่พบ — จับคู่กับไฟล์ไหน',
+    '<div style="font-size:11px;color:var(--t2);margin-bottom:8px">ถ้าชื่อไฟล์ในคอลัมน์ขวาดูไม่เกี่ยวข้องกับรายการในคอลัมน์ซ้าย (เช่น รายการ "แบบยืนยันความพร้อม" ไปจับคู่กับไฟล์ "ข้อมูลพื้นฐานโครงการ") แปลว่าอาจเป็น false positive — คำค้นไปเจอในเอกสารคนละฉบับ ควรเปิดไฟล์นั้นตรวจด้วยตา</div>' +
+    '<table style="border-collapse:collapse;width:100%;font-size:12px"><tr><th style="text-align:left;padding:4px 8px;border-bottom:2px solid var(--bd)">รายการ</th><th style="text-align:left;padding:4px 8px;border-bottom:2px solid var(--bd)">พบในไฟล์</th></tr>' + rows + '</table>'
+  );
+}
+
+// >>> อัปเดต (แก้ "Failed to fetch" จาก timeout): OCR ทีละไฟล์แยก request แทนการยิง action=ocrText
+// รวบทั้งโฟลเดอร์ในครั้งเดียว — ก่อนหน้านี้ถ้าโฟลเดอร์มีไฟล์สแกนหลายหน้าเยอะ Apps Script อาจรันเกินเพดาน
+// เวลาสูงสุด (~6 นาที) แล้วถูกตัดกลางคันแบบไม่มี response กลับมาเลย ฝั่งนี้จึงเห็นเป็น "Failed to fetch"
+// เปลี่ยนมาเป็น: เรียก listFiles ก่อนเพื่อได้รายชื่อไฟล์ แล้ววน fetch action=ocrOneFile ทีละไฟล์
+// แต่ละ request จึงสั้นลงมาก (1 ไฟล์ ไม่ใช่ทั้งโฟลเดอร์) และถ้าไฟล์ไหนล้มเหลว จะข้ามแล้วอ่านไฟล์ถัดไปต่อ
+// แทนที่จะทำให้การตรวจทั้งแถวล้มเหลวไปด้วย
+var OCR_MAX_FILES_CLIENT = 20; // เพดานจำนวนไฟล์ต่อโฟลเดอร์ ให้ตรงกับฝั่ง backend (OCR_MAX_FILES)
+
 async function docsRunCheckOCR(row, folderId) {
   var cell = document.getElementById('docs-row-'+row+'-check');
-  cell.innerHTML = '<span class="spin">⟳</span> กำลังอ่านเนื้อหาไฟล์ด้วย OCR (อาจใช้เวลานานถึงหลายนาที ไม่ต้องปิดหน้านี้)...';
+  cell.innerHTML = '<span class="spin">⟳</span> กำลังเตรียมรายชื่อไฟล์...';
   try {
-    var url = API_URL + '?action=ocrText&folderId=' + encodeURIComponent(folderId);
-    var res = await fetch(url, { method:'GET', mode:'cors' });
-    var json = await res.json();
-    if (!json.ok) throw new Error(json.error||'error');
+    var listUrl = API_URL + '?action=listFiles&folderId=' + encodeURIComponent(folderId);
+    var listRes = await fetch(listUrl, { method:'GET', mode:'cors' });
+    var listJson = await listRes.json();
+    if (!listJson.ok) throw new Error(listJson.error||'error');
+    var files = (listJson.files || []).slice(0, OCR_MAX_FILES_CLIENT);
+    var hasMoreFilesInFolder = (listJson.files || []).length > files.length;
+
+    var combined = '';
+    var filesProcessed = 0;
+    var skipped = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      cell.innerHTML = '<span class="spin">⟳</span> กำลังอ่านไฟล์ '+(i+1)+'/'+files.length+': '+escapeHtml(f.name)+' (ไม่ต้องปิดหน้านี้)...';
+      try {
+        var fUrl = API_URL + '?action=ocrOneFile&fileId=' + encodeURIComponent(f.id);
+        var fRes = await fetch(fUrl, { method:'GET', mode:'cors' });
+        var fJson = await fRes.json();
+        if (!fJson.ok) {
+          skipped.push(f.name + ' (OCR ไม่สำเร็จ: ' + (fJson.error||'ไม่ทราบสาเหตุ') + ')');
+          continue;
+        }
+        if (fJson.skippedReason) {
+          skipped.push(f.name + ' (' + fJson.skippedReason + ')');
+          continue;
+        }
+        if (fJson.text) {
+          combined += '\n\n===== ' + f.name + ' =====\n' + fJson.text;
+          filesProcessed++;
+        }
+      } catch (fileFetchErr) {
+        // ไฟล์นี้เดียวเชื่อมต่อไม่สำเร็จ (เช่น network สะดุดชั่วคราว) — ข้ามแล้วอ่านไฟล์ถัดไปต่อ
+        // ไม่ทำให้การตรวจทั้งแถวล้มเหลว ต่างจากพฤติกรรมเดิมที่ยิงทั้งโฟลเดอร์เป็น request เดียว
+        skipped.push(f.name + ' (เชื่อมต่อไม่สำเร็จ ข้ามไปก่อน — กด "ตรวจเนื้อหา (OCR)" ซ้ำเพื่อลองใหม่ทั้งแถว)');
+      }
+    }
+    var json = { text: combined, filesProcessed: filesProcessed, skipped: skipped, hasMoreFiles: hasMoreFilesInFolder };
     docsOCRRawTextCache[row] = json.text || '';
-    var text = docsNormalize(json.text || ''); // ตัดช่องว่าง/จุด/ขีด ก่อนเทียบ กัน OCR แทรกช่องว่างผิดที่ (เช่น "จ. 1-1" vs "จ.1-1")
-    var textFuzzy = docsStripDiacritics(text); // ตัดสระ/วรรณยุกต์เพิ่ม เผื่อ OCR อ่านผิดเพี้ยน (เช่น "แผ่นที่" แทน "แผนที่")
+    // แยกข้อความออกเป็นก้อนต่อไฟล์ก่อน แล้วเตรียม normalize/fuzzy ของแต่ละไฟล์ไว้ล่วงหน้า
+    // จับ keyword ทีละไฟล์ ไม่ใช่รวมทั้งโฟลเดอร์เป็นก้อนเดียว — กัน keyword ของ item หนึ่ง
+    // ไปโผล่ในไฟล์ของอีก item แล้วระบบเข้าใจผิดว่าพบไฟล์ที่ต้องการจริง ๆ
+    var fileChunks = docsSplitOCRByFile(json.text || '').map(function(f){
+      var norm = docsNormalize(f.text || '');
+      return { file: f.file, norm: norm, fuzzy: docsStripDiacritics(norm) };
+    });
     var p = getDocsProjectList().filter(function(x){ return x._row === row; })[0];
     var req = docsRequiredItems(p);
     var found = 0, missingRequired = [], missingOptional = [], ocrCaveats = [];
+    var matchedFileByItem = {}; // label -> ชื่อไฟล์ที่จับคู่เจอ (ไว้โชว์ debug กันพบ false positive ซ้ำ)
+    var totalRequired = req.items.filter(function(it){ return !it.optional; }).length;
+    var foundRequired = 0, foundOptional = 0;
     req.items.forEach(function(it) {
-      var hit = it.kw.some(function(k){ return docsKwMatch(text, docsNormalize(k)); });
-      if (!hit && it.fuzzy) {
-        hit = it.kw.some(function(k){ return docsKwMatch(textFuzzy, docsStripDiacritics(docsNormalize(k))); });
+      var matchedFile = null;
+      for (var i = 0; i < fileChunks.length; i++) {
+        var fc = fileChunks[i];
+        var hit = it.kw.some(function(k){ return docsKwMatch(fc.norm, docsNormalize(k)); });
+        if (!hit && it.fuzzy) {
+          hit = it.kw.some(function(k){ return docsKwMatch(fc.fuzzy, docsStripDiacritics(docsNormalize(k))); });
+        }
+        if (hit) { matchedFile = fc.file; break; }
       }
-      if (hit) { found++; return; }
+      if (matchedFile) {
+        found++;
+        if (it.optional) foundOptional++; else foundRequired++;
+        matchedFileByItem[it.label] = matchedFile;
+        return;
+      }
       if (!it.optional) {
         missingRequired.push(it.label);
       } else {
@@ -6276,7 +6414,8 @@ async function docsRunCheckOCR(row, folderId) {
       }
       if (it.ocrNote) ocrCaveats.push(it.label + ': ' + it.ocrNote);
     });
-    var pct = Math.round(found / req.items.length * 100);
+    // % คิดจากรายการ "บังคับ" เท่านั้น เหมือนกับ docsRunCheck — เอกสารไม่บังคับที่ไม่มี ไม่ควรกันไม่ให้ขึ้น 100%
+    var pct = totalRequired ? Math.round(foundRequired / totalRequired * 100) : 100;
     var typeLabel = req.docType === 'land' ? 'ที่ดิน/สิ่งก่อสร้าง' : req.docType === 'equipment' ? 'ครุภัณฑ์' : req.docType === 'operating' ? 'งบดำเนินงาน' : 'ไม่ทราบประเภท (ตรวจมือ)';
     var color = missingRequired.length === 0 ? 'var(--gd)' : 'var(--r)';
     var detail = missingRequired.length
@@ -6294,10 +6433,20 @@ async function docsRunCheckOCR(row, folderId) {
     var note = '';
     if (json.skipped && json.skipped.length) note += '<div style="color:#B8860B;margin-top:3px">ข้าม: ' + json.skipped.slice(0,2).join(', ') + '</div>';
     if (json.hasMoreFiles) note += '<div style="color:var(--t3);margin-top:3px">⚠ โฟลเดอร์มีไฟล์มากกว่าที่ตรวจ (ตรวจแล้ว ' + json.filesProcessed + ' ไฟล์แรก) — ผลอาจไม่ครบ</div>';
-    cell.innerHTML = '<div style="color:'+color+';font-weight:700">🔬 '+found+'/'+req.items.length+' ('+pct+'%) · '+typeLabel+' · อ่านแล้ว '+json.filesProcessed+' ไฟล์</div>' + detail + note +
-      '<div style="margin-top:3px"><a href="javascript:void(0)" onclick="docsShowRawOCR('+row+')" style="color:var(--b);font-size:11px">🔍 ดูข้อความดิบที่ OCR อ่านได้</a></div>';
+    var matchList = Object.keys(matchedFileByItem);
+    var matchHtml = '';
+    if (matchList.length && matchList.some(function(l){ return matchedFileByItem[l]; })) {
+      matchHtml = '<div style="margin-top:3px"><a href="javascript:void(0)" onclick="docsShowFileMatches(' + row + ')" style="color:var(--b);font-size:11px">📎 ดูว่าแต่ละรายการจับคู่ไฟล์ไหน (เช็คว่าไม่ใช่ false positive)</a></div>';
+      docsOCRMatchCache = docsOCRMatchCache || {};
+      docsOCRMatchCache[row] = matchedFileByItem;
+    }
+    cell.innerHTML = '<div style="color:'+color+';font-weight:700">🔬 '+foundRequired+'/'+totalRequired+' รายการบังคับ ('+pct+'%) · '+typeLabel+' · อ่านแล้ว '+json.filesProcessed+' ไฟล์</div>' + detail + note +
+      '<div style="margin-top:3px"><a href="javascript:void(0)" onclick="docsShowRawOCR('+row+')" style="color:var(--b);font-size:11px">🔍 ดูข้อความดิบที่ OCR อ่านได้</a></div>' + matchHtml;
   } catch(err) {
-    cell.innerHTML = '<span style="color:var(--r)">ตรวจ OCR ไม่สำเร็จ: '+err.message+'</span>';
+    // ตอนนี้แต่ละไฟล์ยิงแยก request แล้ว การมาถึง catch นี้ปกติแปลว่าขั้นตอน listFiles เอง
+    // เชื่อมต่อไม่สำเร็จ (เช่น เน็ตสะดุด) — ไม่ใช่การรวมทั้งโฟลเดอร์เหมือนเดิม จึงลองใหม่ได้เลยโดยไม่เสียของเก่า
+    cell.innerHTML = '<span style="color:var(--r)">ตรวจ OCR ไม่สำเร็จ: '+err.message+'</span>' +
+      '<div style="margin-top:4px"><button class="btn btn-s" style="font-size:11px;padding:3px 8px" onclick="docsRunCheckOCR('+row+',\''+folderId+'\')">🔁 ลองใหม่</button></div>';
   }
 }
 
