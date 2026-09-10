@@ -1786,6 +1786,8 @@ function doGet(e) {
       output = listFolderFiles(e.parameter.folderId);
     } else if (action === 'ocrText') {
       output = ocrExtractFolderText(e.parameter.folderId);
+    } else if (action === 'ocrOneFile') {
+      output = ocrOneFile(e.parameter.fileId);
     } else {
       output = readData(sheet, sheetTarget);
     }
@@ -2010,6 +2012,20 @@ function assertIsFolder(id) {
 var OCR_MAX_FILES = 5;        // จำกัดจำนวนไฟล์ที่ทำ OCR ต่อการเรียก 1 ครั้ง กันเกินเวลา/โควตา
 var OCR_MAX_CHARS_PER_FILE = 30000; // จำกัดความยาวข้อความต่อไฟล์ กันผลลัพธ์ใหญ่เกินไป
 
+// เดิม: substring(0, OCR_MAX_CHARS_PER_FILE) ตัดเอาแค่ "ช่วงต้น" ของข้อความ
+// ปัญหา: ไฟล์สแกนรวมหลายหน้า (เช่น 20 หน้า) ถ้าหน้าต้น ๆ มีตาราง ปร.4/ปร.5 ยาว ๆ
+// ข้อความจะเกิน 30,000 ตัวอักษรตั้งแต่หน้ากลาง ๆ แล้ว "หน้าสุดท้าย" (ที่มักเป็น Checklist)
+// จะถูกตัดออกไปทั้งหมดก่อนที่ระบบจะเอาไปจับคีย์เวิร์ดด้วยซ้ำ — จึงหาไม่พบ ทั้งที่มีอยู่จริง
+// แก้โดยเก็บทั้ง "ช่วงต้น" และ "ช่วงท้าย" ของไฟล์ไว้ ตัดออกเฉพาะช่วงกลาง
+function docsTruncateKeepHeadTail(text, maxChars) {
+  if (!text || text.length <= maxChars) return text;
+  var headLen = Math.floor(maxChars * 0.6);
+  var tailLen = maxChars - headLen;
+  return text.substring(0, headLen) +
+    '\n...(ตัดข้อความช่วงกลางออกเพื่อจำกัดขนาด)...\n' +
+    text.substring(text.length - tailLen);
+}
+
 function ocrExtractFolderText(folderId) {
   if (!folderId) return { ok: false, error: 'ไม่ได้ระบุ folderId' };
   try {
@@ -2042,13 +2058,39 @@ function ocrExtractFolderText(folderId) {
       skipped.push(f.getName() + ' (OCR ไม่สำเร็จ: ' + fileErr.message + ')');
     }
     if (text) {
-      if (text.length > OCR_MAX_CHARS_PER_FILE) text = text.substring(0, OCR_MAX_CHARS_PER_FILE);
+      text = docsTruncateKeepHeadTail(text, OCR_MAX_CHARS_PER_FILE);
       combined += '\\n\\n===== ' + f.getName() + ' =====\\n' + text;
       processed++;
     }
   }
   var hasMore = it.hasNext();
   return { ok: true, text: combined, filesProcessed: processed, skipped: skipped, hasMoreFiles: hasMore };
+}
+
+// OCR ไฟล์เดียวตาม fileId — ใช้โดย action=ocrOneFile (ฝั่ง client เรียกทีละไฟล์ กัน timeout
+// ตอนโฟลเดอร์มีไฟล์สแกนหลายหน้าเยอะ) หมายเหตุ: เดิมไม่มี handler นี้ใน doGet เลย ทำให้
+// request action=ocrOneFile ตกไปที่ else -> readData() แล้วไม่ได้ text กลับมาจริง ๆ
+function ocrOneFile(fileId) {
+  if (!fileId) return { ok: false, error: 'ไม่ได้ระบุ fileId' };
+  try {
+    var file = DriveApp.getFileById(fileId);
+    var mime = file.getMimeType();
+    var text = '';
+    if (mime === MimeType.GOOGLE_DOCS) {
+      text = DocumentApp.openById(fileId).getBody().getText();
+    } else if (mime === MimeType.PLAIN_TEXT) {
+      text = file.getBlob().getDataAsString();
+    } else if (mime === 'application/pdf' || mime.indexOf('image/') === 0 ||
+               mime === MimeType.MICROSOFT_WORD || mime === 'application/msword') {
+      text = ocrFileToText(file);
+    } else {
+      return { ok: true, text: '', skippedReason: 'ไฟล์ประเภทนี้ยังไม่รองรับ' };
+    }
+    text = docsTruncateKeepHeadTail(text, OCR_MAX_CHARS_PER_FILE);
+    return { ok: true, text: text };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
 }
 
 function ocrFileToText(file) {
@@ -5922,7 +5964,7 @@ var DOC_BASE_ITEMS = [
       'site plan','location map','จุดเริ่มต้นโครงการ','จุดสิ้นสุดโครงการ','ระยะทางโครงการ'
     ], ocrNote:'หน้านี้มักเป็นภาพแผนที่/แผนผังที่สแกนมา OCR อาจอ่านข้อความไม่ออกหรืออ่านผิดเพี้ยน (เช่น "แผ่นที่" แทน "แผนที่") หากระบบแจ้งว่าขาด ให้เปิดไฟล์ตรวจด้วยตาก่อนสรุปว่าไม่มี' },
   { id:'checklist', label:'Checklist เอกสารโครงการ (แบบตรวจสอบรายการเอกสารประกอบ)', fuzzy:true, kw:[
-      'checklist','เช็คลิสต์','เช็ก ลิสต์','บัญชีรายการเอกสาร','แบบตรวจสอบเอกสาร','รายการเอกสารประกอบ','แบบตรวจสอบรายการเอกสาร'
+      'checklist','เช็คลิสต์','เช็ก ลิสต์','บัญชีรายการเอกสาร','แบบตรวจสอบเอกสาร','รายการเอกสารประกอบ','แบบตรวจสอบรายการเอกสาร','เอกสารหลัก'
     ] },
   { id:'readiness', label:'แบบยืนยันความพร้อมของโครงการ', fuzzy:true, kw:[
       'แบบยืนยันความพร้อม','ยืนยันความพร้อมของโครงการ','ยืนยันวาโครงการมีความพรอม','ยืนยันว่าโครงการมีความพร้อม'
